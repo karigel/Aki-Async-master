@@ -1,195 +1,210 @@
-# Aki-Async Paper 适配总结
+# Aki-Async (Paper/Ignite Fork)
 
-## 项目概述
+这是 [Aki-Async](https://github.com/virgil698/Aki-Async) 的 Fork 版本，专门适配 **Paper 服务器** 和 **Ignite Mod Loader**。
 
-本项目是将原版 Aki-Async（设计用于 Bukkit/Spigot 插件系统）适配到 **Ignite Mod Loader**（用于 Paper 服务器）的移植版本。
+## 📋 项目说明
 
-## 核心区别
+原版 Aki-Async 设计用于标准的 Bukkit/Spigot 插件系统，需要插件生命周期（`onEnable()`）来初始化。本项目通过 **Mixin 注入** 和 **独立初始化系统**，使其能够在 Ignite Mod Loader 环境下作为 Mod 运行，完全支持 Paper 服务器。
 
-### 1. **初始化方式：独立模式 vs 插件模式**
+## ✨ 主要特性
 
-#### 原版 Aki-Async
-- 依赖标准的 Bukkit `JavaPlugin` 生命周期
-- 通过 `onEnable()` 方法初始化
-- 需要插件系统加载和启用
+- ✅ **完全兼容 Paper 服务器**：通过 Ignite Mod Loader 运行
+- ✅ **100% 功能支持**：所有原版优化功能完全可用
+- ✅ **不破坏原版特性**：使用 `CallerRunsPolicy` 确保任务不丢失
+- ✅ **自动初始化**：通过 Mixin 在服务器启动时自动加载
+- ✅ **智能配置管理**：自动检测并创建配置文件
 
-#### 本项目（Paper 适配）
-- **独立初始化模式**：通过 `AkiAsyncInitializer` 在服务器启动时直接初始化
-- **不依赖插件系统**：可以在 Ignite 的 mods-only 模式下工作
-- **Mixin 注入**：通过 `CraftServerLoadPluginsMixin` 在 `CraftServer` 构造时自动初始化
+## 🚀 安装方法
 
-### 2. **配置文件路径检测**
+1. 将编译好的 JAR 文件放入服务器的 `mods/` 文件夹
+2. 启动服务器，Aki-Async 会自动初始化
+3. 配置文件会自动创建在 `mods/AkiAsync/` 目录
 
-#### 原版 Aki-Async
-- 固定使用 `plugins/AkiAsync/` 目录
+## 📁 配置文件位置
 
-#### 本项目
-- **智能路径检测**：自动检测 JAR 文件位置
-  - 如果在 `mods/` 文件夹中 → 使用 `mods/AkiAsync/`
-  - 如果在 `plugins/` 文件夹中 → 使用 `plugins/AkiAsync/`
-- **自动复制配置文件**：从 JAR 中提取 `config.yml`、`entities.yml`、`throttling.yml`
+- **主配置**：`mods/AkiAsync/config.yml`
+- **实体配置**：`mods/AkiAsync/entities.yml`
+- **节流配置**：`mods/AkiAsync/throttling.yml`
 
-### 3. **Executor 创建方式**
+首次运行时会自动从 JAR 中提取默认配置文件。
 
-#### 原版 Aki-Async
-- 通过 `AsyncExecutorManager` 在 `AkiAsyncPlugin.onEnable()` 中创建
-- 需要 `AkiAsyncPlugin` 实例
+## 🔧 核心适配工作
 
-#### 本项目
-- **独立创建 Executor**：在 `AkiAsyncInitializer.createExecutors()` 中创建
-- **完全功能支持**：创建所有 6 种 Executor（General、Lighting、TNT、ChunkTick、VillagerBreed、Brain）
-- **保持原版行为**：使用相同的线程池配置、策略和优先级
+### 1. 独立初始化系统
 
-### 4. **Bridge 模式：双模式支持**
-
-#### 原版 Aki-Async
-- 只有一种模式：`AkiAsyncBridge(plugin, executors...)`
-
-#### 本项目
-- **双构造函数支持**：
-  ```java
-  // 插件模式（原版）
-  AkiAsyncBridge(plugin, executors...)
-  
-  // 独立模式（新增）
-  AkiAsyncBridge(config, executors...)
-  ```
-- **向后兼容**：仍然支持原版的插件模式
-
-### 5. **命令注册方式**
-
-#### 原版 Aki-Async
-- 在 `AkiAsyncPlugin.onEnable()` 中通过 `getCommand()` 注册
-
-#### 本项目
-- **Mixin 注入注册**：通过 `CraftServerLoadPluginsMixin.akiasync$afterEnablePlugins()` 注册
-- **独立命令类**：`AkiReloadCommand`、`AkiDebugCommand`、`AkiVersionCommand`（不依赖 plugin 实例）
-
-### 6. **配置管理**
-
-#### 原版 Aki-Async
-- `ConfigManager` 需要 `JavaPlugin` 实例来获取 `dataFolder`
-
-#### 本项目
-- **独立模式支持**：
-  - `ConfigManager` 支持 `plugin == null` 的情况
-  - `backupAndRegenerateConfig()` 方法支持从 `AkiAsyncInitializer` 获取数据文件夹
-  - 添加了 `copyDefaultConfigFromJar()` 方法用于从 JAR 复制默认配置
-
-## 关键适配文件
-
-### 1. `AkiAsyncInitializer.java`（新增）
-- **作用**：独立的初始化器，不依赖 `JavaPlugin` 生命周期
-- **功能**：
-  - 检测配置文件路径（mods vs plugins）
-  - 从 JAR 复制默认配置文件
-  - 创建所有 Executor 线程池
-  - 初始化 Bridge 和所有优化模块
-  - 支持配置重载
-
-### 2. `CraftServerLoadPluginsMixin.java`（新增）
-- **作用**：通过 Mixin 在服务器启动时自动初始化
-- **功能**：
-  - 在 `CraftServer` 构造时调用 `AkiAsyncInitializer.initialize()`
-  - 在 `enablePlugins()` 后注册命令
-
-### 3. `AkiAsyncBridge.java`（修改）
-- **新增**：独立模式的构造函数
-- **修改**：所有方法都支持 `plugin == null` 的情况
-
-### 4. `ConfigManager.java`（修改）
-- **修改**：`backupAndRegenerateConfig()` 支持独立模式
-- **新增**：`copyDefaultConfigFromJar()` 方法
-
-### 5. `IgniteAutoLoader.java`（可选，用于完整插件模式）
-- **作用**：将 mods 中的 JAR 手动注入到 Bukkit 插件系统
-- **功能**：通过反射创建和注册 `AkiAsyncPlugin` 实例
-
-## 技术实现细节
-
-### 1. **Mixin 注入时机**
+**原版方式**：依赖 Bukkit `JavaPlugin` 生命周期
 ```java
+// 原版：在 onEnable() 中初始化
+public void onEnable() {
+    // 初始化逻辑
+}
+```
+
+**本 Fork**：通过 `AkiAsyncInitializer` 独立初始化
+```java
+// 通过 Mixin 在 CraftServer 构造时自动初始化
 @Inject(method = "<init>", at = @At("RETURN"))
 private void akiasync$onConstruction(final CallbackInfo ci) {
     AkiAsyncInitializer.initialize(getLogger());
 }
 ```
-- 在 `CraftServer` 构造完成后立即初始化
-- 不依赖插件系统的加载顺序
 
-### 2. **Executor 创建策略**
-- 使用 `ThreadPoolExecutor.CallerRunsPolicy`：**不破坏原版特性**
-  - 当队列满时，在调用线程中执行任务
-  - 确保不会丢失任务或阻塞
-- 所有线程设置为 daemon：不会阻止 JVM 关闭
-- 预启动核心线程：提高响应速度
+### 2. Mixin 自动注入
 
-### 3. **配置文件处理**
+创建了 `CraftServerLoadPluginsMixin`，在服务器启动时自动：
+- 初始化 Aki-Async 系统
+- 注册命令（`/aki-reload`, `/aki-debug`, `/aki-version`）
+- 设置 Bridge 和所有 Executor
+
+### 3. Executor 独立创建
+
+**原版方式**：在 `AkiAsyncPlugin.onEnable()` 中通过 `AsyncExecutorManager` 创建
+
+**本 Fork**：在 `AkiAsyncInitializer.createExecutors()` 中独立创建所有 Executor：
+- General Executor（通用线程池）
+- Lighting Executor（光照线程池）
+- TNT Executor（TNT 爆炸线程池）
+- ChunkTick Executor（区块 Tick 线程池）
+- VillagerBreed Executor（村民繁殖线程池）
+- Brain Executor（AI 大脑线程池）
+
+所有 Executor 使用与原版相同的配置：
+- `ThreadPoolExecutor.CallerRunsPolicy`：不破坏原版特性
+- Daemon 线程：不会阻止 JVM 关闭
+- 适当的线程优先级和队列大小
+
+### 4. Bridge 双模式支持
+
+**原版方式**：只有插件模式
 ```java
-private void copyResourceIfNotExists(String resourceName) {
-    // 从 JAR 中提取资源文件
-    // 如果文件已存在，跳过（保留用户配置）
+AkiAsyncBridge(plugin, executors...)
+```
+
+**本 Fork**：支持独立模式
+```java
+// 独立模式（新增）
+AkiAsyncBridge(config, executors...)
+
+// 插件模式（兼容）
+AkiAsyncBridge(plugin, executors...)
+```
+
+### 5. 配置管理适配
+
+- `ConfigManager` 支持 `plugin == null` 的情况
+- `backupAndRegenerateConfig()` 支持从 `AkiAsyncInitializer` 获取数据文件夹
+- 自动从 JAR 复制默认配置文件
+
+### 6. 命令系统适配
+
+创建了独立的命令类（不依赖 plugin 实例）：
+- `AkiReloadCommand`：重载配置
+- `AkiDebugCommand`：调试信息
+- `AkiVersionCommand`：版本信息
+
+通过 Mixin 在 `enablePlugins()` 后自动注册。
+
+## 📊 功能对比
+
+| 功能 | 原版 Aki-Async | 本 Fork |
+|------|---------------|---------|
+| 初始化方式 | 插件生命周期 | Mixin 自动注入 |
+| 配置文件路径 | `plugins/AkiAsync/` | `mods/AkiAsync/` |
+| Executor 创建 | 需要 plugin 实例 | 独立创建 |
+| Bridge 模式 | 仅插件模式 | 双模式支持 |
+| 命令注册 | 插件系统 | Mixin 注入 |
+| Paper 支持 | ❌ | ✅ |
+| Ignite 支持 | ❌ | ✅ |
+
+## 🎯 技术实现
+
+### Mixin 注入时机
+
+```java
+@Mixin(value = CraftServer.class)
+public abstract class CraftServerLoadPluginsMixin {
+    @Inject(method = "<init>", at = @At("RETURN"))
+    private void akiasync$onConstruction(final CallbackInfo ci) {
+        AkiAsyncInitializer.initialize(getLogger());
+    }
 }
 ```
-- 首次运行时自动创建配置文件
-- 保留用户修改的配置
 
-### 4. **Bridge 模式切换**
+在 `CraftServer` 构造完成后立即初始化，不依赖插件系统的加载顺序。
+
+### Executor 创建策略
+
 ```java
-// 检查 plugin 是否为 null
-if (plugin != null) {
-    // 插件模式：使用 plugin.getDataFolder()
-} else {
-    // 独立模式：使用 AkiAsyncInitializer.getInstance().getDataFolder()
-}
+new ThreadPoolExecutor(
+    threadPoolSize, threadPoolSize,
+    60L, TimeUnit.SECONDS,
+    new LinkedBlockingQueue<>(maxQueueSize),
+    threadFactory,
+    new ThreadPoolExecutor.CallerRunsPolicy() // 不破坏原版特性
+);
 ```
 
-## 兼容性保证
+使用 `CallerRunsPolicy` 确保：
+- 队列满时在调用线程执行任务
+- 不会丢失任务或阻塞
+- 保持原版游戏特性
 
-### 1. **向后兼容**
-- 仍然支持原版的插件模式（如果通过 `IgniteAutoLoader` 注入）
-- 所有 Mixin 代码保持不变
-- 所有优化功能完全兼容
+## 📝 使用说明
 
-### 2. **功能完整性**
-- ✅ 所有 Executor 都已创建
-- ✅ 所有优化功能都能正常工作
-- ✅ 配置系统完全支持
-- ✅ 命令系统正常工作
+### 基本使用
 
-### 3. **不破坏原版特性**
-- 使用 `CallerRunsPolicy` 确保任务不会丢失
-- 所有线程都是 daemon 线程
-- 保持与原版相同的线程优先级和配置
+1. 将 JAR 放入 `mods/` 文件夹
+2. 启动服务器
+3. 查看日志确认初始化成功：
+   ```
+   [AkiAsync/Ignite] CraftServer 构造完成，Mixin 已生效！
+   [AkiAsync] Bridge registered successfully with all executors
+   ```
 
-## 使用场景
+### 配置调整
 
-### 场景 1：纯 Ignite 模式（推荐）
-- JAR 放在 `mods/` 文件夹
-- 通过 Mixin 自动初始化
-- 配置文件在 `mods/AkiAsync/`
+编辑 `mods/AkiAsync/config.yml` 来调整优化设置。
 
-### 场景 2：混合模式
-- JAR 放在 `plugins/` 文件夹
-- 通过 `IgniteAutoLoader` 注入到插件系统
-- 配置文件在 `plugins/AkiAsync/`
+### 命令使用
 
-### 场景 3：标准插件模式（兼容）
-- 如果服务器支持标准插件加载
-- 可以像普通插件一样使用
+- `/aki-reload`：重载配置文件
+- `/aki-debug`：查看调试信息
+- `/aki-version`：查看版本信息
 
-## 总结
+## 🔄 与原版的区别
 
-本项目通过以下关键适配实现了对 Paper 服务器的完整支持：
+### 主要修改文件
 
-1. **独立初始化系统**：不依赖插件生命周期
-2. **智能路径检测**：自动适配 mods/plugins 文件夹
-3. **完整 Executor 支持**：所有功能都能正常工作
-4. **双模式 Bridge**：支持插件模式和独立模式
-5. **Mixin 自动注入**：无缝集成到服务器启动流程
+1. **新增**：`AkiAsyncInitializer.java` - 独立初始化系统
+2. **新增**：`CraftServerLoadPluginsMixin.java` - Mixin 自动注入
+3. **修改**：`AkiAsyncBridge.java` - 添加独立模式构造函数
+4. **修改**：`ConfigManager.java` - 支持独立模式配置管理
+5. **新增**：独立命令类（`AkiReloadCommand`, `AkiDebugCommand`, `AkiVersionCommand`）
 
-**核心优势**：
-- ✅ 完全兼容 Paper 服务器
-- ✅ 保持所有原版功能
-- ✅ 不破坏原版特性
-- ✅ 向后兼容原版插件模式
+### 保持兼容
+
+- ✅ 所有 Mixin 代码保持不变
+- ✅ 所有优化功能完全兼容
+- ✅ 配置格式完全兼容
+- ✅ 行为与原版一致
+
+## ⚠️ 注意事项
+
+1. **仅支持 mods 文件夹**：JAR 必须放在 `mods/` 文件夹中
+2. **需要 Ignite Mod Loader**：必须在支持 Ignite 的 Paper 服务器上运行
+3. **配置文件位置**：配置文件在 `mods/AkiAsync/`，不是 `plugins/AkiAsync/`
+
+## 📄 许可证
+
+与原版 Aki-Async 保持一致。
+
+## 🙏 致谢
+
+- 原版项目：[Aki-Async](https://github.com/virgil698/Aki-Async)
+- Ignite Mod Loader：[Ignite](https://github.com/vectrix-space/ignite)
+
+## 📚 相关链接
+
+- [原版 Aki-Async](https://github.com/virgil698/Aki-Async)
+- [Ignite Mod Loader](https://github.com/vectrix-space/ignite)
+- [Paper](https://papermc.io/)
