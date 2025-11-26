@@ -25,7 +25,7 @@ import org.virgil.akiasync.config.ConfigManager;
 public final class AkiAsyncInitializer {
     
     private static AkiAsyncInitializer instance;
-    private static boolean initialized = false;
+    private static volatile boolean initialized = false;
     
     private ConfigManager configManager;
     // 注意：cacheManager 在独立模式下暂不使用
@@ -310,6 +310,14 @@ public final class AkiAsyncInitializer {
     
     public Logger getLogger() {
         return logger;
+    }
+    
+    /**
+     * 检查是否已初始化
+     * Check if already initialized
+     */
+    public static boolean isInitialized() {
+        return initialized;
     }
     
     /**

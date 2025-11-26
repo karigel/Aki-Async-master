@@ -23,16 +23,25 @@ public abstract class CraftServerLoadPluginsMixin {
     @Shadow public abstract Logger getLogger();
     @Shadow public abstract CommandMap getCommandMap();
 
-    @Inject(method = "<init>", at = @At("RETURN"))
-    private void akiasync$onConstruction(final CallbackInfo ci) {
-        System.out.println("[AkiAsync/Ignite] ====== CraftServer 构造函数注入成功！======");
+    @Inject(method = "loadPlugins", at = @At("HEAD"))
+    private void akiasync$beforeLoadPlugins(final CallbackInfo ci) {
+        // 在加载插件之前初始化，但使用延迟初始化避免影响类加载器
         try {
-            getLogger().info("[AkiAsync/Ignite] CraftServer 构造完成，Mixin 已生效！");
-            // 初始化 AkiAsync（不依赖插件系统）
-            AkiAsyncInitializer.initialize(getLogger());
+            if (!org.virgil.akiasync.bootstrap.AkiAsyncInitializer.isInitialized()) {
+                getLogger().info("[AkiAsync/Ignite] 在插件加载前初始化 AkiAsync...");
+                // 使用延迟初始化，避免在类加载器操作期间执行
+                java.util.concurrent.CompletableFuture.runAsync(() -> {
+                    try {
+                        Thread.sleep(100); // 短暂延迟，确保类加载器操作完成
+                        AkiAsyncInitializer.initialize(getLogger());
+                    } catch (Exception e) {
+                        getLogger().severe("[AkiAsync/Ignite] 异步初始化失败: " + e.getMessage());
+                        e.printStackTrace();
+                    }
+                });
+            }
         } catch (Exception e) {
-            System.err.println("[AkiAsync/Ignite] 初始化失败: " + e.getMessage());
-            e.printStackTrace();
+            getLogger().warning("[AkiAsync/Ignite] 初始化检查失败: " + e.getMessage());
         }
     }
     

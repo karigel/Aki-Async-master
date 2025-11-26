@@ -123,9 +123,9 @@ public class DataPackLoadOptimizer {
                     java.util.logging.Logger logger = getLogger();
                     if (logger != null) {
                         logger.info(String.format(
-                            "[AkiAsync-DataPack] Starting optimized loading of %d files from %s",
-                            filePaths.size(), zipPath.getFileName()
-                        ));
+                        "[AkiAsync-DataPack] Starting optimized loading of %d files from %s",
+                        filePaths.size(), zipPath.getFileName()
+                    ));
                     }
                 }
                 
@@ -143,9 +143,9 @@ public class DataPackLoadOptimizer {
                     java.util.logging.Logger logger = getLogger();
                     if (logger != null) {
                         logger.info(String.format(
-                            "[AkiAsync-DataPack] Completed loading %d files in %dms (avg: %.2fms/file)",
-                            filePaths.size(), loadTime, (double) loadTime / filePaths.size()
-                        ));
+                        "[AkiAsync-DataPack] Completed loading %d files in %dms (avg: %.2fms/file)",
+                        filePaths.size(), loadTime, (double) loadTime / filePaths.size()
+                    ));
                     }
                 }
                 
@@ -320,9 +320,9 @@ public class DataPackLoadOptimizer {
             java.util.logging.Logger logger = getLogger();
             if (logger != null) {
                 logger.info(String.format(
-                    "[AkiAsync-DataPack] Cleanup completed: removed %d file entries, %d file systems",
+                "[AkiAsync-DataPack] Cleanup completed: removed %d file entries, %d file systems",
                     filesRemoved, systemsRemoved
-                ));
+            ));
             }
         }
     }

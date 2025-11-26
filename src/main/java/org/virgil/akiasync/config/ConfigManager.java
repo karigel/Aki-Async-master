@@ -6,7 +6,7 @@ import org.virgil.akiasync.AkiAsyncPlugin;
 public class ConfigManager {
     
     private final AkiAsyncPlugin plugin;
-    private java.util.logging.Logger logger; // 用于独立模式
+    private java.util.logging.Logger logger; // ç¨äşçŹçŤć¨Ąĺź
     private FileConfiguration config;
     private boolean entityTrackerEnabled;
     private int threadPoolSize;
@@ -165,7 +165,7 @@ public class ConfigManager {
             plugin.reloadConfig();
             config = plugin.getConfig();
         }
-        // 如果 plugin �?null，config 应该已经通过 setConfig() 设置
+        // ĺŚć plugin ä¸?nullďźconfig ĺşčŻĽĺˇ˛çťéčż setConfig() čŽžç˝Ž
         if (config == null) {
             throw new IllegalStateException("ConfigManager: plugin is null and config is not set");
         }
@@ -654,11 +654,11 @@ public class ConfigManager {
             brainThrottleInterval = 0;
         }
         if (asyncAITimeoutMicros < 100) {
-            getLogger().warning("Async AI timeout too low, setting to 100娓璼");
+            getLogger().warning("Async AI timeout too low, setting to 100ĺ¨çź");
             asyncAITimeoutMicros = 100;
         }
         if (asyncAITimeoutMicros > 5000) {
-            getLogger().warning("Async AI timeout too high, setting to 5000娓璼 (5ms)");
+            getLogger().warning("Async AI timeout too high, setting to 5000ĺ¨çź (5ms)");
             asyncAITimeoutMicros = 5000;
         }
         if (entityTickThreads < 1) entityTickThreads = 1;
@@ -953,17 +953,17 @@ public class ConfigManager {
         return config != null ? config.getBoolean(path, defaultValue) : defaultValue;
     }
     
-    // 用于独立模式：直接从外部设置 config
+    // ç¨äşçŹçŤć¨Ąĺźďźç´ćĽäťĺ¤é¨čŽžç˝Ž config
     public void setConfig(FileConfiguration config) {
         this.config = config;
     }
     
-    // 用于独立模式：设�?Logger
+    // ç¨äşçŹçŤć¨ĄĺźďźčŽžç˝?Logger
     public void setLogger(java.util.logging.Logger logger) {
         this.logger = logger;
     }
     
-    // 获取 Logger，优先使用独立模式的 logger，否则使�?plugin �?logger
+    // čˇĺ Loggerďźäźĺä˝żç¨çŹçŤć¨Ąĺźç loggerďźĺŚĺä˝żç?plugin ç?logger
     private java.util.logging.Logger getLogger() {
         if (logger != null) {
             return logger;
@@ -971,11 +971,11 @@ public class ConfigManager {
         if (plugin != null) {
             return plugin.getLogger();
         }
-        // 如果没有 logger，返回一个空 logger 或使用系统默�?logger
+        // ĺŚćć˛Ąć loggerďźčżĺä¸ä¸ŞçŠş logger ćä˝żç¨çłťçťéťčŽ?logger
         return java.util.logging.Logger.getLogger("AkiAsync");
     }
     
-    // 保存配置（用于独立模式）
+    // äżĺ­éç˝Žďźç¨äşçŹçŤć¨Ąĺźďź
     private void saveConfig() {
         if (plugin != null) {
             plugin.saveConfig();
