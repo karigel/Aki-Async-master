@@ -1,0 +1,49 @@
+# ==========================================
+# AkiAsync 节流配置文件 / Throttling Configuration File
+# ==========================================
+# 说明：此文件包含实体节流配置（Dynamic Activation of Brain - DAB）
+# Description: This file contains entity throttling configuration (Dynamic Activation of Brain - DAB)
+# 版本 / Version: 8.0
+# 来源 / Source: Pufferfish
+
+# ==========================================
+# 实体节流配置 / Entity Throttling Configuration
+# ==========================================
+# 说明：根据距离动态激活实体大脑，减少不必要的 AI 计算
+# Description: Dynamically activate entity brains based on distance to reduce unnecessary AI calculations
+
+throttling:
+  # 启用开关 / Enable toggle
+  enabled: true
+  
+  # 默认配置 / Default configuration
+  default:
+    # 激活距离（格）/ Activation distance (blocks)
+    # 说明：玩家在此距离内时，实体 AI 正常更新
+    # Description: Entity AI updates normally when players are within this distance
+    activation-distance: 32
+    
+    # 最大激活距离（格）/ Maximum activation distance (blocks)
+    # 说明：超过此距离的实体将完全停止 AI 更新
+    # Description: Entities beyond this distance will completely stop AI updates
+    max-activation-distance: 64
+    
+    # 节流间隔（tick）/ Throttle interval (ticks)
+    # 说明：距离较远的实体每 N tick 更新一次 AI
+    # Description: Entities at distance update AI every N ticks
+    throttle-interval: 20
+  
+  # 实体特定配置 / Entity-specific configuration
+  entities:
+    # 示例：村民特殊配置 / Example: Villager specific config
+    # "minecraft:villager":
+    #   activation-distance: 48
+    #   max-activation-distance: 96
+    #   throttle-interval: 10
+    
+    # 示例：动物特殊配置 / Example: Animal specific config
+    # "minecraft:cow":
+    #   activation-distance: 24
+    #   max-activation-distance: 48
+    #   throttle-interval: 40
+

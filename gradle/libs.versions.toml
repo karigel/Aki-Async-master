@@ -1,0 +1,23 @@
+[versions]
+paperApi = "1.21.1-R0.1-SNAPSHOT"
+paperweightUserdev = "1.7.2"
+shadow = "8.3.0"
+runPaper = "2.3.0"
+igniteApi = "1.1.0"
+spongeMixin = "0.13.3+mixin.0.8.5"
+mixinExtras = "0.3.6"
+fastutil = "8.5.12"
+accessWiden = "1.0.0"
+
+[libraries]
+paperApi = { group = "io.papermc.paper", name = "paper-api", version.ref = "paperApi" }
+igniteApi = { group = "space.vectrix.ignite", name = "ignite-api", version.ref = "igniteApi" }
+spongeMixin = { group = "net.fabricmc", name = "sponge-mixin", version.ref = "spongeMixin" }
+mixinExtras = { group = "io.github.llamalad7", name = "mixinextras-common", version.ref = "mixinExtras" }
+fastutil = { group = "it.unimi.dsi", name = "fastutil", version.ref = "fastutil" }
+
+[plugins]
+paperweightUserdev = { id = "io.papermc.paperweight.userdev", version.ref = "paperweightUserdev" }
+shadowJar = { id = "com.gradleup.shadow", version.ref = "shadow" }
+runPaper = { id = "xyz.jpenilla.run-paper", version.ref = "runPaper" }
+accessWiden = { id = "io.github.gliczdev.access-widen", version.ref = "accessWiden" }
