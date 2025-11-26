@@ -67,8 +67,7 @@ public final class AkiAsyncInitializer {
             final AkiAsyncInitializer init = getInstance();
             init.logger = logger;
             
-            // 检测配置文件应该输出到哪里
-            // 如果 JAR 在 mods 文件夹中，则输出到 mods/AkiAsync，否则输出到 plugins/AkiAsync
+            // 检测配置文件应该输出到哪里（mods/AkiAsync）
             init.dataFolder = detectDataFolder(logger);
             
             if (!init.dataFolder.exists()) {
@@ -258,9 +257,9 @@ public final class AkiAsyncInitializer {
     
     /**
      * 检测数据文件夹位置
-     * 如果 JAR 在 mods 文件夹中，则使用 mods/AkiAsync，否则使用 plugins/AkiAsync
+     * 检测 JAR 是否在 mods 文件夹中，如果是则使用 mods/AkiAsync
      * Detect data folder location
-     * If JAR is in mods folder, use mods/AkiAsync, otherwise use plugins/AkiAsync
+     * Check if JAR is in mods folder, if so use mods/AkiAsync
      */
     private static File detectDataFolder(Logger logger) {
         try {
@@ -285,12 +284,12 @@ public final class AkiAsyncInitializer {
                 }
             }
         } catch (Exception e) {
-            logger.warning("[AkiAsync/Ignite] 无法检测 JAR 位置，使用默认路径 plugins/AkiAsync: " + e.getMessage());
+            logger.warning("[AkiAsync/Ignite] 无法检测 JAR 位置: " + e.getMessage());
         }
         
-        // 默认使用 plugins 文件夹
-        logger.info("[AkiAsync/Ignite] 使用默认配置文件路径: plugins/AkiAsync");
-        return new File("plugins/AkiAsync");
+        // 默认使用 mods 文件夹（因为这是 Ignite mod loader）
+        logger.info("[AkiAsync/Ignite] 使用默认配置文件路径: mods/AkiAsync");
+        return new File("mods/AkiAsync");
     }
     
     /**
