@@ -78,6 +78,13 @@ public abstract class CraftServerLoadPluginsMixin {
                     getLogger().warning("[AkiAsync/Ignite] 虚拟实体检测器初始化失败: " + e.getMessage());
                 }
                 
+                // 初始化辅助功能（NetworkOptimization、ChunkLoadScheduler 等）
+                try {
+                    org.virgil.akiasync.bootstrap.IgnitePluginAdapter.getInstance().initializeAuxiliaryFeatures();
+                } catch (Exception e) {
+                    getLogger().warning("[AkiAsync/Ignite] 辅助功能初始化失败: " + e.getMessage());
+                }
+                
                 getLogger().info("[AkiAsync/Ignite] 所有兼容层已初始化完成");
             }
         } catch (Exception e) {
