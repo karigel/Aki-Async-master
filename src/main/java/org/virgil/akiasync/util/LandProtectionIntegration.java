@@ -33,8 +33,21 @@ public class LandProtectionIntegration {
     private static Object worldGuardAPI = null;
     private static Object kariClaimsManager = null;
     
-    static {
-        initialize();
+    private static volatile boolean initialized = false;
+    
+    /**
+     * 确保已初始化（延迟初始化）
+     * Ensure initialized (lazy initialization)
+     */
+    private static void ensureInitialized() {
+        if (!initialized) {
+            synchronized (LandProtectionIntegration.class) {
+                if (!initialized) {
+                    initialize();
+                    initialized = true;
+                }
+            }
+        }
     }
     
     private static void initialize() {
@@ -97,6 +110,7 @@ public class LandProtectionIntegration {
      * @return true 如果可以爆炸，false 如果被保护 / true if can explode, false if protected
      */
     public static boolean canTNTExplode(ServerLevel level, BlockPos pos) {
+        ensureInitialized();
         org.bukkit.World bukkitWorld = level.getWorld();
         Location location = new Location(
             bukkitWorld,
@@ -189,18 +203,22 @@ public class LandProtectionIntegration {
     }
     
     public static boolean isResidenceEnabled() {
+        ensureInitialized();
         return residenceEnabled;
     }
     
     public static boolean isLandsEnabled() {
+        ensureInitialized();
         return landsEnabled;
     }
     
     public static boolean isWorldGuardEnabled() {
+        ensureInitialized();
         return worldGuardEnabled;
     }
     
     public static boolean isKariClaimsEnabled() {
+        ensureInitialized();
         return kariClaimsEnabled;
     }
     
@@ -209,6 +227,7 @@ public class LandProtectionIntegration {
      * Get list of all detected protection plugins
      */
     public static java.util.List<String> getDetectedPlugins() {
+        ensureInitialized();
         java.util.List<String> plugins = new java.util.ArrayList<>();
         if (residenceEnabled) plugins.add("Residence");
         if (landsEnabled) plugins.add("Lands");
@@ -222,6 +241,7 @@ public class LandProtectionIntegration {
      * Check if any protection plugin is detected
      */
     public static boolean hasAnyProtectionPlugin() {
+        ensureInitialized();
         return residenceEnabled || landsEnabled || worldGuardEnabled || kariClaimsEnabled;
     }
     
@@ -243,15 +263,18 @@ public class LandProtectionIntegration {
     }
     
     public static void reload() {
-        residenceEnabled = false;
-        landsEnabled = false;
-        worldGuardEnabled = false;
-        kariClaimsEnabled = false;
-        residenceAPI = null;
-        landsAPI = null;
-        worldGuardAPI = null;
-        kariClaimsManager = null;
-        initialize();
+        synchronized (LandProtectionIntegration.class) {
+            residenceEnabled = false;
+            landsEnabled = false;
+            worldGuardEnabled = false;
+            kariClaimsEnabled = false;
+            residenceAPI = null;
+            landsAPI = null;
+            worldGuardAPI = null;
+            kariClaimsManager = null;
+            initialized = false;
+        }
+        ensureInitialized();
     }
 }
 

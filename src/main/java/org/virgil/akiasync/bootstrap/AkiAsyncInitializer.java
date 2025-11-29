@@ -118,14 +118,9 @@ public final class AkiAsyncInitializer {
                 org.virgil.akiasync.mixin.async.TNTThreadPool.init(init.configManager.getTNTThreads());
                 logger.info("[AkiAsync] TNT explosion optimization enabled with " + init.configManager.getTNTThreads() + " threads");
                 
-                // 打印保护插件兼容状态
                 // 注意：在 Ignite/Mixin 模式下，插件可能还没完全加载
-                // 延迟检测会在服务器完全启动后执行
-                try {
-                    org.virgil.akiasync.util.LandProtectionIntegration.logCompatibilityStatus(logger);
-                } catch (Exception e) {
-                    logger.info("[AkiAsync] Land protection check will be performed after plugins load.");
-                }
+                // 保护插件检测会在首次 TNT 爆炸时自动执行（延迟初始化）
+                logger.info("[AkiAsync] Land protection check will be performed when plugins are ready.");
             }
             
             if (init.configManager.isAsyncVillagerBreedEnabled()) {

@@ -58,6 +58,11 @@ public abstract class CraftServerLoadPluginsMixin {
             } else {
                 getLogger().warning("[AkiAsync/Ignite] CommandMap 未初始化，无法注册命令");
             }
+            
+            // 插件已加载完成，现在检测保护插件兼容性
+            if (type == PluginLoadOrder.POSTWORLD) {
+                org.virgil.akiasync.util.LandProtectionIntegration.logCompatibilityStatus(getLogger());
+            }
         } catch (Exception e) {
             getLogger().severe("[AkiAsync/Ignite] 注册命令时出错: " + e.getMessage());
             e.printStackTrace();
