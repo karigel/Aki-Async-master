@@ -17,18 +17,21 @@ import org.bukkit.plugin.Plugin;
  * - Residence (com.github.Zrips:Residence)
  * - Lands (com.github.angeschossen:LandsAPI)
  * - WorldGuard (com.sk89q.worldguard)
+ * - KariClaims (org.kari.kariClaims)
  * 
- * 版本 / Version: 8.0
+ * 版本 / Version: 8.1
  */
 public class LandProtectionIntegration {
     
     private static boolean residenceEnabled = false;
     private static boolean landsEnabled = false;
     private static boolean worldGuardEnabled = false;
+    private static boolean kariClaimsEnabled = false;
     
     private static Object residenceAPI = null;
     private static Object landsAPI = null;
     private static Object worldGuardAPI = null;
+    private static Object kariClaimsManager = null;
     
     static {
         initialize();
@@ -68,6 +71,19 @@ public class LandProtectionIntegration {
                 worldGuardEnabled = true;
             } catch (Exception e) {
                 // WorldGuard 未找到或版本不兼容
+            }
+        }
+        
+        // 检查 KariClaims
+        Plugin kariClaims = Bukkit.getPluginManager().getPlugin("KariClaims");
+        if (kariClaims != null && kariClaims.isEnabled()) {
+            try {
+                Class<?> kcClass = Class.forName("org.kari.kariClaims.KariClaims");
+                Object instance = kcClass.getMethod("getInstance").invoke(null);
+                kariClaimsManager = kcClass.getMethod("getChunkClaimManager").invoke(instance);
+                kariClaimsEnabled = true;
+            } catch (Exception e) {
+                // KariClaims 未找到或版本不兼容
             }
         }
     }
@@ -136,6 +152,39 @@ public class LandProtectionIntegration {
             }
         }
         
+        // 检查 KariClaims
+        if (kariClaimsEnabled && kariClaimsManager != null) {
+            try {
+                // 调用 findChunkClaimAt(Location) 方法
+                java.lang.reflect.Method findMethod = kariClaimsManager.getClass()
+                    .getMethod("findChunkClaimAt", Location.class);
+                Object claimOptional = findMethod.invoke(kariClaimsManager, location);
+                
+                // 检查 Optional 是否有值
+                java.lang.reflect.Method isPresentMethod = claimOptional.getClass().getMethod("isPresent");
+                boolean hasClaim = (Boolean) isPresentMethod.invoke(claimOptional);
+                
+                if (hasClaim) {
+                    // 获取 claim 对象并检查 explosion 设置
+                    java.lang.reflect.Method getMethod = claimOptional.getClass().getMethod("get");
+                    Object claim = getMethod.invoke(claimOptional);
+                    
+                    // 检查是否允许爆炸 (isExplosion) 和 TNT (isTnt)
+                    java.lang.reflect.Method isExplosionMethod = claim.getClass().getMethod("isExplosion");
+                    java.lang.reflect.Method isTntMethod = claim.getClass().getMethod("isTnt");
+                    
+                    boolean explosionAllowed = (Boolean) isExplosionMethod.invoke(claim);
+                    boolean tntAllowed = (Boolean) isTntMethod.invoke(claim);
+                    
+                    if (!explosionAllowed || !tntAllowed) {
+                        return false; // KariClaims 禁止爆炸
+                    }
+                }
+            } catch (Exception e) {
+                // 忽略错误
+            }
+        }
+        
         return true; // 默认允许爆炸
     }
     
@@ -149,6 +198,10 @@ public class LandProtectionIntegration {
     
     public static boolean isWorldGuardEnabled() {
         return worldGuardEnabled;
+    }
+    
+    public static boolean isKariClaimsEnabled() {
+        return kariClaimsEnabled;
     }
     
     public static void reload() {
