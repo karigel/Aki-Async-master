@@ -113,6 +113,9 @@ public final class AkiAsyncInitializer {
             }
             org.virgil.akiasync.util.VirtualEntityDetector.setLogger(logger, init.configManager.isDebugLoggingEnabled());
             
+            // 初始化 ViaVersion 兼容层（延迟到插件加载后）
+            // ViaVersionCompat.initialize() 会在 CraftServerLoadPluginsMixin 中调用
+            
             // 初始化各种优化模块
             if (init.configManager.isTNTOptimizationEnabled()) {
                 org.virgil.akiasync.mixin.async.TNTThreadPool.init(init.configManager.getTNTThreads());

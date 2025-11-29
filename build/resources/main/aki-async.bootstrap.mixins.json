@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "minVersion": "0.8.7",
+  "package": "org.virgil.akiasync.mixin.mixins",
+  "plugin": "org.virgil.akiasync.mixin.AkiAsyncMixinPlugin",
+  "compatibilityLevel": "JAVA_21",
+  "target": "@env(DEFAULT)",
+  "server": [
+    "bootstrap.CraftServerLoadPluginsMixin"
+  ]
+}
+

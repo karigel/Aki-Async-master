@@ -59,13 +59,55 @@ public abstract class CraftServerLoadPluginsMixin {
                 getLogger().warning("[AkiAsync/Ignite] CommandMap 未初始化，无法注册命令");
             }
             
-            // 插件已加载完成，现在检测保护插件兼容性
+            // 插件已加载完成，初始化所有兼容层
             if (type == PluginLoadOrder.POSTWORLD) {
+                // 初始化 ViaVersion 兼容层
+                try {
+                    org.virgil.akiasync.compat.ViaVersionCompat.initialize();
+                } catch (Exception e) {
+                    getLogger().warning("[AkiAsync/Ignite] ViaVersion 兼容层初始化失败: " + e.getMessage());
+                }
+                
+                // 检测保护插件兼容性
                 org.virgil.akiasync.util.LandProtectionIntegration.logCompatibilityStatus(getLogger());
+                
+                // 初始化虚拟实体检测器（FancyNpcs、ZNPCsPlus 等）
+                try {
+                    initializeVirtualEntityDetectors();
+                } catch (Exception e) {
+                    getLogger().warning("[AkiAsync/Ignite] 虚拟实体检测器初始化失败: " + e.getMessage());
+                }
+                
+                getLogger().info("[AkiAsync/Ignite] 所有兼容层已初始化完成");
             }
         } catch (Exception e) {
             getLogger().severe("[AkiAsync/Ignite] 注册命令时出错: " + e.getMessage());
             e.printStackTrace();
+        }
+    }
+    
+    /**
+     * 初始化虚拟实体检测器
+     */
+    private void initializeVirtualEntityDetectors() {
+        // FancyNpcs 检测器
+        try {
+            if (org.bukkit.Bukkit.getPluginManager().getPlugin("FancyNpcs") != null) {
+                new org.virgil.akiasync.compat.FancyNpcsDetector();
+                getLogger().info("[AkiAsync/Ignite] FancyNpcs 检测器已初始化");
+            }
+        } catch (Exception e) {
+            // 忽略
+        }
+        
+        // ZNPCsPlus 检测器
+        try {
+            if (org.bukkit.Bukkit.getPluginManager().getPlugin("ZNPCsPlus") != null) {
+                new org.virgil.akiasync.compat.ZNPCsPlusDetector();
+                getLogger().info("[AkiAsync/Ignite] ZNPCsPlus 检测器已初始化");
+            }
+        } catch (Exception e) {
+            // 忽略
         }
     }
 }

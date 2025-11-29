@@ -87,52 +87,70 @@ public class LandProtectionIntegration {
     }
     
     private static void initialize() {
+        java.util.logging.Logger logger = Bukkit.getLogger();
+        
         // 检查 Residence
         Plugin residence = Bukkit.getPluginManager().getPlugin("Residence");
+        logger.info("[AkiAsync] Checking Residence: " + (residence != null ? "found, enabled=" + residence.isEnabled() : "not found"));
         if (residence != null && residence.isEnabled()) {
             try {
-                Class<?> residenceClass = Class.forName("com.bekvon.bukkit.residence.Residence");
+                // 使用插件的类加载器（Ignite 环境需要）
+                ClassLoader pluginClassLoader = residence.getClass().getClassLoader();
+                Class<?> residenceClass = Class.forName("com.bekvon.bukkit.residence.Residence", true, pluginClassLoader);
                 residenceAPI = residenceClass.getMethod("getInstance").invoke(null);
                 residenceEnabled = true;
+                logger.info("[AkiAsync] Residence integration successful");
             } catch (Exception e) {
-                // Residence 未找到或版本不兼容
+                logger.warning("[AkiAsync] Residence integration failed: " + e.getMessage());
             }
         }
         
         // 检查 Lands
         Plugin lands = Bukkit.getPluginManager().getPlugin("Lands");
+        logger.info("[AkiAsync] Checking Lands: " + (lands != null ? "found, enabled=" + lands.isEnabled() : "not found"));
         if (lands != null && lands.isEnabled()) {
             try {
-                Class<?> landsClass = Class.forName("me.angeschossen.lands.api.LandsIntegration");
+                // 使用插件的类加载器（Ignite 环境需要）
+                ClassLoader pluginClassLoader = lands.getClass().getClassLoader();
+                Class<?> landsClass = Class.forName("me.angeschossen.lands.api.LandsIntegration", true, pluginClassLoader);
                 landsAPI = landsClass.getMethod("getInstance").invoke(null);
                 landsEnabled = true;
+                logger.info("[AkiAsync] Lands integration successful");
             } catch (Exception e) {
-                // Lands 未找到或版本不兼容
+                logger.warning("[AkiAsync] Lands integration failed: " + e.getMessage());
             }
         }
         
         // 检查 WorldGuard
         Plugin worldGuard = Bukkit.getPluginManager().getPlugin("WorldGuard");
+        logger.info("[AkiAsync] Checking WorldGuard: " + (worldGuard != null ? "found, enabled=" + worldGuard.isEnabled() : "not found"));
         if (worldGuard != null && worldGuard.isEnabled()) {
             try {
-                Class<?> wgClass = Class.forName("com.sk89q.worldguard.WorldGuard");
+                // 使用插件的类加载器（Ignite 环境需要）
+                ClassLoader pluginClassLoader = worldGuard.getClass().getClassLoader();
+                Class<?> wgClass = Class.forName("com.sk89q.worldguard.WorldGuard", true, pluginClassLoader);
                 worldGuardAPI = wgClass.getMethod("getInstance").invoke(null);
                 worldGuardEnabled = true;
+                logger.info("[AkiAsync] WorldGuard integration successful");
             } catch (Exception e) {
-                // WorldGuard 未找到或版本不兼容
+                logger.warning("[AkiAsync] WorldGuard integration failed: " + e.getMessage());
             }
         }
         
         // 检查 KariClaims
         Plugin kariClaims = Bukkit.getPluginManager().getPlugin("KariClaims");
+        logger.info("[AkiAsync] Checking KariClaims: " + (kariClaims != null ? "found, enabled=" + kariClaims.isEnabled() : "not found"));
         if (kariClaims != null && kariClaims.isEnabled()) {
             try {
-                Class<?> kcClass = Class.forName("org.kari.kariClaims.KariClaims");
+                // 使用插件的类加载器（Ignite 环境需要）
+                ClassLoader pluginClassLoader = kariClaims.getClass().getClassLoader();
+                Class<?> kcClass = Class.forName("org.kari.kariClaims.KariClaims", true, pluginClassLoader);
                 Object instance = kcClass.getMethod("getInstance").invoke(null);
                 kariClaimsManager = kcClass.getMethod("getChunkClaimManager").invoke(instance);
                 kariClaimsEnabled = true;
+                logger.info("[AkiAsync] KariClaims integration successful");
             } catch (Exception e) {
-                // KariClaims 未找到或版本不兼容
+                logger.warning("[AkiAsync] KariClaims integration failed: " + e.getMessage());
             }
         }
     }

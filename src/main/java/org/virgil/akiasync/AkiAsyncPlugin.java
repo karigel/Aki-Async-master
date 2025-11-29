@@ -1,5 +1,27 @@
 package org.virgil.akiasync;
 
+/**
+ * ========================================
+ * 遗留代码 - Legacy Code
+ * ========================================
+ * 
+ * 此类是原始 Aki-Async 的 Bukkit 插件入口点。
+ * 在 Ignite/Mixin 模式下，此类不会被使用。
+ * 
+ * This class is the original Aki-Async Bukkit plugin entry point.
+ * In Ignite/Mixin mode, this class is NOT used.
+ * 
+ * 实际初始化由以下类完成 / Actual initialization is done by:
+ * - {@link org.virgil.akiasync.bootstrap.AkiAsyncInitializer}
+ * - {@link org.virgil.akiasync.mixin.mixins.bootstrap.CraftServerLoadPluginsMixin}
+ * 
+ * 保留此类是为了：/ This class is kept for:
+ * 1. 保持与原上游代码的兼容性 / Compatibility with original upstream code
+ * 2. 为依赖此类的辅助组件提供类型定义 / Type definitions for auxiliary components
+ * 
+ * @deprecated 使用 Ignite 模式，不要作为 Bukkit 插件加载
+ *             Use Ignite mode, do not load as Bukkit plugin
+ */
 import org.bukkit.plugin.java.JavaPlugin;
 import org.virgil.akiasync.bridge.AkiAsyncBridge;
 import org.virgil.akiasync.cache.CacheManager;

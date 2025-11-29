@@ -1,0 +1,343 @@
+[13:01:23] [main/INFO]: [bootstrap] Running Java 21 (OpenJDK 64-Bit Server VM 21.0.7+6-LTS; Eclipse Adoptium Temurin-21.0.7+6) on Windows 10 10.0 (amd64)
+[13:01:23] [main/INFO]: [bootstrap] Loading Purpur 1.21.8-2497-HEAD@a49cdb9 (2025-09-19T01:51:04Z) for Minecraft 1.21.8
+[13:01:24] [main/INFO]: [PluginInitializerManager] Initializing plugins...
+[13:01:25] [main/INFO]: [PluginInitializerManager] Initialized 16 plugins
+[13:01:25] [main/INFO]: [PluginInitializerManager] Paper plugins (1):
+ - FancyNpcs (2.8.0)
+[13:01:25] [main/INFO]: [PluginInitializerManager] Bukkit plugins (15):
+ - CMI (9.8.2.1), CMILib (1.5.7.1), FastAsyncWorldEdit (2.14.1-SNAPSHOT-1208+79582f5), KariChat (${project.version}), KariClaims (1.0-SNAPSHOT), KariEconomy (1.0.0), LiteBans (2.18.7), LuckPerms (5.5.17), OneWayTans (1.0-SNAPSHOT), PAPIProxyBridge (1.8.4-d479e5c), PlaceholderAPI (2.11.6), ProtocolLib (5.4.0), Vault (1.7.3-b131), WorldGuard (7.0.14+2339-43997ec), packetevents (2.10.1)
+[13:01:29] [main/INFO]: Environment: Environment[sessionHost=https://sessionserver.mojang.com, servicesHost=https://api.minecraftservices.com, name=PROD]
+[13:01:29] [main/INFO]: [ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry] Initialising converters for DataConverter...
+[13:01:29] [main/INFO]: [ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry] Finished initialising converters for DataConverter in 420.0ms
+[13:01:30] [main/INFO]: Loaded 1407 recipes
+[13:01:30] [main/INFO]: Loaded 1520 advancements
+[13:01:31] [Server thread/INFO]: Starting minecraft server version 1.21.8
+[13:01:31] [Server thread/INFO]: Loading properties
+[13:01:31] [Server thread/INFO]: [AkiAsync/Ignite] ====== CraftServerLoadPluginsMixin 类已加载！======
+[13:01:31] [Server thread/INFO]: This server is running Purpur version 1.21.8-2497-HEAD@a49cdb9 (2025-09-19T01:51:04Z) (Implementing API version 1.21.8-R0.1-SNAPSHOT)
+[13:01:31] [Server thread/INFO]: [spark] This server bundles the spark profiler. For more information please visit https://docs.papermc.io/paper/profiling
+[13:01:31] [Server thread/INFO]: Using 4 threads for Netty based IO
+[13:01:31] [Server thread/INFO]: Server Ping Player Sample Count: 12
+[13:01:31] [Server thread/INFO]: [MoonriseCommon] Paper is using 8 worker threads, 1 I/O threads
+[13:01:31] [Server thread/INFO]: [ChunkTaskScheduler] Chunk system is using population gen parallelism: true
+[13:01:31] [Server thread/INFO]: Default game type: SURVIVAL
+[13:01:31] [Server thread/INFO]: Generating keypair
+[13:01:31] [Server thread/INFO]: Starting Minecraft server on *:25566
+[13:01:31] [Server thread/INFO]: Using default channel type
+[13:01:31] [Server thread/INFO]: Paper: Using Java compression from Velocity.
+[13:01:31] [Server thread/INFO]: Paper: Using Java cipher from Velocity.
+[13:01:31] [Server thread/INFO]: [AkiAsync/Ignite] 在插件加载前初始化 AkiAsync...
+[13:01:31] [ForkJoinPool.commonPool-worker-1/INFO]: [AkiAsync/Ignite] 检测到 JAR 在 mods 文件夹中，配置文件将输出到 mods/AkiAsync
+[13:01:31] [ForkJoinPool.commonPool-worker-1/INFO]: [AkiAsync/Ignite] 配置文件目录: D:\server_test\test-purpur-2\mods\AkiAsync
+[13:01:31] [ForkJoinPool.commonPool-worker-1/INFO]: [AkiAsync/Ignite] ====== 开始初始化 AkiAsync ======
+[13:01:31] [ForkJoinPool.commonPool-worker-1/INFO]: Virtual Thread enabled with Java 21 (stable feature)
+[13:01:31] [ForkJoinPool.commonPool-worker-1/INFO]: Nitori-style optimizations enabled: 4/4 features active
+[13:01:31] [ForkJoinPool.commonPool-worker-1/INFO]: [AkiAsync] 配置文件已加载
+[13:01:31] [ForkJoinPool.commonPool-worker-1/INFO]: [AkiAsync/Ignite] 正在创建 Executor 线程池...
+[13:01:31] [ForkJoinPool.commonPool-worker-1/INFO]: [AkiAsync] General executor initialized: 4 threads (prestarted: 4)
+[13:01:31] [ForkJoinPool.commonPool-worker-1/INFO]: [AkiAsync] Lighting executor initialized: 2 threads (prestarted: 2)
+[13:01:31] [ForkJoinPool.commonPool-worker-1/INFO]: [AkiAsync] TNT executor initialized: 6 threads
+[13:01:31] [ForkJoinPool.commonPool-worker-1/INFO]: [AkiAsync] ChunkTick executor initialized: 4 threads
+[13:01:31] [ForkJoinPool.commonPool-worker-1/INFO]: [AkiAsync] VillagerBreed executor initialized: 4 threads
+[13:01:31] [ForkJoinPool.commonPool-worker-1/INFO]: [AkiAsync] Brain executor initialized: 2 threads
+[13:01:31] [ForkJoinPool.commonPool-worker-1/INFO]: [STDOUT] [org.virgil.akiasync.mixin.bridge.BridgeManager] [AkiAsync] Bridge implementation registered: org.virgil.akiasync.bridge.AkiAsyncBridge
+[13:01:31] [ForkJoinPool.commonPool-worker-1/INFO]: [AkiAsync] Bridge registered successfully with all executors (standalone mode)
+[13:01:31] [ForkJoinPool.commonPool-worker-1/INFO]: [AkiAsync] AsyncBrainExecutor configured
+[13:01:31] [ForkJoinPool.commonPool-worker-1/INFO]: [AkiAsync] TNT explosion optimization enabled with 6 threads
+[13:01:31] [ForkJoinPool.commonPool-worker-1/INFO]: [AkiAsync] Land protection check will be performed when plugins are ready.
+[13:01:31] [ForkJoinPool.commonPool-worker-1/INFO]: [AkiAsync] Villager breed async check enabled with 4 threads
+[13:01:31] [ForkJoinPool.commonPool-worker-1/INFO]: [AkiAsync] Async structure location enabled with 3 threads
+[13:01:31] [ForkJoinPool.commonPool-worker-1/INFO]: [AkiAsync] Structure search algorithm optimization enabled (hybrid pattern)
+[13:01:31] [Server thread/INFO]: [SpigotLibraryLoader] [PAPIProxyBridge] Loading 1 libraries... please wait
+[13:01:31] [ForkJoinPool.commonPool-worker-1/INFO]: [AkiAsync] DataPack loading optimization enabled with 4 file threads, 2 zip threads
+[13:01:32] [ForkJoinPool.commonPool-worker-1/INFO]: [STDOUT] [org.virgil.akiasync.mixin.bridge.BridgeManager] [AkiAsync] ========== Mixin Configuration Status ==========
+[13:01:32] [ForkJoinPool.commonPool-worker-1/INFO]: [STDOUT] [org.virgil.akiasync.mixin.bridge.BridgeManager]   [Brain] Throttle: enabled=true, interval=10
+[13:01:32] [ForkJoinPool.commonPool-worker-1/INFO]: [STDOUT] [org.virgil.akiasync.mixin.bridge.BridgeManager]   [Entity] TickParallel: enabled=true, threads=6, minEntities=50
+[13:01:32] [ForkJoinPool.commonPool-worker-1/INFO]: [STDOUT] [org.virgil.akiasync.mixin.bridge.BridgeManager]   [Entity] Collision: enabled=true
+[13:01:32] [ForkJoinPool.commonPool-worker-1/INFO]: [STDOUT] [org.virgil.akiasync.mixin.bridge.BridgeManager]   [Entity] Push: enabled=true
+[13:01:32] [ForkJoinPool.commonPool-worker-1/INFO]: [STDOUT] [org.virgil.akiasync.mixin.bridge.BridgeManager]   [Entity] LookupCache: enabled=true, duration=50ms
+[13:01:32] [ForkJoinPool.commonPool-worker-1/INFO]: [STDOUT] [org.virgil.akiasync.mixin.bridge.BridgeManager]   [Entity] Tracker: enabled=true, executor=true
+[13:01:32] [ForkJoinPool.commonPool-worker-1/INFO]: [STDOUT] [org.virgil.akiasync.mixin.bridge.BridgeManager]   [Spawning] Enabled: true, maxPerChunk=80
+[13:01:32] [ForkJoinPool.commonPool-worker-1/INFO]: [STDOUT] [org.virgil.akiasync.mixin.bridge.BridgeManager]   [Memory] PredicateCache: true
+[13:01:32] [ForkJoinPool.commonPool-worker-1/INFO]: [STDOUT] [org.virgil.akiasync.mixin.bridge.BridgeManager]   [Memory] BlockPosPool: true
+[13:01:32] [ForkJoinPool.commonPool-worker-1/INFO]: [STDOUT] [org.virgil.akiasync.mixin.bridge.BridgeManager]   [Memory] ListPrealloc: true, capacity=32
+[13:01:32] [ForkJoinPool.commonPool-worker-1/INFO]: [STDOUT] [org.virgil.akiasync.mixin.bridge.BridgeManager] [AkiAsync] ✓ All configurations validated successfully
+[13:01:32] [ForkJoinPool.commonPool-worker-1/INFO]: [STDOUT] [org.virgil.akiasync.mixin.bridge.BridgeManager] [AkiAsync] ✓ Mixins will initialize on first use (lazy loading)
+[13:01:32] [ForkJoinPool.commonPool-worker-1/INFO]: [STDOUT] [org.virgil.akiasync.mixin.bridge.BridgeManager] [AkiAsync] ========================================================
+[13:01:32] [ForkJoinPool.commonPool-worker-1/INFO]: ========================================
+[13:01:32] [ForkJoinPool.commonPool-worker-1/INFO]:   AkiAsync - Async Optimization Mod
+[13:01:32] [ForkJoinPool.commonPool-worker-1/INFO]: ========================================
+[13:01:32] [ForkJoinPool.commonPool-worker-1/INFO]: Version: 3.2.8-SNAPSHOT
+[13:01:32] [ForkJoinPool.commonPool-worker-1/INFO]: Commands: /aki-reload | /aki-debug | /aki-version
+[13:01:32] [ForkJoinPool.commonPool-worker-1/INFO]: 
+[13:01:32] [ForkJoinPool.commonPool-worker-1/INFO]: [+] Core Features:
+[13:01:32] [ForkJoinPool.commonPool-worker-1/INFO]:   [+] Async Entity Tracker: Enabled
+[13:01:32] [ForkJoinPool.commonPool-worker-1/INFO]:   [+] Async Mob Spawning: Enabled
+[13:01:32] [ForkJoinPool.commonPool-worker-1/INFO]:   [+] Entity Tick Parallel: Enabled (6 threads)
+[13:01:32] [ForkJoinPool.commonPool-worker-1/INFO]:   [+] Async Lighting: Enabled (2 threads)
+[13:01:32] [ForkJoinPool.commonPool-worker-1/INFO]:   [+] TNT Explosion Optimization: Enabled (6 threads)
+[13:01:32] [ForkJoinPool.commonPool-worker-1/INFO]:   [+] Async Pathfinding: Enabled
+[13:01:32] [ForkJoinPool.commonPool-worker-1/INFO]: 
+[13:01:32] [ForkJoinPool.commonPool-worker-1/INFO]: [*] Performance Settings:
+[13:01:32] [ForkJoinPool.commonPool-worker-1/INFO]:   [*] Thread Pool Size: 4
+[13:01:32] [ForkJoinPool.commonPool-worker-1/INFO]:   [*] Max Entities/Chunk: 80
+[13:01:32] [ForkJoinPool.commonPool-worker-1/INFO]:   [*] Brain Throttle: Enabled (10 ticks)
+[13:01:32] [ForkJoinPool.commonPool-worker-1/INFO]: 
+[13:01:32] [ForkJoinPool.commonPool-worker-1/INFO]: [#] All Executors Initialized:
+[13:01:32] [ForkJoinPool.commonPool-worker-1/INFO]:   [#] General: 4 threads
+[13:01:32] [ForkJoinPool.commonPool-worker-1/INFO]:   [#] Lighting: 2 threads
+[13:01:32] [ForkJoinPool.commonPool-worker-1/INFO]:   [#] TNT: 6 threads
+[13:01:32] [ForkJoinPool.commonPool-worker-1/INFO]:   [#] ChunkTick: 4 threads
+[13:01:32] [ForkJoinPool.commonPool-worker-1/INFO]:   [#] VillagerBreed: 4 threads
+[13:01:32] [ForkJoinPool.commonPool-worker-1/INFO]:   [#] Brain: 2 threads
+[13:01:32] [ForkJoinPool.commonPool-worker-1/INFO]: ========================================
+[13:01:32] [ForkJoinPool.commonPool-worker-1/INFO]: Mod enabled successfully! All features available.
+[13:01:32] [Server thread/INFO]: [SpigotLibraryLoader] [PAPIProxyBridge] Loaded library D:\server_test\test-purpur-2\libraries\io\lettuce\lettuce-core\6.5.2.RELEASE\lettuce-core-6.5.2.RELEASE.jar
+[13:01:32] [Server thread/INFO]: [SpigotLibraryLoader] [PAPIProxyBridge] Loaded library D:\server_test\test-purpur-2\libraries\io\netty\netty-common\4.1.115.Final\netty-common-4.1.115.Final.jar
+[13:01:32] [Server thread/INFO]: [SpigotLibraryLoader] [PAPIProxyBridge] Loaded library D:\server_test\test-purpur-2\libraries\io\netty\netty-handler\4.1.115.Final\netty-handler-4.1.115.Final.jar
+[13:01:32] [Server thread/INFO]: [SpigotLibraryLoader] [PAPIProxyBridge] Loaded library D:\server_test\test-purpur-2\libraries\io\netty\netty-resolver\4.1.115.Final\netty-resolver-4.1.115.Final.jar
+[13:01:32] [Server thread/INFO]: [SpigotLibraryLoader] [PAPIProxyBridge] Loaded library D:\server_test\test-purpur-2\libraries\io\netty\netty-buffer\4.1.115.Final\netty-buffer-4.1.115.Final.jar
+[13:01:32] [Server thread/INFO]: [SpigotLibraryLoader] [PAPIProxyBridge] Loaded library D:\server_test\test-purpur-2\libraries\io\netty\netty-transport-native-unix-common\4.1.115.Final\netty-transport-native-unix-common-4.1.115.Final.jar
+[13:01:32] [Server thread/INFO]: [SpigotLibraryLoader] [PAPIProxyBridge] Loaded library D:\server_test\test-purpur-2\libraries\io\netty\netty-codec\4.1.115.Final\netty-codec-4.1.115.Final.jar
+[13:01:32] [Server thread/INFO]: [SpigotLibraryLoader] [PAPIProxyBridge] Loaded library D:\server_test\test-purpur-2\libraries\io\netty\netty-transport\4.1.115.Final\netty-transport-4.1.115.Final.jar
+[13:01:32] [Server thread/INFO]: [SpigotLibraryLoader] [PAPIProxyBridge] Loaded library D:\server_test\test-purpur-2\libraries\io\projectreactor\reactor-core\3.6.6\reactor-core-3.6.6.jar
+[13:01:32] [Server thread/INFO]: [SpigotLibraryLoader] [PAPIProxyBridge] Loaded library D:\server_test\test-purpur-2\libraries\org\reactivestreams\reactive-streams\1.0.4\reactive-streams-1.0.4.jar
+[13:01:32] [Server thread/INFO]: [LuckPerms] Loading server plugin LuckPerms v5.5.17
+[13:01:32] [Server thread/INFO]: [LuckPerms] Loading configuration...
+[13:01:32] [Server thread/INFO]: [ProtocolLib] Loading server plugin ProtocolLib v5.4.0
+[13:01:32] [Server thread/INFO]: [Vault] Loading server plugin Vault v1.7.3-b131
+[13:01:32] [Server thread/INFO]: [PlaceholderAPI] Loading server plugin PlaceholderAPI v2.11.6
+[13:01:32] [Server thread/INFO]: [packetevents] Loading server plugin packetevents v2.10.1
+[13:01:33] [Server thread/INFO]: [FastAsyncWorldEdit] Loading server plugin FastAsyncWorldEdit v2.14.1-SNAPSHOT-1208+79582f5
+[13:01:34] [Server thread/INFO]: Got request to register class com.sk89q.worldedit.bukkit.BukkitServerInterface with WorldEdit [com.sk89q.worldedit.extension.platform.PlatformManager@197bdd76]
+[13:01:34] [Server thread/INFO]: [CMILib] Loading server plugin CMILib v1.5.7.1
+[13:01:34] [Server thread/INFO]: [PAPIProxyBridge] Loading server plugin PAPIProxyBridge v1.8.4-d479e5c
+[13:01:34] [Server thread/INFO]: [OneWayTans] Loading server plugin OneWayTans v1.0-SNAPSHOT
+[13:01:34] [Server thread/INFO]: [LiteBans] Loading server plugin LiteBans v2.18.7
+[13:01:34] [Server thread/INFO]: [KariEconomy] Loading server plugin KariEconomy v1.0.0
+[13:01:34] [Server thread/INFO]: [KariClaims] Loading server plugin KariClaims v1.0-SNAPSHOT
+[13:01:34] [Server thread/INFO]: [KariChat] Loading server plugin KariChat v${project.version}
+[13:01:34] [Server thread/INFO]: [WorldGuard] Loading server plugin WorldGuard v7.0.14+2339-43997ec
+[13:01:34] [Server thread/INFO]: [FancyNpcs] Loading server plugin FancyNpcs v2.8.0
+[13:01:34] [Server thread/INFO]: [CMI] Loading server plugin CMI v9.8.2.1
+[13:01:34] [Server thread/INFO]: Server permissions file permissions.yml is empty, ignoring it
+[13:01:34] [Server thread/INFO]: [LuckPerms] Enabling LuckPerms v5.5.17
+[13:01:34] [Server thread/INFO]:         __    
+[13:01:34] [Server thread/INFO]:   |    |__)   LuckPerms v5.5.17
+[13:01:34] [Server thread/INFO]:   |___ |      Running on Bukkit - Purpur
+[13:01:34] [Server thread/INFO]: 
+[13:01:34] [Server thread/INFO]: [LuckPerms] Loading storage provider... [MARIADB]
+[13:01:34] [Server thread/INFO]: [me.lucko.luckperms.lib.hikari.HikariDataSource] luckperms-hikari - Starting...
+[13:01:34] [Server thread/INFO]: [me.lucko.luckperms.lib.hikari.HikariDataSource] luckperms-hikari - Start completed.
+[13:01:34] [Server thread/INFO]: [LuckPerms] Loading messaging service... [SQL]
+[13:01:34] [Server thread/INFO]: [LuckPerms] Loading internal permission managers...
+[13:01:34] [Server thread/INFO]: [LuckPerms] Performing initial data load...
+[13:01:34] [Server thread/INFO]: [LuckPerms] Successfully enabled. (took 886ms)
+[13:01:34] [Server thread/INFO]: [ProtocolLib] Enabling ProtocolLib v5.4.0
+[13:01:34] [Server thread/INFO]: [Vault] Enabling Vault v1.7.3-b131
+[13:01:35] [Server thread/INFO]: [Vault] [Permission] SuperPermissions loaded as backup permission system.
+[13:01:35] [Server thread/INFO]: [Vault] Enabled Version 1.7.3-b131
+[13:01:35] [Server thread/INFO]: [LuckPerms] Registered Vault permission & chat hook.
+[13:01:35] [Server thread/INFO]: [FastAsyncWorldEdit] Enabling FastAsyncWorldEdit v2.14.1-SNAPSHOT-1208+79582f5
+[13:01:35] [Server thread/INFO]: [com.fastasyncworldedit.core.Fawe] LZ4 Compression Binding loaded successfully
+[13:01:35] [Server thread/INFO]: [com.fastasyncworldedit.core.Fawe] ZSTD Compression Binding loaded successfully
+[13:01:35] [Server thread/INFO]: Registering commands with com.sk89q.worldedit.bukkit.BukkitServerInterface
+[13:01:35] [Server thread/INFO]: WEPIF: Vault detected! Using Vault for permissions
+[13:01:35] [Server thread/INFO]: Using com.sk89q.worldedit.bukkit.adapter.impl.fawe.v1_21_6.PaperweightFaweAdapter as the Bukkit adapter
+[13:01:36] [Server thread/INFO]: [AkiAsync/Ignite] 命令已成功注册：/aki-reload, /aki-debug, /aki-version
+[13:01:36] [Server thread/WARN]: **** SERVER IS RUNNING IN OFFLINE/INSECURE MODE!
+[13:01:36] [Server thread/WARN]: The server will make no attempt to authenticate usernames. Beware.
+[13:01:36] [Server thread/WARN]: Whilst this makes it possible to use Velocity, unless access to your server is properly restricted, it also opens up the ability for hackers to connect with any username they choose.
+[13:01:36] [Server thread/WARN]: Please see https://docs.papermc.io/velocity/security for further information.
+[13:01:36] [Server thread/WARN]: To change this, set "online-mode" to "true" in the server.properties file.
+[13:01:36] [Server thread/INFO]: Preparing level "world"
+[13:01:36] [Server thread/INFO]: Preparing start region for dimension minecraft:overworld
+[13:01:37] [Server thread/INFO]: Preparing spawn area: 0%
+[13:01:37] [Server thread/INFO]: Preparing spawn area: 2%
+[13:01:37] [Server thread/INFO]: Time elapsed: 556 ms
+[13:01:37] [Server thread/INFO]: Preparing start region for dimension minecraft:the_nether
+[13:01:37] [Server thread/INFO]: Preparing spawn area: 0%
+[13:01:37] [ForkJoinPool.commonPool-worker-1/WARN]: [com.fastasyncworldedit.core.util.UpdateNotification] A new release for FastAsyncWorldEdit is available: 2.14.2. You are currently on 2.14.1.
+Download from https://modrinth.com/plugin/fastasyncworldedit or https://hangar.papermc.io/IntellectualSites/FastAsyncWorldEdit
+[13:01:37] [Server thread/INFO]: Time elapsed: 143 ms
+[13:01:37] [Server thread/INFO]: Preparing start region for dimension minecraft:the_end
+[13:01:37] [Server thread/INFO]: Preparing spawn area: 0%
+[13:01:37] [Server thread/INFO]: Time elapsed: 37 ms
+[13:01:37] [Server thread/INFO]: [PlaceholderAPI] Enabling PlaceholderAPI v2.11.6
+[13:01:37] [Server thread/INFO]: [PlaceholderAPI] Fetching available expansion information...
+[13:01:37] [Server thread/INFO]: [packetevents] Enabling packetevents v2.10.1
+[13:01:37] [packetevents-update-check-thread/INFO]: [packetevents] Checking for updates, please wait...
+[13:01:37] [ForkJoinPool.commonPool-worker-1/WARN]: [com.fastasyncworldedit.core.util.UpdateNotification] An update for FastAsyncWorldEdit is available. You are 20 build(s) out of date.
+You are running build 1208, the latest version is build 1228.
+Update at https://ci.athion.net/job/FastAsyncWorldEdit
+[13:01:37] [Server thread/INFO]: [CMILib] Enabling CMILib v1.5.7.1
+[13:01:38] [packetevents-update-check-thread/INFO]: [packetevents] You are running the latest release of PacketEvents. Your build: (2.10.1)
+[13:01:38] [Server thread/INFO]: Server version: v1_21_R5 - 1.21.8 - purpur  1.21.8-2497-a49cdb9 (MC: 1.21.8)
+[13:01:38] [Server thread/INFO]: Environment: Environment[sessionHost=https://sessionserver.mojang.com, servicesHost=https://api.minecraftservices.com, name=PROD]
+[13:01:38] [Server thread/INFO]: CMI hooked.
+[13:01:38] [Server thread/INFO]: [PlaceholderAPI] Successfully registered internal expansion: cmil [1.5.7.1]
+[13:01:38] [Server thread/INFO]: PlaceholderAPI hooked.
+[13:01:38] [Server thread/INFO]: Updated (EN) language file. Took 24ms
+[13:01:38] [Server thread/INFO]: Updated (CN) language file. Took 8ms
+[13:01:38] [Server thread/INFO]: [PAPIProxyBridge] Enabling PAPIProxyBridge v1.8.4-d479e5c
+[13:01:38] [Server thread/INFO]: [PAPIProxyBridge] Loaded messenger PLUGIN_MESSAGE
+[13:01:38] [Server thread/INFO]: [PAPIProxyBridge] PAPIProxyBridge (Purpur unspecified) has been enabled!
+[13:01:38] [Server thread/INFO]: [OneWayTans] Enabling OneWayTans v1.0-SNAPSHOT
+[13:01:38] [Server thread/INFO]: [com.zaxxer.hikari.HikariDataSource] OneWayTansPool - Starting...
+[13:01:38] [Server thread/INFO]: [com.zaxxer.hikari.pool.HikariPool] OneWayTansPool - Added connection org.mariadb.jdbc.Connection@600145fd
+[13:01:38] [Server thread/INFO]: [com.zaxxer.hikari.HikariDataSource] OneWayTansPool - Start completed.
+[13:01:38] [Server thread/INFO]: [OneWayTans] OneWayTans 已启用，当前模式: OUTPUT
+[13:01:38] [Server thread/INFO]: [LiteBans] Enabling LiteBans v2.18.7
+[13:01:39] [Server thread/INFO]: [LiteBans] Loaded 2 templates from templates.yml!
+[13:01:39] [LiteBans-0/INFO]: [LiteBans] Using system locale (zh)
+[13:01:39] [Server thread/INFO]: [LiteBans] Loading: mariadb 3.1.2
+[13:01:39] [Server thread/INFO]: [LiteBans] Connecting to database...
+[13:01:39] [Server thread/INFO]: [LiteBans] Connected to MariaDB database successfully (28.2 ms).
+[13:01:39] [Server thread/INFO]: [LiteBans] Database connection fully initialized (33.2 ms).
+[13:01:39] [Server thread/INFO]: [LiteBans] v2.18.7 enabled. Startup took 35 ms.
+[13:01:39] [Server thread/INFO]: [KariEconomy] Enabling KariEconomy v1.0.0
+[13:01:39] [Server thread/WARN]: [KariEconomy] Could not save message.yml to plugins\KariEconomy\message.yml because message.yml already exists.
+[13:01:39] [Server thread/INFO]: [org.kari.karieconomy.libs.hikari.HikariDataSource] HikariPool-1 - Starting...
+[13:01:39] [Server thread/INFO]: [org.kari.karieconomy.libs.hikari.pool.HikariPool] HikariPool-1 - Added connection org.mariadb.jdbc.Connection@2661641a
+[13:01:39] [Server thread/INFO]: [org.kari.karieconomy.libs.hikari.HikariDataSource] HikariPool-1 - Start completed.
+[13:01:39] [Server thread/INFO]: [KariEconomy] 数据库连接池初始化成功！
+[13:01:39] [Server thread/WARN]: [org.mariadb.jdbc.message.server.ErrorPacket] Error: 1060-42S21: Duplicate column name 'action_code'
+[13:01:39] [Server thread/INFO]: [KariEconomy] VaultEconomyProvider Initialized.
+[13:01:39] [Server thread/INFO]: [KariEconomy] 已成功挂钩到 Vault！
+[13:01:39] [Server thread/INFO]: [KariEconomy] karieconomy 插件已成功启动！
+[13:01:39] [Server thread/INFO]: [KariClaims] Enabling KariClaims v1.0-SNAPSHOT
+[13:01:39] [Server thread/INFO]: [KariClaims] 正在初始化 KariClaims...
+[13:01:39] [Server thread/INFO]: [KariClaims] SQLite 驱动已加载
+[13:01:39] [Server thread/INFO]: [KariClaims] SQLite 数据库路径: D:\server_test\test-purpur-2\plugins\KariClaims\claims.db
+[13:01:39] [Server thread/INFO]: [org.kari.kariClaims.libs.hikari.HikariDataSource] KariClaims-Pool - Starting...
+[13:01:39] [Server thread/INFO]: [org.kari.kariClaims.libs.hikari.pool.HikariPool] KariClaims-Pool - Added connection org.sqlite.jdbc4.JDBC4Connection@4e74ca09
+[13:01:39] [Server thread/INFO]: [org.kari.kariClaims.libs.hikari.HikariDataSource] KariClaims-Pool - Start completed.
+[13:01:39] [Server thread/INFO]: [KariClaims] 数据库连接已建立: SQLITE
+[13:01:39] [Server thread/INFO]: [KariClaims] 未找到 UltimateClaims 数据库，跳过迁移
+[13:01:39] [Server thread/INFO]: [KariClaims] 经济系统已启用: KariEconomy
+[13:01:39] [ForkJoinPool.commonPool-worker-1/INFO]: [KariClaims] 已加载 0 个领地区域
+[13:01:39] [ForkJoinPool.commonPool-worker-2/INFO]: [KariClaims] 已加载 0 个区块领地
+[13:01:39] [ForkJoinPool.commonPool-worker-1/INFO]: [KariClaims] 已加载 0 个领地成员关系
+[13:01:39] [Server thread/INFO]: [KariClaims] KariClaims 已成功加载！
+[13:01:39] [Server thread/INFO]: [KariClaims] 版本: 1.0-SNAPSHOT
+[13:01:39] [ForkJoinPool.commonPool-worker-1/INFO]: [KariClaims] 已加载 0 个能源箱到缓存
+[13:01:39] [Server thread/INFO]: [KariClaims] 数据库类型: SQLITE
+[13:01:39] [Server thread/INFO]: [KariChat] Enabling KariChat v${project.version}
+[13:01:39] [Server thread/INFO]: [KariChat] KariChat-Paper 正在启动...
+[13:01:39] [Server thread/INFO]: [KariChat] 配置文件已加载。
+[13:01:39] [Server thread/INFO]: [KariChat] 已成功挂钩 PlaceholderAPI。
+[13:01:39] [Server thread/INFO]: [KariChat] 配置已启用代理模式 (proxy-mode: true)，启用跨服聊天。
+[13:01:39] [Server thread/INFO]: [KariChat] 请确保代理 (Velocity/BungeeCord) 已正确配置 IP 转发。
+[13:01:39] [Server thread/INFO]: [KariChat] 缓存和处理器已加载。
+[13:01:39] [Server thread/INFO]: [KariChat] 插件消息频道已注册。
+[13:01:39] [Server thread/INFO]: [KariChat] 事件监听器已注册。
+[13:01:39] [Server thread/INFO]: [KariChat] 命令已注册。
+[13:01:39] [Server thread/INFO]: [KariChat] KariChat-Paper 已成功启动！
+[13:01:39] [Server thread/INFO]: [WorldGuard] Enabling WorldGuard v7.0.14+2339-43997ec
+[13:01:39] [Server thread/INFO]: [WorldGuard] (world) TNT ignition is PERMITTED.
+[13:01:39] [Server thread/INFO]: [WorldGuard] (world) Lighters are PERMITTED.
+[13:01:39] [Server thread/INFO]: [WorldGuard] (world) Lava fire is PERMITTED.
+[13:01:39] [Server thread/INFO]: [WorldGuard] (world) Fire spread is UNRESTRICTED.
+[13:01:39] [Server thread/INFO]: [WorldGuard] Loaded configuration for world 'world'
+[13:01:39] [Server thread/INFO]: [WorldGuard] (world_nether) TNT ignition is PERMITTED.
+[13:01:39] [Server thread/INFO]: [WorldGuard] (world_nether) Lighters are PERMITTED.
+[13:01:39] [Server thread/INFO]: [WorldGuard] (world_nether) Lava fire is PERMITTED.
+[13:01:39] [Server thread/INFO]: [WorldGuard] (world_nether) Fire spread is UNRESTRICTED.
+[13:01:39] [Server thread/INFO]: [WorldGuard] Loaded configuration for world 'world_nether'
+[13:01:39] [Server thread/INFO]: [WorldGuard] (world_the_end) TNT ignition is PERMITTED.
+[13:01:39] [Server thread/INFO]: [WorldGuard] (world_the_end) Lighters are PERMITTED.
+[13:01:39] [Server thread/INFO]: [WorldGuard] (world_the_end) Lava fire is PERMITTED.
+[13:01:39] [Server thread/INFO]: [WorldGuard] (world_the_end) Fire spread is UNRESTRICTED.
+[13:01:39] [Server thread/INFO]: [WorldGuard] Loaded configuration for world 'world_the_end'
+[13:01:39] [Server thread/INFO]: [WorldGuard] Loading region data...
+[13:01:39] [Server thread/INFO]: [FancyNpcs] Enabling FancyNpcs v2.8.0
+[13:01:39] [Server thread/WARN]: [org.mineskin.MineSkinClient] Creating MineSkinClient without API key
+[13:01:40] [FancyLogger/INFO]: [FancyNpcs] (Server thread) INFO: FancyNpcs (2.8.0) has been enabled.
+[13:01:40] [Server thread/INFO]: [CMI] Enabling CMI v9.8.2.1
+[13:01:40] [Server thread/INFO]: _______________________________________________________
+[13:01:40] [Server thread/INFO]:  
+[13:01:40] [Server thread/INFO]:  ██████╗███╗   ███╗██╗
+[13:01:40] [Server thread/INFO]: ██╔════╝████╗ ████║██║
+[13:01:40] [Server thread/INFO]: ██║     ██╔████╔██║██║
+[13:01:40] [Server thread/INFO]: ██║     ██║╚██╔╝██║██║
+[13:01:40] [Server thread/INFO]: ╚██████╗██║ ╚═╝ ██║██║
+[13:01:40] [Server thread/INFO]:  ╚═════╝╚═╝     ╚═╝╚═╝
+[13:01:40] [Server thread/INFO]: _______________________________________________________
+[13:01:40] [Server thread/INFO]: Integrating PaperSpigot async methods
+[13:01:40] [CMITask-176/INFO]: Loaded (-) locale download into memory. Took 2ms
+[13:01:40] [Server thread/INFO]: Vault found. (Loaded: true)
+[13:01:40] [Server thread/INFO]: Loaded (69) 62 Enabled and 7 Disabled modules into memory. Took 45ms
+[13:01:40] [Server thread/INFO]: Loaded (1) portals into memory. Took 15ms
+[13:01:40] [Server thread/INFO]: ProtocolLib found. (Loaded: true)
+[13:01:40] [Server thread/INFO]: Initialized Cipher256 AES
+[13:01:40] [Server thread/INFO]: Loaded (61) regular alias into memory. Took 26ms
+[13:01:40] [CMITask-177/INFO]: Loaded (1) custom text's into memory. Took 1ms
+[13:01:40] [Server thread/INFO]: (RandomTeleportation) Can't find world with (resource) name
+[13:01:40] [Server thread/INFO]: (RandomTeleportation) Can't find world with (spawn) name
+[13:01:40] [Server thread/INFO]: SQLite 3.49.1 data base type detected
+[13:01:40] [Server thread/INFO]: Loaded (-) SqLite into memory. Took 74ms
+[13:01:40] [Server thread/INFO]: Vault was found - Enabling capabilities. Economy: KariEconomy
+[13:01:40] [Server thread/INFO]: Loaded (5) warning categories into memory. Took 0ms
+[13:01:40] [Server thread/INFO]: Loaded (3) warning commands into memory. Took 0ms
+[13:01:40] [Server thread/INFO]: Loaded (0) cooldowns into memory. Took 0ms
+[13:01:40] [Server thread/INFO]: Loaded (151) custom mob heads into memory. Took 6ms
+[13:01:40] [ForkJoinPool.commonPool-worker-1/WARN]: [FancyNpcs] 
+-------------------------------------------------------
+You are not using the latest version of the FancyNpcs plugin.
+Please update to the newest version (2.8.1).
+https://modrinth.com/plugin/FancyNpcs
+-------------------------------------------------------
+
+[13:01:40] [FancyLogger/INFO]: [FancyNpcs] (ForkJoinPool.commonPool-worker-1) WARN: You are not using the latest version of the FancyNpcs plugin.
+[13:01:40] [Server thread/INFO]: Initializing BungeeCord
+[13:01:40] [Server thread/INFO]: Loaded (1) kits into memory. Took 6ms
+[13:01:40] [Server thread/INFO]: Loaded (5) dialogs into memory. Took 12ms
+[13:01:40] [Server thread/INFO]: Loaded (7) ranks into memory. Took 5ms
+[13:01:40] [Server thread/INFO]: Loaded (8) playtime rewards into memory. Took 2ms
+[13:01:40] [Server thread/INFO]: Loaded (1) jails into memory. Took 1ms
+[13:01:40] [Server thread/INFO]: Executed Player DB querry in 0ms
+[13:01:40] [Server thread/INFO]: Loaded (40) player data into memory. Took 12ms
+[13:01:40] [Server thread/INFO]: Loaded (0) playtime records into memory. Took 0ms
+[13:01:40] [Server thread/INFO]: Loaded (0) playtime reward records into memory. Took 1ms
+[13:01:40] [Server thread/INFO]: Loaded (0) custom alias into memory. Took 0ms
+[13:01:41] [Server thread/INFO]: Loaded (-) Registered events into memory. Took 62ms
+[13:01:41] [Server thread/INFO]: Loaded (0) event action commands into memory. Took 2ms
+[13:01:41] [Server thread/INFO]: Loaded (EN) language file into memory. Took 45ms
+[13:01:41] [Server thread/INFO]: Loaded (CN) language file into memory. Took 39ms
+[13:01:41] [Server thread/INFO]: Loaded (245) worth values into memory. Took 42ms
+[13:01:41] [Server thread/INFO]: VaultPermissions found. (Loaded: true)
+[13:01:41] [Server thread/INFO]: PlaceholderAPI found. (Loaded: true)
+[13:01:41] [Server thread/INFO]: Loaded (4) schedules into memory. Took 3ms
+[13:01:41] [Server thread/INFO]: Loaded (0) skin cache entries into memory. Took 0ms
+[13:01:41] [Server thread/INFO]: Loaded (0) ArmorStand templates into memory. Took 0ms
+[13:01:41] [CMITask-178/INFO]: Loaded (1) holograms into memory. Took 14ms
+[13:01:41] [Server thread/INFO]: Version 9.8.2.1 has been enabled
+[13:01:41] [Server thread/INFO]: _______________________________________________________
+[13:01:41] [Server thread/INFO]: [AkiAsync/Ignite] 命令已成功注册：/aki-reload, /aki-debug, /aki-version
+[13:01:41] [Server thread/INFO]: [AkiAsync] Checking Residence: not found
+[13:01:41] [Server thread/INFO]: [AkiAsync] Checking Lands: not found
+[13:01:41] [Server thread/INFO]: [AkiAsync] Checking WorldGuard: found, enabled=true
+[13:01:41] [Server thread/WARN]: [AkiAsync] WorldGuard integration failed: com.sk89q.worldguard.WorldGuard
+[13:01:41] [Server thread/INFO]: [AkiAsync] Checking KariClaims: found, enabled=true
+[13:01:41] [Server thread/WARN]: [AkiAsync] KariClaims integration failed: org.kari.kariClaims.KariClaims
+[13:01:41] [Server thread/INFO]: [AkiAsync] No land protection plugins detected.
+[13:01:41] [Server thread/INFO]: [spark] Starting background profiler...
+[13:01:41] [Server thread/INFO]: [spark] The async-profiler engine is not supported for your os/arch (windows10/amd64), so the built-in Java engine will be used instead.
+[13:01:41] [Server thread/INFO]: [PlaceholderAPI] Placeholder expansion registration initializing...
+[13:01:41] [Server thread/INFO]: Done preparing level "world" (5.254s)
+[13:01:41] [Server thread/INFO]: Running delayed init tasks
+[13:01:41] [Craft Scheduler Thread - 11 - Vault/INFO]: [Vault] Checking for Updates ... 
+[13:01:41] [Server thread/INFO]: [com.fastasyncworldedit.bukkit.regions.WorldGuardFeature] Plugin 'WorldGuard' found. Using it now.
+[13:01:41] [Server thread/INFO]: [com.fastasyncworldedit.bukkit.FaweBukkit] Attempting to use plugin 'WorldGuard'
+[13:01:41] [Server thread/INFO]: [CMI] Permission plugin: LuckPerms5.5.17
+[13:01:41] [Server thread/INFO]: [PlaceholderAPI] Successfully registered internal expansion: cmi [9.8.2.1]
+[13:01:41] [Server thread/INFO]: [CMI] PlaceholderAPI hooked.
+[13:01:41] [Server thread/INFO]: [PlaceholderAPI] Successfully registered external expansion: player [2.0.8]
+[13:01:41] [Server thread/INFO]: [PlaceholderAPI] Successfully registered external expansion: server [2.7.3]
+[13:01:41] [Server thread/INFO]: 2 placeholder hook(s) registered! 1 placeholder hook(s) have an update available.
+[13:01:41] [Server thread/INFO]: Done (19.345s)! For help, type "help"
+[13:01:41] [Craft Scheduler Thread - 2 - CMILib/INFO]: New version of CMILib was detected. Please update it (1.5.7.1 -> 1.5.7.4)
+[13:01:42] [Craft Scheduler Thread - 11 - Vault/INFO]: [Vault] No new version available
+[13:01:42] [Server thread/INFO]: [PlaceholderAPI] An update for PlaceholderAPI (v2.11.7) is available at:
+[13:01:42] [Server thread/INFO]: [PlaceholderAPI] https://www.spigotmc.org/resources/placeholderapi.6245/
+[13:01:46] [Server thread/INFO]: Preparing start region for dimension minecraft:spawn

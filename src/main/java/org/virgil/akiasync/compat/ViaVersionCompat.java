@@ -2,6 +2,9 @@ package org.virgil.akiasync.compat;
 
 import org.bukkit.entity.Player;
 
+import org.bukkit.Bukkit;
+import org.bukkit.plugin.Plugin;
+
 import java.util.UUID;
 import java.util.logging.Logger;
 
@@ -15,15 +18,23 @@ public class ViaVersionCompat {
     private static final Logger LOGGER = Logger.getLogger("AkiAsync-ViaCompat");
     private static boolean viaVersionAvailable = false;
     private static boolean initialized = false;
+    private static ClassLoader viaClassLoader = null;
 
     public static void initialize() {
         if (initialized) return;
         initialized = true;
 
         try {
-            Class.forName("com.viaversion.viaversion.api.Via");
-            viaVersionAvailable = true;
-            LOGGER.info("[ViaCompat] ViaVersion detected, compatibility layer enabled");
+            Plugin viaPlugin = Bukkit.getPluginManager().getPlugin("ViaVersion");
+            if (viaPlugin != null && viaPlugin.isEnabled()) {
+                viaClassLoader = viaPlugin.getClass().getClassLoader();
+                Class.forName("com.viaversion.viaversion.api.Via", true, viaClassLoader);
+                viaVersionAvailable = true;
+                LOGGER.info("[ViaCompat] ViaVersion detected, compatibility layer enabled");
+            } else {
+                viaVersionAvailable = false;
+                LOGGER.info("[ViaCompat] ViaVersion not found, compatibility layer disabled");
+            }
         } catch (ClassNotFoundException e) {
             viaVersionAvailable = false;
             LOGGER.info("[ViaCompat] ViaVersion not found, compatibility layer disabled");
@@ -41,7 +52,7 @@ public class ViaVersionCompat {
 
         try {
             // 使用反射调用ViaVersion API / Use reflection to call ViaVersion API
-            Class<?> viaClass = Class.forName("com.viaversion.viaversion.api.Via");
+            Class<?> viaClass = Class.forName("com.viaversion.viaversion.api.Via", true, viaClassLoader);
             Object api = viaClass.getMethod("getAPI").invoke(null);
             Object connection = api.getClass().getMethod("getConnection", UUID.class)
                 .invoke(api, player.getUniqueId());
@@ -63,7 +74,7 @@ public class ViaVersionCompat {
         }
 
         try {
-            Class<?> viaClass = Class.forName("com.viaversion.viaversion.api.Via");
+            Class<?> viaClass = Class.forName("com.viaversion.viaversion.api.Via", true, viaClassLoader);
             Object api = viaClass.getMethod("getAPI").invoke(null);
             Object connection = api.getClass().getMethod("getConnection", UUID.class)
                 .invoke(api, playerId);
@@ -83,17 +94,17 @@ public class ViaVersionCompat {
         }
 
         try {
-            Class<?> viaClass = Class.forName("com.viaversion.viaversion.api.Via");
+            Class<?> viaClass = Class.forName("com.viaversion.viaversion.api.Via", true, viaClassLoader);
             Object api = viaClass.getMethod("getAPI").invoke(null);
             Object connection = api.getClass().getMethod("getConnection", UUID.class)
                 .invoke(api, playerId);
             if (connection != null) {
                 Object protocolInfo = connection.getClass().getMethod("getProtocolInfo").invoke(connection);
-                Class<?> directionClass = Class.forName("com.viaversion.viaversion.api.protocol.packet.Direction");
+                Class<?> directionClass = Class.forName("com.viaversion.viaversion.api.protocol.packet.Direction", true, viaClassLoader);
                 Object clientbound = Enum.valueOf((Class<Enum>) directionClass, "CLIENTBOUND");
                 Object state = protocolInfo.getClass().getMethod("getState", directionClass)
                     .invoke(protocolInfo, clientbound);
-                Class<?> stateClass = Class.forName("com.viaversion.viaversion.api.protocol.packet.State");
+                Class<?> stateClass = Class.forName("com.viaversion.viaversion.api.protocol.packet.State", true, viaClassLoader);
                 Object playState = Enum.valueOf((Class<Enum>) stateClass, "PLAY");
                 return state == playState;
             }
@@ -114,7 +125,7 @@ public class ViaVersionCompat {
         }
 
         try {
-            Class<?> viaClass = Class.forName("com.viaversion.viaversion.api.Via");
+            Class<?> viaClass = Class.forName("com.viaversion.viaversion.api.Via", true, viaClassLoader);
             Object api = viaClass.getMethod("getAPI").invoke(null);
             Object serverVersion = api.getClass().getMethod("getServerVersion").invoke(api);
             Object lowestVersion = serverVersion.getClass().getMethod("lowestSupportedProtocolVersion").invoke(serverVersion);

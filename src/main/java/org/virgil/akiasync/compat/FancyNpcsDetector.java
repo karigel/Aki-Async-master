@@ -24,6 +24,7 @@ public class FancyNpcsDetector implements PluginDetector {
     private volatile boolean pluginAvailable;
     private volatile boolean useAPI;
     private volatile Object fancyNpcsAPI;
+    private volatile ClassLoader pluginClassLoader;
 
     public FancyNpcsDetector() {
         this.detectionCache = new ConcurrentHashMap<>();
@@ -94,7 +95,7 @@ public class FancyNpcsDetector implements PluginDetector {
         }
 
         try {
-            Class<?> apiProviderClass = Class.forName("de.oliver.fancynpcs.api.NpcApiProvider");
+            Class<?> apiProviderClass = Class.forName("de.oliver.fancynpcs.api.NpcApiProvider", true, pluginClassLoader);
             Object apiInstance = apiProviderClass.getMethod("get").invoke(null);
             Object npcTracker = apiInstance.getClass().getMethod("getNpcTracker").invoke(apiInstance);
             Object npcData = npcTracker.getClass().getMethod("getNpc", Entity.class).invoke(npcTracker, entity);
@@ -147,15 +148,20 @@ public class FancyNpcsDetector implements PluginDetector {
 
     private boolean checkPluginAvailability() {
         try {
-            Class.forName("de.oliver.fancynpcs.api.NpcApiProvider");
-            return Bukkit.getPluginManager().getPlugin("FancyNpcs") != null;
+            org.bukkit.plugin.Plugin plugin = Bukkit.getPluginManager().getPlugin("FancyNpcs");
+            if (plugin != null && plugin.isEnabled()) {
+                pluginClassLoader = plugin.getClass().getClassLoader();
+                Class.forName("de.oliver.fancynpcs.api.NpcApiProvider", true, pluginClassLoader);
+                return true;
+            }
+            return false;
         } catch (ClassNotFoundException e) {
             return false;
         }
     }
 
     private void initializeAPI() throws Exception {
-        Class<?> apiProviderClass = Class.forName("de.oliver.fancynpcs.api.NpcApiProvider");
+        Class<?> apiProviderClass = Class.forName("de.oliver.fancynpcs.api.NpcApiProvider", true, pluginClassLoader);
         fancyNpcsAPI = apiProviderClass.getMethod("get").invoke(null);
     }
 
