@@ -16,9 +16,10 @@ public class VersionCommand implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         String prefix = "[AkiAsync] ";
         sender.sendMessage(prefix + "========================================");
-        sender.sendMessage(prefix + "Plugin: " + plugin.getDescription().getName());
-        sender.sendMessage(prefix + "Version: " + plugin.getDescription().getVersion());
-        sender.sendMessage(prefix + "Authors: " + String.join(", ", plugin.getDescription().getAuthors()));
+        sender.sendMessage(prefix + "Plugin: " + plugin.getPluginMeta().getName());
+        sender.sendMessage(prefix + "Version: " + plugin.getPluginMeta().getVersion());
+        sender.sendMessage(prefix + "Authors: " + String.join(", ", plugin.getPluginMeta().getAuthors()));
+        sender.sendMessage(prefix + "Config Version: " + plugin.getConfigManager().getCurrentConfigVersion());
         sender.sendMessage(prefix + "");
         sender.sendMessage(prefix + "Server: " + Bukkit.getName() + " " + Bukkit.getVersion());
         sender.sendMessage(prefix + "Minecraft: " + Bukkit.getMinecraftVersion());
@@ -38,6 +39,13 @@ public class VersionCommand implements CommandExecutor {
         sender.sendMessage(prefix + "  BeeFix: " + (plugin.getConfigManager().isBeeFixEnabled() ? "ON" : "OFF"));
         sender.sendMessage(prefix + "  Structure Location Async: " + (plugin.getConfigManager().isStructureLocationAsyncEnabled() ? "ON" : "OFF"));
         sender.sendMessage(prefix + "  SecureSeed: " + (plugin.getConfigManager().isSecureSeedEnabled() ? "ON" : "OFF"));
+        sender.sendMessage(prefix + "  Falling Block Parallel: " + (plugin.getConfigManager().isFallingBlockParallelEnabled() ? "ON" : "OFF"));
+        sender.sendMessage(prefix + "  Item Entity Parallel: " + (plugin.getConfigManager().isItemEntityParallelEnabled() ? "ON" : "OFF"));
+        sender.sendMessage(prefix + "  Item Entity Smart Merge: " + (plugin.getConfigManager().isItemEntityMergeOptimizationEnabled() ? "ON" : "OFF"));
+        sender.sendMessage(prefix + "  Item Entity Age Optimization: " + (plugin.getConfigManager().isItemEntityAgeOptimizationEnabled() ? "ON" : "OFF"));
+        sender.sendMessage(prefix + "  Minecart Cauldron Destruction: " + (plugin.getConfigManager().isMinecartCauldronDestructionEnabled() ? "ON" : "OFF"));
+        sender.sendMessage(prefix + "  Network Optimization: " + (plugin.getConfigManager().isNetworkOptimizationEnabled() ? "ON" : "OFF"));
+        sender.sendMessage(prefix + "  Fast Movement Chunk Load: " + (plugin.getConfigManager().isFastMovementChunkLoadEnabled() ? "ON" : "OFF"));
         sender.sendMessage(prefix + "========================================");
         return true;
     }

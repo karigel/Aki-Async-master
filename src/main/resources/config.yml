@@ -3,10 +3,10 @@
 # ==========================================
 
 # 配置版本 / Configuration version
-# 当前版本 / Current version: 8
-# 说明：当前配置版本为8，如果配置版本不等于8，则需要更新配置文件
-# Description: The current configuration version is 8, if the configuration version is not equal to 8, you need to update the configuration file
-version: 8
+# 当前版本 / Current version: 14
+# 说明：当前配置版本为14，如果配置版本不等于14，则需要更新配置文件
+# Description: The current configuration version is 14, if the configuration version is not equal to 14, you need to update the configuration file
+version: 14
 
 # ==========================================
 # 实体系统优化 / Entity System Optimization
@@ -673,5 +673,282 @@ commands:
     # Description: After this time, confirmation is reset and warning will show again
     confirmation-timeout: 30
 
+# ==========================================
+# 下落方块并行处理 / Falling Block Parallel (v14.0)
+# ==========================================
+# 说明：将下落方块（沙子、沙砾等）的tick处理并行化
+# Description: Parallelize tick processing for falling blocks (sand, gravel, etc.)
+falling-block-parallel:
+  # 启用开关 / Enable toggle
+  enabled: true
+  # 最小下落方块数阈值 / Minimum falling blocks threshold
+  # 说明：低于此值不启用并行（避免overhead）
+  # Description: Skip parallel if falling blocks < threshold
+  min-falling-blocks: 50
+  # 批量大小 / Batch size
+  # 说明：每批处理的下落方块数量
+  # Description: Number of falling blocks per batch
+  batch-size: 16
+
+# ==========================================
+# 掉落物实体并行处理 / Item Entity Parallel (v14.0)
+# ==========================================
+# 说明：将掉落物实体的tick处理并行化，并提供智能合并和年龄优化
+# Description: Parallelize tick processing for item entities with smart merge and age optimization
+item-entity-parallel:
+  # 启用开关 / Enable toggle
+  enabled: true
+  # 最小掉落物数阈值 / Minimum item entities threshold
+  # 说明：低于此值不启用并行（避免overhead）
+  # Description: Skip parallel if item entities < threshold
+  min-item-entities: 50
+  # 批量大小 / Batch size
+  # 说明：每批处理的掉落物数量
+  # Description: Number of item entities per batch
+  batch-size: 16
+  
+  # 智能合并优化 / Smart Merge Optimization
+  # 说明：优化掉落物合并逻辑，减少实体数量
+  # Description: Optimize item entity merging to reduce entity count
+  merge-optimization:
+    # 启用开关 / Enable toggle
+    enabled: true
+    # 合并检查间隔（tick）/ Merge check interval (ticks)
+    merge-interval: 40
+    # 合并范围（格）/ Merge range (blocks)
+    merge-range: 0.5
+  
+  # 年龄优化 / Age Optimization
+  # 说明：优化掉落物年龄计算，减少无用tick
+  # Description: Optimize item entity age calculation to reduce useless ticks
+  age-optimization:
+    # 启用开关 / Enable toggle
+    enabled: true
+    # 玩家检测范围（格）/ Player detection range (blocks)
+    # 说明：超出此范围的掉落物会减少tick频率
+    # Description: Items beyond this range will have reduced tick frequency
+    player-detection-range: 32.0
+
+# ==========================================
+# 矿车炼药锅销毁优化 / Minecart Cauldron Destruction (v14.0)
+# ==========================================
+# 说明：优化矿车与炼药锅的交互销毁逻辑
+# Description: Optimize minecart and cauldron interaction destruction logic
+minecart-cauldron-destruction:
+  # 启用开关 / Enable toggle
+  enabled: true
+
+# ==========================================
+# 网络优化 / Network Optimization
+# ==========================================
+# 说明：智能数据包优先级和区块发送速率控制
+# Description: Intelligent packet priority and chunk send rate control
+#
+# 支持场景 / Supported Scenarios:
+# - PVP 战斗 / PVP Combat
+# - PVE 刷怪 / PVE Grinding
+# - 多生物农场 / Multi-mob Farm
+# - 刷沙机/重力方块 / Sand Duper/Falling Blocks
+# - 高密度区块 / High-density Chunk
+# - 鞘翅高速飞行 / Elytra Fast Flight
+network-optimization:
+  # 总开关 / Master switch
+  enabled: true
+
+  # 数据包优先级系统 / Packet Priority System
+  # 说明：根据数据包类型自动分配优先级，改善弱网环境玩家体验
+  # Description: Automatically assigns priority based on packet type
+  #
+  # 优先级说明 / Priority Levels:
+  # CRITICAL (0): 玩家移动、战斗操作 / Player movement, combat actions
+  # HIGH (1): 实体更新、方块变化 / Entity updates, block changes
+  # NORMAL (2): 区块数据、容器更新 / Chunk data, container updates
+  # LOW (3): 粒子效果、音效 / Particle effects, sounds
+  packet-priority:
+    enabled: true
+
+  # 数据包发送速率控制 / Packet Send Rate Control
+  # 说明：控制每个玩家每 tick 的数据包发送数量
+  # Description: Controls packet send count per player per tick
+  send-rate:
+    # 基础发送速率（packets/tick）/ Base send rate (packets/tick)
+    # 推荐值 / Recommended: 50 (默认), 40 (低配服务器), 60 (高配服务器)
+    base: 50
+    # 中度加速速率 / Medium acceleration rate
+    # 说明：队列积压 >100 时的发送速率（PVP、鞘翅飞行）
+    medium: 80
+    # 重度加速速率 / Heavy acceleration rate
+    # 说明：队列积压 >300 时的发送速率（多生物农场、大规模 PVE）
+    heavy: 110
+    # 极限加速速率 / Extreme acceleration rate
+    # 说明：队列积压 >500 时的发送速率（刷沙机、单区块高密度）
+    extreme: 130
+
+  # 队列容量限制 / Queue Capacity Limits
+  queue-limits:
+    # 总队列容量 / Total queue capacity
+    max-total: 2500
+    # CRITICAL 优先级配额 / CRITICAL priority quota
+    max-critical: 1200
+    # HIGH 优先级配额 / HIGH priority quota
+    max-high: 800
+    # NORMAL 优先级配额 / NORMAL priority quota
+    max-normal: 600
+
+  # 动态加速阈值 / Dynamic Acceleration Thresholds
+  acceleration-thresholds:
+    # 中度加速阈值 / Medium acceleration threshold
+    medium: 100
+    # 重度加速阈值 / Heavy acceleration threshold
+    heavy: 300
+    # 极限加速阈值 / Extreme acceleration threshold
+    extreme: 500
+
+  # 智能清理策略 / Smart Cleanup Strategy
+  cleanup:
+    # 启用智能清理 / Enable smart cleanup
+    enabled: true
+    # 老旧数据包阈值（秒）/ Stale packet threshold (seconds)
+    stale-threshold: 5
+    # CRITICAL/HIGH 清理数量 / CRITICAL/HIGH cleanup count
+    critical-cleanup: 100
+    # NORMAL 清理数量 / NORMAL cleanup count
+    normal-cleanup: 50
+
+  # 区块发送速率控制 / Chunk Send Rate Control
+  chunk-rate-control:
+    enabled: true
+    # 基础区块发送速率（chunks/tick）/ Base chunk send rate
+    base-rate: 10
+    # 最大区块发送速率 / Maximum chunk send rate
+    max-rate: 20
+    # 最小区块发送速率 / Minimum chunk send rate
+    min-rate: 3
+
+  # 网络拥塞检测 / Network Congestion Detection
+  congestion-detection:
+    enabled: true
+    # 高延迟阈值（毫秒）/ High ping threshold (ms)
+    high-ping-threshold: 200
+    # 严重延迟阈值（毫秒）/ Critical ping threshold (ms)
+    critical-ping-threshold: 500
+    # 高带宽阈值（bytes/s）/ High bandwidth threshold
+    high-bandwidth-threshold: 1048576
+
+  # 视锥体过滤 / View Frustum Filter（实验性）
+  view-frustum-filter:
+    enabled: false
+    filter-entities: true
+    filter-blocks: false
+    filter-particles: true
+
+  # 传送优化 / Teleport Optimization
+  # 说明：优化传送时的数据包处理，减少卡顿
+  # Description: Optimizes packet handling during teleport to reduce lag
+  teleport-optimization:
+    # 启用传送优化 / Enable teleport optimization
+    enabled: true
+    # 启用数据包旁路 / Enable packet bypass
+    # 说明：传送期间绕过优先级队列直接发送关键数据包
+    packet-bypass: true
+    # 增强持续时间（秒）/ Boost duration (seconds)
+    # 说明：传送后保持增强发送速率的时间
+    boost-duration-seconds: 5
+    # 最大区块发送速率 / Max chunk send rate
+    # 说明：传送期间的区块发送速率
+    max-chunk-rate: 25
+    # 过滤非必要数据包 / Filter non-essential packets
+    # 说明：传送期间过滤粒子、音效等非必要数据包
+    filter-non-essential: true
+    # 调试模式 / Debug mode
+    debug: false
+
+# ==========================================
+# 高速移动区块预加载 / Fast Movement Chunk Loading
+# ==========================================
+# 说明：检测玩家高速移动（鞘翅飞行、疾跑等），提前加载前方区块
+# Description: Detects fast-moving players (elytra, sprinting) and preloads chunks ahead
+# 适用场景 / Use Cases:
+# - 鞘翅飞行 / Elytra flying
+# - 创造模式飞行 / Creative mode flying
+# - 载具高速移动 / Fast vehicle movement
+fast-movement-chunk-load:
+  # 启用 / Enable
+  # 特性：自动检测烟花鞘翅超高速移动，动态调整所有参数
+  enabled: true
+  # 速度阈值（方块/tick）/ Speed threshold (blocks/tick)
+  # 说明：超过此速度时触发预加载（0.5 ≈ 10方块/秒）
+  speed-threshold: 0.5
+  # 预加载距离（区块）/ Preload distance (chunks)
+  # 动态调整：普通8区块，高速10区块，超高速(烟花鞘翅)12区块
+  preload-distance: 8
+  # 最大并发加载数 / Max concurrent loads
+  # 动态调整：普通4个，高速8个，超高速12个
+  max-concurrent-loads: 4
+  # 预测时间（ticks）/ Prediction time (ticks)
+  # 动态调整：普通40ticks，高速48ticks，超高速60ticks
+  prediction-ticks: 40
+
+  # 智能偏移式区块加载中心 / Smart Center Offset Chunk Loading
+  # 说明：根据玩家移动速度和方向，动态偏移区块加载中心
+  # Description: Dynamically offset chunk loading center based on player speed and direction
+  # 适用场景 / Use Cases:
+  # - 鞘翅高速飞行时提前加载前方地形
+  # - 小视距服务器模拟远视距效果
+  # - 减少高速移动时的卡顿和撞山
+  center-offset:
+    # 启用智能偏移 / Enable center offset
+    enabled: true
+    # 最小触发速度（方块/tick）/ Minimum trigger speed
+    # 说明：低于此速度时不进行偏移（60 b/s = 3 b/t）
+    min-speed: 3.0
+    # 最大触发速度（方块/tick）/ Maximum trigger speed
+    # 说明：超过此速度时不再增加偏移（180 b/s = 9 b/t）
+    # 警告：速度过高可能导致玩家被卸载
+    max-speed: 9.0
+    # 最大偏移比例 / Maximum offset ratio
+    # 说明：偏移距离占视距的最大比例（0.75 = 75%）
+    max-offset-ratio: 0.75
+    # 异步加载批量控制 / Async Loading Batch Control
+    async-loading:
+      # 批次大小 / Batch size
+      # 推荐值: 2 (保守), 3 (平衡), 4 (激进)
+      batch-size: 2
+      # 批次延迟（毫秒）/ Batch delay (ms)
+      # 推荐值: 20 (保守), 15 (平衡), 10 (激进)
+      batch-delay-ms: 20
+
 # 提示 / Tip: 更多线程≠更好性能！从推荐值开始调整。
 # More threads ≠ better performance! Start with recommended values.
+
+# ==========================================
+# 虚拟实体兼容性 / Virtual Entity Compatibility
+# ==========================================
+# 说明：与NPC插件（FancyNpcs、ZNPCsPlus等）的兼容层
+# Description: Compatibility layer for NPC plugins (FancyNpcs, ZNPCsPlus, etc.)
+virtual-entity-compatibility:
+  # 启用虚拟实体兼容 / Enable virtual entity compatibility
+  enabled: true
+  # 调试日志 / Debug logging
+  debug: false
+  # 绕过数据包队列 / Bypass packet queue
+  # 说明：虚拟实体相关的数据包直接发送，不经过优先级队列
+  bypass-packet-queue: true
+  # 排除节流 / Exclude from throttling
+  # 说明：虚拟实体不受实体节流影响
+  exclude-from-throttling: true
+  
+  # FancyNpcs 兼容配置 / FancyNpcs compatibility config
+  fancynpcs:
+    enabled: true
+    # 使用API检测 / Use API detection
+    # 说明：通过FancyNpcs API检测NPC，禁用则使用后备检测
+    use-api: true
+    # 优先级 / Priority
+    priority: 90
+  
+  # ZNPCsPlus 兼容配置 / ZNPCsPlus compatibility config
+  znpcsplus:
+    enabled: true
+    # 优先级 / Priority
+    priority: 90

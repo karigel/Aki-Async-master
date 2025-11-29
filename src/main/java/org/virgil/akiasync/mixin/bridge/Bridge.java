@@ -311,4 +311,11 @@ public interface Bridge {
     // 实体节流 / Entity Throttling (v8.0)
     // ==========================================
     boolean shouldThrottleEntity(Object entity);
+    
+    // ==========================================
+    // ViaVersion 兼容 / ViaVersion Compatibility
+    // ==========================================
+    boolean isPlayerUsingViaVersion(java.util.UUID playerId);
+    boolean isViaConnectionInPlayState(java.util.UUID playerId);
+    int getPlayerProtocolVersion(java.util.UUID playerId);
 }

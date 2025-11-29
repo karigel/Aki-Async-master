@@ -5,6 +5,8 @@ import org.virgil.akiasync.AkiAsyncPlugin;
 
 public class ConfigManager {
     
+    private static final int CURRENT_CONFIG_VERSION = 14;
+    
     private final AkiAsyncPlugin plugin;
     private java.util.logging.Logger logger; // ç¨äşçŹçŤć¨Ąĺź
     private FileConfiguration config;
@@ -154,6 +156,82 @@ public class ConfigManager {
     // TNT ?????? / TNT Land Protection Config (v8.0)
     // ==========================================
     private boolean tntLandProtectionEnabled;
+    
+    // ==========================================
+    // Falling Block Parallel Config (v14.0)
+    // ==========================================
+    private boolean fallingBlockParallelEnabled;
+    private int minFallingBlocksForParallel;
+    private int fallingBlockBatchSize;
+    
+    // ==========================================
+    // Item Entity Parallel Config (v14.0)
+    // ==========================================
+    private boolean itemEntityParallelEnabled;
+    private int minItemEntitiesForParallel;
+    private int itemEntityBatchSize;
+    private boolean itemEntityMergeOptimizationEnabled;
+    private int itemEntityMergeInterval;
+    private double itemEntityMergeRange;
+    private boolean itemEntityAgeOptimizationEnabled;
+    private double itemEntityPlayerDetectionRange;
+    
+    // ==========================================
+    // Minecart Cauldron Destruction Config (v14.0)
+    // ==========================================
+    private boolean minecartCauldronDestructionEnabled;
+    
+    // ==========================================
+    // Network Optimization Config (v14.0)
+    // ==========================================
+    private boolean networkOptimizationEnabled;
+    private boolean packetPriorityEnabled;
+    private boolean chunkRateControlEnabled;
+    private boolean congestionDetectionEnabled;
+    private boolean viewFrustumFilterEnabled;
+    private boolean viewFrustumFilterEntities;
+    private boolean viewFrustumFilterBlocks;
+    private boolean viewFrustumFilterParticles;
+    private int highPingThreshold;
+    private int criticalPingThreshold;
+    private long highBandwidthThreshold;
+    private int baseChunkSendRate;
+    private int maxChunkSendRate;
+    private int minChunkSendRate;
+    
+    // ==========================================
+    // Fast Movement Chunk Load Config
+    // ==========================================
+    private boolean fastMovementChunkLoadEnabled;
+    private double fastMovementSpeedThreshold;
+    private int fastMovementPreloadDistance;
+    private int fastMovementMaxConcurrentLoads;
+    private int fastMovementPredictionTicks;
+    // Center Offset Config
+    private boolean centerOffsetEnabled;
+    private double centerOffsetMinSpeed;
+    private double centerOffsetMaxSpeed;
+    private double centerOffsetMaxRatio;
+    // Async Loading Config
+    private int asyncLoadingBatchSize;
+    private long asyncLoadingBatchDelayMs;
+    // Teleport Optimization Config
+    private boolean teleportOptimizationEnabled;
+    private boolean teleportPacketBypassEnabled;
+    private int teleportBoostDurationSeconds;
+    private int teleportMaxChunkRate;
+    private boolean teleportFilterNonEssentialPackets;
+    private boolean teleportDebugEnabled;
+    // Virtual Entity Compatibility Config
+    private boolean virtualEntityCompatibilityEnabled;
+    private boolean virtualEntityDebugEnabled;
+    private boolean virtualEntityBypassPacketQueue;
+    private boolean virtualEntityExcludeFromThrottling;
+    private boolean fancynpcsCompatEnabled;
+    private boolean fancynpcsUseAPI;
+    private int fancynpcsPriority;
+    private boolean znpcsplusCompatEnabled;
+    private int znpcsplusPriority;
     
     public ConfigManager(AkiAsyncPlugin plugin) {
         this.plugin = plugin;
@@ -336,8 +414,6 @@ public class ConfigManager {
     }
     
     private void validateConfigVersion() {
-        final int CURRENT_CONFIG_VERSION = 8;
-        
         if (configVersion != CURRENT_CONFIG_VERSION) {
             getLogger().warning("==========================================");
             getLogger().warning("  CONFIG VERSION MISMATCH DETECTED");
@@ -620,6 +696,88 @@ public class ConfigManager {
         enableDebugLogging = config.getBoolean("performance.debug-logging", false);
         enablePerformanceMetrics = config.getBoolean("performance.enable-metrics", true);
         configVersion = config.getInt("version", 6);
+        
+        // ==========================================
+        // Falling Block Parallel Config (v14.0)
+        // ==========================================
+        fallingBlockParallelEnabled = config.getBoolean("falling-block-parallel.enabled", true);
+        minFallingBlocksForParallel = config.getInt("falling-block-parallel.min-falling-blocks", 50);
+        fallingBlockBatchSize = config.getInt("falling-block-parallel.batch-size", 16);
+        
+        // ==========================================
+        // Item Entity Parallel Config (v14.0)
+        // ==========================================
+        itemEntityParallelEnabled = config.getBoolean("item-entity-parallel.enabled", true);
+        minItemEntitiesForParallel = config.getInt("item-entity-parallel.min-item-entities", 50);
+        itemEntityBatchSize = config.getInt("item-entity-parallel.batch-size", 16);
+        itemEntityMergeOptimizationEnabled = config.getBoolean("item-entity-parallel.merge-optimization.enabled", true);
+        itemEntityMergeInterval = config.getInt("item-entity-parallel.merge-optimization.merge-interval", 40);
+        itemEntityMergeRange = config.getDouble("item-entity-parallel.merge-optimization.merge-range", 0.5);
+        itemEntityAgeOptimizationEnabled = config.getBoolean("item-entity-parallel.age-optimization.enabled", true);
+        itemEntityPlayerDetectionRange = config.getDouble("item-entity-parallel.age-optimization.player-detection-range", 32.0);
+        
+        // ==========================================
+        // Minecart Cauldron Destruction Config (v14.0)
+        // ==========================================
+        minecartCauldronDestructionEnabled = config.getBoolean("minecart-cauldron-destruction.enabled", true);
+        
+        // ==========================================
+        // Network Optimization Config (v14.0)
+        // ==========================================
+        networkOptimizationEnabled = config.getBoolean("network-optimization.enabled", true);
+        packetPriorityEnabled = config.getBoolean("network-optimization.packet-priority.enabled", true);
+        chunkRateControlEnabled = config.getBoolean("network-optimization.chunk-rate-control.enabled", true);
+        congestionDetectionEnabled = config.getBoolean("network-optimization.congestion-detection.enabled", true);
+        viewFrustumFilterEnabled = config.getBoolean("network-optimization.view-frustum-filter.enabled", false);
+        viewFrustumFilterEntities = config.getBoolean("network-optimization.view-frustum-filter.filter-entities", true);
+        viewFrustumFilterBlocks = config.getBoolean("network-optimization.view-frustum-filter.filter-blocks", false);
+        viewFrustumFilterParticles = config.getBoolean("network-optimization.view-frustum-filter.filter-particles", true);
+        highPingThreshold = config.getInt("network-optimization.congestion-detection.high-ping-threshold", 150);
+        criticalPingThreshold = config.getInt("network-optimization.congestion-detection.critical-ping-threshold", 300);
+        highBandwidthThreshold = config.getLong("network-optimization.congestion-detection.high-bandwidth-threshold", 1000000L);
+        baseChunkSendRate = config.getInt("network-optimization.chunk-rate-control.base-rate", 10);
+        maxChunkSendRate = config.getInt("network-optimization.chunk-rate-control.max-rate", 20);
+        minChunkSendRate = config.getInt("network-optimization.chunk-rate-control.min-rate", 3);
+        
+        // ==========================================
+        // Fast Movement Chunk Load Config
+        // ==========================================
+        fastMovementChunkLoadEnabled = config.getBoolean("fast-movement-chunk-load.enabled", true);
+        fastMovementSpeedThreshold = config.getDouble("fast-movement-chunk-load.speed-threshold", 0.5);
+        fastMovementPreloadDistance = config.getInt("fast-movement-chunk-load.preload-distance", 8);
+        fastMovementMaxConcurrentLoads = config.getInt("fast-movement-chunk-load.max-concurrent-loads", 4);
+        fastMovementPredictionTicks = config.getInt("fast-movement-chunk-load.prediction-ticks", 40);
+        // Center Offset Config
+        centerOffsetEnabled = config.getBoolean("fast-movement-chunk-load.center-offset.enabled", true);
+        centerOffsetMinSpeed = config.getDouble("fast-movement-chunk-load.center-offset.min-speed", 3.0);
+        centerOffsetMaxSpeed = config.getDouble("fast-movement-chunk-load.center-offset.max-speed", 9.0);
+        centerOffsetMaxRatio = config.getDouble("fast-movement-chunk-load.center-offset.max-offset-ratio", 0.75);
+        // Async Loading Config
+        asyncLoadingBatchSize = config.getInt("fast-movement-chunk-load.center-offset.async-loading.batch-size", 2);
+        asyncLoadingBatchDelayMs = config.getLong("fast-movement-chunk-load.center-offset.async-loading.batch-delay-ms", 20L);
+        
+        // ==========================================
+        // Teleport Optimization Config
+        // ==========================================
+        teleportOptimizationEnabled = config.getBoolean("network-optimization.teleport-optimization.enabled", true);
+        teleportPacketBypassEnabled = config.getBoolean("network-optimization.teleport-optimization.packet-bypass", true);
+        teleportBoostDurationSeconds = config.getInt("network-optimization.teleport-optimization.boost-duration-seconds", 5);
+        teleportMaxChunkRate = config.getInt("network-optimization.teleport-optimization.max-chunk-rate", 25);
+        teleportFilterNonEssentialPackets = config.getBoolean("network-optimization.teleport-optimization.filter-non-essential", true);
+        teleportDebugEnabled = config.getBoolean("network-optimization.teleport-optimization.debug", false);
+        
+        // ==========================================
+        // Virtual Entity Compatibility Config
+        // ==========================================
+        virtualEntityCompatibilityEnabled = config.getBoolean("virtual-entity-compatibility.enabled", true);
+        virtualEntityDebugEnabled = config.getBoolean("virtual-entity-compatibility.debug", false);
+        virtualEntityBypassPacketQueue = config.getBoolean("virtual-entity-compatibility.bypass-packet-queue", true);
+        virtualEntityExcludeFromThrottling = config.getBoolean("virtual-entity-compatibility.exclude-from-throttling", true);
+        fancynpcsCompatEnabled = config.getBoolean("virtual-entity-compatibility.fancynpcs.enabled", true);
+        fancynpcsUseAPI = config.getBoolean("virtual-entity-compatibility.fancynpcs.use-api", true);
+        fancynpcsPriority = config.getInt("virtual-entity-compatibility.fancynpcs.priority", 90);
+        znpcsplusCompatEnabled = config.getBoolean("virtual-entity-compatibility.znpcsplus.enabled", true);
+        znpcsplusPriority = config.getInt("virtual-entity-compatibility.znpcsplus.priority", 90);
         
         validateConfig();
     }
@@ -948,6 +1106,87 @@ public class ConfigManager {
     // TNT ?????? Getter / TNT Land Protection Config Getter (v8.0)
     // ==========================================
     public boolean isTNTLandProtectionEnabled() { return tntLandProtectionEnabled; }
+    
+    // ==========================================
+    // Falling Block Parallel Getters (v14.0)
+    // ==========================================
+    public boolean isFallingBlockParallelEnabled() { return fallingBlockParallelEnabled; }
+    public int getMinFallingBlocksForParallel() { return minFallingBlocksForParallel; }
+    public int getFallingBlockBatchSize() { return fallingBlockBatchSize; }
+    
+    // ==========================================
+    // Item Entity Parallel Getters (v14.0)
+    // ==========================================
+    public boolean isItemEntityParallelEnabled() { return itemEntityParallelEnabled; }
+    public int getMinItemEntitiesForParallel() { return minItemEntitiesForParallel; }
+    public int getItemEntityBatchSize() { return itemEntityBatchSize; }
+    public boolean isItemEntityMergeOptimizationEnabled() { return itemEntityMergeOptimizationEnabled; }
+    public int getItemEntityMergeInterval() { return itemEntityMergeInterval; }
+    public double getItemEntityMergeRange() { return itemEntityMergeRange; }
+    public boolean isItemEntityAgeOptimizationEnabled() { return itemEntityAgeOptimizationEnabled; }
+    public double getItemEntityPlayerDetectionRange() { return itemEntityPlayerDetectionRange; }
+    
+    // ==========================================
+    // Minecart Cauldron Destruction Getter (v14.0)
+    // ==========================================
+    public boolean isMinecartCauldronDestructionEnabled() { return minecartCauldronDestructionEnabled; }
+    
+    // ==========================================
+    // Config Version Getter (v14.0)
+    // ==========================================
+    public int getCurrentConfigVersion() { return CURRENT_CONFIG_VERSION; }
+    
+    // ==========================================
+    // Network Optimization Getters (v14.0)
+    // ==========================================
+    public boolean isNetworkOptimizationEnabled() { return networkOptimizationEnabled; }
+    public boolean isPacketPriorityEnabled() { return packetPriorityEnabled; }
+    public boolean isChunkRateControlEnabled() { return chunkRateControlEnabled; }
+    public boolean isCongestionDetectionEnabled() { return congestionDetectionEnabled; }
+    public boolean isViewFrustumFilterEnabled() { return viewFrustumFilterEnabled; }
+    public boolean isViewFrustumFilterEntities() { return viewFrustumFilterEntities; }
+    public boolean isViewFrustumFilterBlocks() { return viewFrustumFilterBlocks; }
+    public boolean isViewFrustumFilterParticles() { return viewFrustumFilterParticles; }
+    public int getHighPingThreshold() { return highPingThreshold; }
+    public int getCriticalPingThreshold() { return criticalPingThreshold; }
+    public long getHighBandwidthThreshold() { return highBandwidthThreshold; }
+    public int getBaseChunkSendRate() { return baseChunkSendRate; }
+    public int getMaxChunkSendRate() { return maxChunkSendRate; }
+    public int getMinChunkSendRate() { return minChunkSendRate; }
+    
+    // ==========================================
+    // Fast Movement Chunk Load Getters
+    // ==========================================
+    public boolean isFastMovementChunkLoadEnabled() { return fastMovementChunkLoadEnabled; }
+    public double getFastMovementSpeedThreshold() { return fastMovementSpeedThreshold; }
+    public int getFastMovementPreloadDistance() { return fastMovementPreloadDistance; }
+    public int getFastMovementMaxConcurrentLoads() { return fastMovementMaxConcurrentLoads; }
+    public int getFastMovementPredictionTicks() { return fastMovementPredictionTicks; }
+    // Center Offset Getters
+    public boolean isCenterOffsetEnabled() { return centerOffsetEnabled; }
+    public double getCenterOffsetMinSpeed() { return centerOffsetMinSpeed; }
+    public double getCenterOffsetMaxSpeed() { return centerOffsetMaxSpeed; }
+    public double getCenterOffsetMaxRatio() { return centerOffsetMaxRatio; }
+    // Async Loading Getters
+    public int getAsyncLoadingBatchSize() { return asyncLoadingBatchSize; }
+    public long getAsyncLoadingBatchDelayMs() { return asyncLoadingBatchDelayMs; }
+    // Teleport Optimization Getters
+    public boolean isTeleportOptimizationEnabled() { return teleportOptimizationEnabled; }
+    public boolean isTeleportPacketBypassEnabled() { return teleportPacketBypassEnabled; }
+    public int getTeleportBoostDurationSeconds() { return teleportBoostDurationSeconds; }
+    public int getTeleportMaxChunkRate() { return teleportMaxChunkRate; }
+    public boolean isTeleportFilterNonEssentialPackets() { return teleportFilterNonEssentialPackets; }
+    public boolean isTeleportDebugEnabled() { return teleportDebugEnabled; }
+    // Virtual Entity Compatibility Getters
+    public boolean isVirtualEntityCompatibilityEnabled() { return virtualEntityCompatibilityEnabled; }
+    public boolean isVirtualEntityDebugEnabled() { return virtualEntityDebugEnabled; }
+    public boolean isVirtualEntityBypassPacketQueue() { return virtualEntityBypassPacketQueue; }
+    public boolean isVirtualEntityExcludeFromThrottling() { return virtualEntityExcludeFromThrottling; }
+    public boolean isFancynpcsCompatEnabled() { return fancynpcsCompatEnabled; }
+    public boolean isFancynpcsUseAPI() { return fancynpcsUseAPI; }
+    public int getFancynpcsPriority() { return fancynpcsPriority; }
+    public boolean isZnpcsplusCompatEnabled() { return znpcsplusCompatEnabled; }
+    public int getZnpcsplusPriority() { return znpcsplusPriority; }
     
     public boolean getBoolean(String path, boolean defaultValue) {
         return config != null ? config.getBoolean(path, defaultValue) : defaultValue;
