@@ -34,18 +34,54 @@ public class LandProtectionIntegration {
     private static Object kariClaimsManager = null;
     
     private static volatile boolean initialized = false;
+    private static volatile boolean pluginsChecked = false;
     
     /**
      * 确保已初始化（延迟初始化）
      * Ensure initialized (lazy initialization)
+     * 
+     * 如果首次检测时没有找到插件，会在下次调用时重新检测
+     * If no plugins found on first check, will re-check on next call
      */
     private static void ensureInitialized() {
-        if (!initialized) {
-            synchronized (LandProtectionIntegration.class) {
-                if (!initialized) {
-                    initialize();
-                    initialized = true;
+        // 如果已检测到插件，无需再次初始化
+        if (initialized && pluginsChecked) {
+            return;
+        }
+        
+        synchronized (LandProtectionIntegration.class) {
+            // 双重检查
+            if (initialized && pluginsChecked) {
+                return;
+            }
+            
+            // 检查 Bukkit 是否已准备好
+            try {
+                if (Bukkit.getPluginManager() == null || Bukkit.getPluginManager().getPlugins().length == 0) {
+                    // Bukkit 还没准备好，稍后再试
+                    return;
                 }
+            } catch (Exception e) {
+                // Bukkit 还没准备好
+                return;
+            }
+            
+            // 重置状态并重新初始化
+            residenceEnabled = false;
+            landsEnabled = false;
+            worldGuardEnabled = false;
+            kariClaimsEnabled = false;
+            residenceAPI = null;
+            landsAPI = null;
+            worldGuardAPI = null;
+            kariClaimsManager = null;
+            
+            initialize();
+            initialized = true;
+            
+            // 如果找到了任何插件，标记为已完成检测
+            if (residenceEnabled || landsEnabled || worldGuardEnabled || kariClaimsEnabled) {
+                pluginsChecked = true;
             }
         }
     }
@@ -273,6 +309,7 @@ public class LandProtectionIntegration {
             worldGuardAPI = null;
             kariClaimsManager = null;
             initialized = false;
+            pluginsChecked = false;
         }
         ensureInitialized();
     }
