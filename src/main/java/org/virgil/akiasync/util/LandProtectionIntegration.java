@@ -204,7 +204,53 @@ public class LandProtectionIntegration {
         return kariClaimsEnabled;
     }
     
+    /**
+     * 获取所有已检测到的保护插件列表
+     * Get list of all detected protection plugins
+     */
+    public static java.util.List<String> getDetectedPlugins() {
+        java.util.List<String> plugins = new java.util.ArrayList<>();
+        if (residenceEnabled) plugins.add("Residence");
+        if (landsEnabled) plugins.add("Lands");
+        if (worldGuardEnabled) plugins.add("WorldGuard");
+        if (kariClaimsEnabled) plugins.add("KariClaims");
+        return plugins;
+    }
+    
+    /**
+     * 检查是否有任何保护插件被检测到
+     * Check if any protection plugin is detected
+     */
+    public static boolean hasAnyProtectionPlugin() {
+        return residenceEnabled || landsEnabled || worldGuardEnabled || kariClaimsEnabled;
+    }
+    
+    /**
+     * 打印兼容状态日志
+     * Print compatibility status log
+     */
+    public static void logCompatibilityStatus(java.util.logging.Logger logger) {
+        if (hasAnyProtectionPlugin()) {
+            logger.info("[AkiAsync] Land protection plugins detected:");
+            if (residenceEnabled) logger.info("  [✓] Residence - Compatible");
+            if (landsEnabled) logger.info("  [✓] Lands - Compatible");
+            if (worldGuardEnabled) logger.info("  [✓] WorldGuard - Compatible");
+            if (kariClaimsEnabled) logger.info("  [✓] KariClaims - Compatible");
+            logger.info("[AkiAsync] TNT explosions will respect protected areas.");
+        } else {
+            logger.info("[AkiAsync] No land protection plugins detected.");
+        }
+    }
+    
     public static void reload() {
+        residenceEnabled = false;
+        landsEnabled = false;
+        worldGuardEnabled = false;
+        kariClaimsEnabled = false;
+        residenceAPI = null;
+        landsAPI = null;
+        worldGuardAPI = null;
+        kariClaimsManager = null;
         initialize();
     }
 }

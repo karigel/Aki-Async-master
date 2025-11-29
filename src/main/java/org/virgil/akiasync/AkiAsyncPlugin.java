@@ -72,6 +72,9 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         if (configManager.isTNTOptimizationEnabled()) {
             org.virgil.akiasync.mixin.async.TNTThreadPool.init(configManager.getTNTThreads());
             getLogger().info("[AkiAsync] TNT explosion optimization enabled with " + configManager.getTNTThreads() + " threads");
+            
+            // 打印保护插件兼容状态
+            org.virgil.akiasync.util.LandProtectionIntegration.logCompatibilityStatus(getLogger());
         }
         
         if (configManager.isAsyncVillagerBreedEnabled()) {
