@@ -28,14 +28,26 @@ public class TNTExplosionMixin {
             return;
         }
         
+        // 检查土地保护 / Check land protection
+        Vec3 center = tnt.position();
+        BlockPos centerPos = BlockPos.containing(center);
+        if (!bridge.canTNTExplodeAt(sl, centerPos)) {
+            // 在保护区域内，取消爆炸但仍然移除 TNT 实体
+            // In protected area, cancel explosion but still remove TNT entity
+            if (bridge.isTNTDebugEnabled()) {
+                bridge.debugLog("[AkiAsync-TNT] Explosion cancelled at " + centerPos + " (protected area)");
+            }
+            ci.cancel();
+            tnt.discard();
+            return;
+        }
+        
         ci.cancel();
         
-        Vec3 center = tnt.position();
-        
         if (aki$isFoliaEnvironment()) {
-            net.minecraft.core.BlockPos centerPos = net.minecraft.core.BlockPos.containing(center);
+            BlockPos foliaCenterPos = BlockPos.containing(center);
             
-            if (!bridge.isOwnedByCurrentRegion(sl, centerPos)) {
+            if (!bridge.isOwnedByCurrentRegion(sl, foliaCenterPos)) {
                 aki$scheduleFoliaExplosion(tnt, sl, center, bridge);
                 tnt.discard();
                 return;
@@ -72,8 +84,8 @@ public class TNTExplosionMixin {
             };
             
             if (aki$isFoliaEnvironment()) {
-                net.minecraft.core.BlockPos centerPos = net.minecraft.core.BlockPos.containing(center);
-                bridge.scheduleRegionTask(sl, centerPos, waterExplosionTask);
+                BlockPos waterCenterPos = BlockPos.containing(center);
+                bridge.scheduleRegionTask(sl, waterCenterPos, waterExplosionTask);
             } else {
                 sl.getServer().execute(waterExplosionTask);
             }
