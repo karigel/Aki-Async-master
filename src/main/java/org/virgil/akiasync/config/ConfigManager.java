@@ -416,11 +416,12 @@ public class ConfigManager {
         blockPosCacheEnabled = config.getBoolean("nitori.blockpos-cache", true);
         optimizedCollectionsEnabled = config.getBoolean("nitori.optimized-collections", true);
         
-        secureSeedEnabled = config.getBoolean("secure-seed.enabled", true);
-        secureSeedProtectStructures = config.getBoolean("secure-seed.protect-structures", true);
-        secureSeedProtectOres = config.getBoolean("secure-seed.protect-ores", true);
-        secureSeedProtectSlimes = config.getBoolean("secure-seed.protect-slimes", true);
-        secureSeedBits = config.getInt("secure-seed.seed-bits", 1024);
+        // SecureSeed uses seed-encryption paths in upstream format
+        secureSeedEnabled = config.getBoolean("seed-encryption.enabled", true);
+        secureSeedProtectStructures = config.getBoolean("seed-encryption.protect-structures", true);
+        secureSeedProtectOres = config.getBoolean("seed-encryption.protect-ores", true);
+        secureSeedProtectSlimes = config.getBoolean("seed-encryption.protect-slimes", true);
+        secureSeedBits = config.getInt("seed-encryption.legacy.seed-bits", 1024);
         
         // ==========================================
         // ???????? / Async Pathfinding Config (v8.0)
@@ -452,27 +453,27 @@ public class ConfigManager {
         blockLockerProtectionEnabled = config.getBoolean("block-entity-optimizations.parallel-tick.blocklocker-protection", false);
         
         // ==========================================
-        // TNT Sakura Optimization Config (v3.2.16)
+        // TNT Optimization Config (v3.2.16) - upstream format
         // ==========================================
-        tntUseSakuraDensityCache = config.getBoolean("tnt-explosion-optimization.sakura.density-cache", true);
-        tntMergeEnabled = config.getBoolean("tnt-explosion-optimization.sakura.merge-enabled", true);
-        tntMergeRadius = config.getDouble("tnt-explosion-optimization.sakura.merge-radius", 0.5);
-        tntMaxFuseDifference = config.getInt("tnt-explosion-optimization.sakura.max-fuse-difference", 5);
-        tntMergedPowerMultiplier = (float) config.getDouble("tnt-explosion-optimization.sakura.merged-power-multiplier", 1.0);
+        tntUseSakuraDensityCache = config.getBoolean("tnt-explosion-optimization.density-cache.enabled", true);
+        tntMergeEnabled = config.getBoolean("tnt-explosion-optimization.entity-merge.enabled", true);
+        tntMergeRadius = config.getDouble("tnt-explosion-optimization.entity-merge.radius", 1.5);
+        tntMaxFuseDifference = config.getInt("tnt-explosion-optimization.entity-merge.max-fuse-difference", 5);
+        tntMergedPowerMultiplier = (float) config.getDouble("tnt-explosion-optimization.entity-merge.power-multiplier", 0.5);
         
         // ==========================================
-        // Redstone Sakura Optimization Config (v3.2.16)
+        // Redstone Optimization Config (v3.2.16) - upstream format
         // ==========================================
-        usePandaWireAlgorithm = config.getBoolean("redstone-optimization.panda-wire", true);
-        redstoneNetworkCacheEnabled = config.getBoolean("redstone-optimization.network-cache.enabled", true);
-        redstoneNetworkCacheExpireTicks = config.getInt("redstone-optimization.network-cache.expire-ticks", 100);
+        usePandaWireAlgorithm = config.getBoolean("redstone-optimizations.pandawire.enabled", true);
+        redstoneNetworkCacheEnabled = config.getBoolean("redstone-optimizations.network-cache.enabled", true);
+        redstoneNetworkCacheExpireTicks = config.getInt("redstone-optimizations.network-cache.expire-ticks", 600);
         
         // ==========================================
-        // SecureSeed Config (v3.2.16)
+        // Seed Encryption Config (v3.2.16) - upstream format
         // ==========================================
-        seedEncryptionEnabled = config.getBoolean("seed-encryption.enabled", false);
-        seedCommandDenyMessage = config.getString("seed-encryption.deny-message", 
-            "You don't have permission to use this command. Only server operators can view the world seed.");
+        seedEncryptionEnabled = config.getBoolean("seed-encryption.enabled", true);
+        seedCommandDenyMessage = config.getString("seed-encryption.seed-command-deny-message", 
+            "&c你没有权限使用此命令。只有服务器管理员可以查看世界种子。");
         
         validateConfigVersion();
         validateConfig();

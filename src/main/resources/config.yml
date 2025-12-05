@@ -336,47 +336,38 @@ async-pathfinding:
   # Description: Maximum execution time for pathfinding tasks
   timeout-ms: 50
 
-# ==========================================
-# TNT爆炸优化 / TNT Explosion Optimization (v7.0)
-# ==========================================
+# TNT爆炸优化 / TNT Explosion Optimization (异步计算 / Async calculation)
 tnt-explosion-optimization:
-  # 启用开关 / Enable toggle
   enabled: true
-  # 启用的爆炸实体白名单 / Enabled explosion entities
-  # 说明：只对这些实体的爆炸进行异步计算优化，其他爆炸走原版
-  # Description: Only async optimize explosions from these entities
-  entities:
-    - "minecraft:tnt"           # TNT方块
-    - "minecraft:tnt_minecart"  # TNT矿车（高频刷石机）
-    - "minecraft:wither_skull"  # 凋灵头颅（威力8+刷石机）
-  # 线程池大小 / Thread pool size
-  # 推荐值 / Recommended: CPU核心数×1.5
-  threads: 6
-  # TNT 土地保护 / TNT Land Protection (v8.0)
-  # 说明：集成土地保护插件（Residence、Lands、WorldGuard），防止TNT在保护区域内爆炸
-  # Description: Integrate with land protection plugins (Residence, Lands, WorldGuard) to prevent TNT explosions in protected areas
+  entities:  # 白名单实体 / Whitelisted entities
+    - "minecraft:tnt"
+    - "minecraft:tnt_minecart"
+    - "minecraft:wither_skull"
+  threads: 6  # 推荐CPU核心数×1.5 / Recommended: CPU cores × 1.5
+
+  # 爆炸密度缓存 / Explosion Density Cache
+  # Advanced density caching for explosion calculations
+  density-cache:
+    enabled: true  # 启用密度缓存 / Enable density caching
+    cache-expiry-ticks: 600  # 缓存过期时间(tick) / Cache expiry in ticks (600 = 30 seconds)
+    use-lenient-cache: true  # 使用宽松缓存提高命中率 / Use lenient cache for better hit rate
+
+  # TNT实体合并 / TNT Entity Merging (Cannon server optimization)
+  # Based on Sakura project's TntExplosion system
+  entity-merge:
+    enabled: true  # 启用合并 / Enable merging
+    radius: 1.5  # 合并半径(方块) / Merge radius in blocks
+    max-fuse-difference: 5  # 最大引信时间差(tick) / Max fuse time difference in ticks
+    power-multiplier: 0.5  # 威力增益系数 / Power gain multiplier per merged TNT
+    max-power: 12.0  # 最大爆炸威力 / Maximum explosion power
+
+  # 领地保护集成 / Land Protection (支持Residence/Dominion/WorldGuard/Lands)
   land-protection:
-    # 启用开关 / Enable toggle
-    enabled: false
-    # 支持的土地保护插件 / Supported land protection plugins:
-    #   - Residence (com.github.Zrips:Residence)
-    #   - Lands (com.github.angeschossen:LandsAPI)
-    #   - WorldGuard (com.sk89q.worldguard)
-  
-  # ==========================================
-  # Sakura TNT 优化 (v3.2.16)
-  # ==========================================
-  sakura:
-    # 密度缓存 / Density cache for explosion calculations
-    density-cache: true
-    # TNT 合并优化 / TNT merge optimization
-    merge-enabled: true
-    # 合并半径 / Merge radius (blocks)
-    merge-radius: 0.5
-    # 最大引信差 / Max fuse time difference (ticks)
-    max-fuse-difference: 5
-    # 合并威力倍率 / Merged power multiplier
-    merged-power-multiplier: 1.0
+    enabled: true  # 需要安装对应插件 / Requires protection plugin installed
+
+  # BlockLocker容器保护 / BlockLocker Container Protection
+  blocklocker-protection:
+    enabled: true  # 保护被BlockLocker锁定的容器 / Protect containers locked by BlockLocker
 
 # ==========================================
 # 方块实体优化 / Block Entity Optimizations
@@ -985,49 +976,63 @@ virtual-entity-compatibility:
     priority: 90
 
 # ==========================================
-# 红石优化 / Redstone Optimization (v3.2.16)
-# ==========================================
-# 说明：使用 PandaWire 算法优化红石线更新，减少不必要的方块更新
-# Description: Use PandaWire algorithm to optimize redstone wire updates
-redstone-optimization:
-  # 启用 PandaWire 算法 / Enable PandaWire algorithm
-  panda-wire: true
-  # 启用网络缓存 / Enable network cache
+redstone-optimizations:
+  alternate-current:
+    enabled: true  # Alternate Current算法 / AC algorithm
+
+  wire-turbo:
+    enabled: true  # 红石线加速 / Redstone wire turbo
+
+  # PandaWire算法 / PandaWire Algorithm (Sakura project)
+  pandawire:
+    enabled: true  # 启用 / Enable
+
+  update-batching:
+    enabled: true  # 更新批处理 / Update batching
+    batch-threshold: 50  # 批处理阈值，PandaWire使用此值 / Batch threshold, used by PandaWire
+
+  cache:
+    enabled: true  # 红石缓存 / Redstone cache
+    duration-ms: 50  # 缓存持续时间ms / Cache duration
+
+  # 红石网络缓存 / Redstone Network Cache
+  # Caches redstone wire network patterns for repeated updates
   network-cache:
-    enabled: true
-    # 缓存过期时间 (ticks) / Cache expire time (ticks)
-    expire-ticks: 100
+    enabled: true  # 启用网络缓存 / Enable network caching
+    expire-ticks: 600  # 缓存过期时间(tick) / Cache expiry in ticks (600 = 30 seconds)
 
-# ==========================================
-# SecureSeed 种子保护 / SecureSeed Protection (v3.2.16)
-# ==========================================
-# 说明：加密保护服务器种子，防止种子破解
-# Description: Encrypt and protect server seed from cracking
-secure-seed:
-  # 启用 SecureSeed / Enable SecureSeed
-  enabled: true
-  # 保护矿石生成 / Protect ore generation
-  protect-ores: true
-  # 保护史莱姆区块 / Protect slime chunks
-  protect-slimes: true
-  # 保护结构生成 / Protect structure generation
-  protect-structures: true
-  # 加密位数 / Encryption bits
-  bits: 1024
-  # 调试日志 / Debug logging
-  debug: false
-
-# ==========================================
-# 种子加密 / Seed Encryption (v3.2.16)
-# ==========================================
-# 说明：保护服务器种子不被非管理员查看
-# Description: Protect server seed from non-operator access
+# 如需关闭必须删除世界 / Must delete world to disable
 seed-encryption:
-  # 启用 / Enable
-  # 说明：启用后，非OP玩家无法使用/seed命令
-  # Description: When enabled, non-OP players cannot use /seed command
-  enabled: false
-  # 拒绝消息 / Deny message
-  # 说明：玩家尝试使用/seed命令时显示的消息
-  # Description: Message shown when player tries to use /seed command
-  deny-message: "&cYou don't have permission to use this command. Only server operators can view the world seed."
+  enabled: true  # 启用种子加密 / Enable seed encryption
+
+  # 加密方案 / Encryption Scheme
+  # - "legacy": 传统方案，性能更好 / Traditional, better performance
+  # - "quantum": 推荐方案，安全性更强 / Recommended, stronger security
+  scheme: "quantum"  # legacy / quantum
+
+  # 保护范围 / Protection Scope
+  protect-structures: true  # 村庄/要塞/遗迹 / Villages/Strongholds/Monuments
+  protect-ores: true  # 钻石/金矿等 / Diamonds/Gold etc.
+  protect-slimes: true  # 史莱姆区块 / Slime chunks
+
+  # Legacy方案配置 / Legacy Scheme Config (仅当scheme=legacy时生效)
+  legacy:
+    seed-bits: 1024  # 1024/2048/4096, 推荐1024平衡性能 / Recommended 1024 for balance
+
+  # Quantum方案配置 / Quantum Scheme Config (仅当scheme=quantum时生效)
+  quantum:
+    encryption-level: 2  # 加密强度 / Level (1=基础/2=标准推荐/3=最强)
+    private-key-file: "quantum-seed.key"  # 服务器私钥 / Server Key (自动生成，请备份！/ Auto-gen, backup it!)
+    enable-time-decay: false  # 时间衰减 / Time Decay (防时间攻击，可能影响重生成 / Anti-time-attack, may affect regen)
+    cache-size: 10000  # 缓存大小 / Cache size (推荐5000-20000 / Recommended: 5000-20000)
+
+  # /seed 命令权限控制 / /seed Command Permission Control
+  restrict-seed-command: true  # 限制/seed命令仅OP可用 / Restrict /seed to OPs only (权限等级4 / Permission level 4)
+  seed-command-deny-message: "&c你没有权限使用此命令。只有服务器管理员可以查看世界种子。"  # 拒绝消息 / Deny message
+
+  # 防插件窃取种子 / Anti-Plugin Seed Theft
+  anti-plugin-theft:
+    enabled: true  # 启用防护 / Enable protection
+    return-fake-seed: true  # 返回假种子 / Return fake seed to suspicious callers
+    fake-seed-value: 0  # 假种子值 / Fake seed value (0 = random, or specify a number)
+    log-suspicious-access: true  # 记录可疑访问 / Log suspicious seed access attempts
