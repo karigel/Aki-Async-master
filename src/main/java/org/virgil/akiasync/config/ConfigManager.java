@@ -475,6 +475,88 @@ public class ConfigManager {
         seedCommandDenyMessage = config.getString("seed-encryption.seed-command-deny-message", 
             "&c你没有权限使用此命令。只有服务器管理员可以查看世界种子。");
         
+        // ==========================================
+        // Falling Block Parallel Config (v14.0)
+        // ==========================================
+        fallingBlockParallelEnabled = config.getBoolean("falling-block-parallel.enabled", true);
+        minFallingBlocksForParallel = config.getInt("falling-block-parallel.min-falling-blocks", 50);
+        fallingBlockBatchSize = config.getInt("falling-block-parallel.batch-size", 16);
+        
+        // ==========================================
+        // Item Entity Parallel Config (v14.0)
+        // ==========================================
+        itemEntityParallelEnabled = config.getBoolean("item-entity-parallel.enabled", true);
+        minItemEntitiesForParallel = config.getInt("item-entity-parallel.min-item-entities", 50);
+        itemEntityBatchSize = config.getInt("item-entity-parallel.batch-size", 16);
+        itemEntityMergeOptimizationEnabled = config.getBoolean("item-entity-parallel.merge-optimization.enabled", true);
+        itemEntityMergeInterval = config.getInt("item-entity-parallel.merge-optimization.merge-interval", 40);
+        itemEntityMergeRange = config.getDouble("item-entity-parallel.merge-optimization.merge-range", 0.5);
+        itemEntityAgeOptimizationEnabled = config.getBoolean("item-entity-parallel.age-optimization.enabled", true);
+        itemEntityPlayerDetectionRange = config.getDouble("item-entity-parallel.age-optimization.player-detection-range", 32.0);
+        
+        // ==========================================
+        // Minecart Cauldron Destruction Config (v14.0)
+        // ==========================================
+        minecartCauldronDestructionEnabled = config.getBoolean("minecart-cauldron-destruction.enabled", true);
+        
+        // ==========================================
+        // Network Optimization Config (v14.0)
+        // ==========================================
+        networkOptimizationEnabled = config.getBoolean("network-optimization.enabled", true);
+        packetPriorityEnabled = config.getBoolean("network-optimization.packet-priority.enabled", true);
+        chunkRateControlEnabled = config.getBoolean("network-optimization.chunk-rate-control.enabled", true);
+        congestionDetectionEnabled = config.getBoolean("network-optimization.congestion-detection.enabled", true);
+        viewFrustumFilterEnabled = config.getBoolean("network-optimization.view-frustum-filter.enabled", false);
+        viewFrustumFilterEntities = config.getBoolean("network-optimization.view-frustum-filter.filter-entities", true);
+        viewFrustumFilterBlocks = config.getBoolean("network-optimization.view-frustum-filter.filter-blocks", false);
+        viewFrustumFilterParticles = config.getBoolean("network-optimization.view-frustum-filter.filter-particles", true);
+        highPingThreshold = config.getInt("network-optimization.congestion-detection.high-ping-threshold", 150);
+        criticalPingThreshold = config.getInt("network-optimization.congestion-detection.critical-ping-threshold", 300);
+        highBandwidthThreshold = config.getLong("network-optimization.congestion-detection.high-bandwidth-threshold", 1000000L);
+        baseChunkSendRate = config.getInt("network-optimization.chunk-rate-control.base-rate", 10);
+        maxChunkSendRate = config.getInt("network-optimization.chunk-rate-control.max-rate", 20);
+        minChunkSendRate = config.getInt("network-optimization.chunk-rate-control.min-rate", 3);
+        
+        // ==========================================
+        // Fast Movement Chunk Load Config
+        // ==========================================
+        fastMovementChunkLoadEnabled = config.getBoolean("fast-movement-chunk-load.enabled", true);
+        fastMovementSpeedThreshold = config.getDouble("fast-movement-chunk-load.speed-threshold", 0.5);
+        fastMovementPreloadDistance = config.getInt("fast-movement-chunk-load.preload-distance", 8);
+        fastMovementMaxConcurrentLoads = config.getInt("fast-movement-chunk-load.max-concurrent-loads", 4);
+        fastMovementPredictionTicks = config.getInt("fast-movement-chunk-load.prediction-ticks", 40);
+        // Center Offset Config
+        centerOffsetEnabled = config.getBoolean("fast-movement-chunk-load.center-offset.enabled", true);
+        centerOffsetMinSpeed = config.getDouble("fast-movement-chunk-load.center-offset.min-speed", 3.0);
+        centerOffsetMaxSpeed = config.getDouble("fast-movement-chunk-load.center-offset.max-speed", 9.0);
+        centerOffsetMaxRatio = config.getDouble("fast-movement-chunk-load.center-offset.max-offset-ratio", 0.75);
+        // Async Loading Config
+        asyncLoadingBatchSize = config.getInt("fast-movement-chunk-load.center-offset.async-loading.batch-size", 2);
+        asyncLoadingBatchDelayMs = config.getLong("fast-movement-chunk-load.center-offset.async-loading.batch-delay-ms", 20L);
+        
+        // ==========================================
+        // Teleport Optimization Config
+        // ==========================================
+        teleportOptimizationEnabled = config.getBoolean("network-optimization.teleport-optimization.enabled", true);
+        teleportPacketBypassEnabled = config.getBoolean("network-optimization.teleport-optimization.packet-bypass", true);
+        teleportBoostDurationSeconds = config.getInt("network-optimization.teleport-optimization.boost-duration-seconds", 5);
+        teleportMaxChunkRate = config.getInt("network-optimization.teleport-optimization.max-chunk-rate", 25);
+        teleportFilterNonEssentialPackets = config.getBoolean("network-optimization.teleport-optimization.filter-non-essential", true);
+        teleportDebugEnabled = config.getBoolean("network-optimization.teleport-optimization.debug", false);
+        
+        // ==========================================
+        // Virtual Entity Compatibility Config
+        // ==========================================
+        virtualEntityCompatibilityEnabled = config.getBoolean("virtual-entity-compatibility.enabled", true);
+        virtualEntityDebugEnabled = config.getBoolean("virtual-entity-compatibility.debug", false);
+        virtualEntityBypassPacketQueue = config.getBoolean("virtual-entity-compatibility.bypass-packet-queue", true);
+        virtualEntityExcludeFromThrottling = config.getBoolean("virtual-entity-compatibility.exclude-from-throttling", true);
+        fancynpcsCompatEnabled = config.getBoolean("virtual-entity-compatibility.fancynpcs.enabled", true);
+        fancynpcsUseAPI = config.getBoolean("virtual-entity-compatibility.fancynpcs.use-api", true);
+        fancynpcsPriority = config.getInt("virtual-entity-compatibility.fancynpcs.priority", 90);
+        znpcsplusCompatEnabled = config.getBoolean("virtual-entity-compatibility.znpcsplus.enabled", true);
+        znpcsplusPriority = config.getInt("virtual-entity-compatibility.znpcsplus.priority", 90);
+        
         validateConfigVersion();
         validateConfig();
     }
