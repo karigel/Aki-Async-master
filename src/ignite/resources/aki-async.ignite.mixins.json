@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "minVersion": "0.8.7",
+  "package": "org.virgil.akiasync.ignite.mixin",
+  "plugin": "org.virgil.akiasync.mixin.AkiAsyncMixinPlugin",
+  "compatibilityLevel": "JAVA_21",
+  "target": "@env(DEFAULT)",
+  "server": [
+    "CraftServerLoadPluginsMixin",
+    "MinecraftServerShutdownMixin"
+  ]
+}

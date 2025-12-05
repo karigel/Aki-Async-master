@@ -38,7 +38,7 @@ public class BlockLockerIntegration {
 
     public static boolean isProtected(ServerLevel level, BlockPos pos, BlockState state) {
         try {
-
+            
             if (!isBlockLockerEnabled()) {
                 return false;
             }
@@ -76,7 +76,7 @@ public class BlockLockerIntegration {
 
     private static boolean checkBlockLockerProtection(Block block) {
         try {
-
+            
             if (blockLockerAPI == null) {
                 Plugin blockLocker = Bukkit.getPluginManager().getPlugin("BlockLocker");
                 if (blockLocker == null) {
@@ -84,9 +84,7 @@ public class BlockLockerIntegration {
                     return false;
                 }
 
-                // Use plugin's classloader for Ignite compatibility
-                ClassLoader pluginClassLoader = blockLocker.getClass().getClassLoader();
-                Class<?> apiClass = Class.forName("nl.rutgerkok.blocklocker.BlockLockerAPIv2", true, pluginClassLoader);
+                Class<?> apiClass = Class.forName("nl.rutgerkok.blocklocker.BlockLockerAPIv2");
                 Method getPluginMethod = apiClass.getMethod("getPlugin");
                 blockLockerAPI = getPluginMethod.invoke(null);
 

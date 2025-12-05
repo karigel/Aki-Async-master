@@ -1,126 +1,200 @@
 package org.virgil.akiasync.network;
 
-import org.bukkit.entity.Player;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.*;
 
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * 场景检测器 / Scenario Detector
- * 检测玩家当前的游戏场景以优化网络传输
- * Detects player's current game scenario to optimize network transmission
- */
 public class ScenarioDetector {
 
-    private final Map<UUID, PlayerScenario> playerScenarios = new ConcurrentHashMap<>();
+    public enum ScenarioType {
+        NORMAL("正常", "Normal", 1.0),
+        PVP("PVP战斗", "PVP Combat", 1.5),
+        PVE("PVE刷怪", "PVE Grinding", 1.8),
+        FARM("多生物农场", "Multi-mob Farm", 2.0),
+        SAND_DUPER("刷沙机", "Sand Duper", 2.5),
+        HIGH_DENSITY("高密度区块", "High-density Chunk", 2.2),
+        ELYTRA("鞘翅飞行", "Elytra Flight", 1.6);
 
-    public enum Scenario {
-        IDLE,           // 空闲状态 / Idle state
-        WALKING,        // 行走中 / Walking
-        SPRINTING,      // 疾跑中 / Sprinting
-        FLYING,         // 飞行中 / Flying
-        ELYTRA,         // 鞘翅滑翔 / Elytra gliding
-        COMBAT,         // 战斗中 / In combat
-        BUILDING,       // 建造中 / Building
-        MINING,         // 挖掘中 / Mining
-        TELEPORTING,    // 传送中 / Teleporting
-        CHUNK_LOADING   // 区块加载中 / Chunk loading
-    }
+        private final String nameCn;
+        private final String nameEn;
+        private final double loadFactor;
 
-    /**
-     * 更新玩家场景 / Update player scenario
-     */
-    public void updateScenario(Player player) {
-        UUID playerId = player.getUniqueId();
-        PlayerScenario scenario = playerScenarios.computeIfAbsent(playerId, 
-            k -> new PlayerScenario());
-        
-        scenario.update(player);
-    }
-
-    /**
-     * 获取玩家当前场景 / Get player's current scenario
-     */
-    public Scenario getScenario(UUID playerId) {
-        PlayerScenario scenario = playerScenarios.get(playerId);
-        return scenario != null ? scenario.getCurrentScenario() : Scenario.IDLE;
-    }
-
-    /**
-     * 判断是否需要高频数据包 / Check if high frequency packets are needed
-     */
-    public boolean needsHighFrequencyPackets(UUID playerId) {
-        Scenario scenario = getScenario(playerId);
-        return scenario == Scenario.COMBAT || 
-               scenario == Scenario.ELYTRA || 
-               scenario == Scenario.TELEPORTING;
-    }
-
-    /**
-     * 判断是否可以降低数据包频率 / Check if packet frequency can be reduced
-     */
-    public boolean canReducePacketFrequency(UUID playerId) {
-        Scenario scenario = getScenario(playerId);
-        return scenario == Scenario.IDLE || scenario == Scenario.WALKING;
-    }
-
-    /**
-     * 移除玩家 / Remove player
-     */
-    public void removePlayer(UUID playerId) {
-        playerScenarios.remove(playerId);
-    }
-
-    /**
-     * 清除所有数据 / Clear all data
-     */
-    public void clear() {
-        playerScenarios.clear();
-    }
-
-    private static class PlayerScenario {
-        private Scenario currentScenario = Scenario.IDLE;
-        private long lastUpdateTime = System.currentTimeMillis();
-        private double lastX, lastY, lastZ;
-        private boolean wasFlying = false;
-        private boolean wasGliding = false;
-
-        public void update(Player player) {
-            long now = System.currentTimeMillis();
-            double x = player.getLocation().getX();
-            double y = player.getLocation().getY();
-            double z = player.getLocation().getZ();
-            
-            double deltaX = x - lastX;
-            double deltaY = y - lastY;
-            double deltaZ = z - lastZ;
-            double speed = Math.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ);
-            
-            // 检测场景 / Detect scenario
-            if (player.isGliding()) {
-                currentScenario = Scenario.ELYTRA;
-            } else if (player.isFlying()) {
-                currentScenario = Scenario.FLYING;
-            } else if (player.isSprinting() && speed > 0.2) {
-                currentScenario = Scenario.SPRINTING;
-            } else if (speed > 0.1) {
-                currentScenario = Scenario.WALKING;
-            } else {
-                currentScenario = Scenario.IDLE;
-            }
-            
-            // 更新状态 / Update state
-            lastX = x;
-            lastY = y;
-            lastZ = z;
-            lastUpdateTime = now;
-            wasFlying = player.isFlying();
-            wasGliding = player.isGliding();
+        ScenarioType(String nameCn, String nameEn, double loadFactor) {
+            this.nameCn = nameCn;
+            this.nameEn = nameEn;
+            this.loadFactor = loadFactor;
         }
 
-        public Scenario getCurrentScenario() {
+        public String getNameCn() { return nameCn; }
+        public String getNameEn() { return nameEn; }
+        public double getLoadFactor() { return loadFactor; }
+    }
+
+    private static class PlayerScenarioStats {
+
+        private final AtomicInteger movePackets = new AtomicInteger(0);
+        private final AtomicInteger entityPackets = new AtomicInteger(0);
+        private final AtomicInteger blockPackets = new AtomicInteger(0);
+        private final AtomicInteger damagePackets = new AtomicInteger(0);
+        private final AtomicInteger fallingBlockPackets = new AtomicInteger(0);
+        private final AtomicInteger containerPackets = new AtomicInteger(0);
+        private final AtomicInteger chunkPackets = new AtomicInteger(0);
+
+        private long lastResetTime = System.currentTimeMillis();
+        private ScenarioType currentScenario = ScenarioType.NORMAL;
+
+        public void recordPacket(Packet<?> packet) {
+
+            if (packet instanceof ClientboundMoveEntityPacket ||
+                packet instanceof ClientboundTeleportEntityPacket ||
+                packet instanceof ClientboundPlayerPositionPacket) {
+                movePackets.incrementAndGet();
+            }
+
+            else if (packet instanceof ClientboundAddEntityPacket ||
+                     packet instanceof ClientboundRemoveEntitiesPacket ||
+                     packet instanceof ClientboundSetEntityDataPacket) {
+                entityPackets.incrementAndGet();
+            }
+
+            else if (packet instanceof ClientboundBlockUpdatePacket ||
+                     packet instanceof ClientboundSectionBlocksUpdatePacket) {
+                blockPackets.incrementAndGet();
+            }
+
+            else if (packet instanceof ClientboundDamageEventPacket ||
+                     packet instanceof ClientboundHurtAnimationPacket) {
+                damagePackets.incrementAndGet();
+            }
+
+            else if (packet instanceof ClientboundAddEntityPacket) {
+
+                fallingBlockPackets.incrementAndGet();
+            }
+
+            else if (packet instanceof ClientboundContainerSetContentPacket ||
+                     packet instanceof ClientboundContainerSetSlotPacket) {
+                containerPackets.incrementAndGet();
+            }
+
+            else if (packet instanceof ClientboundLevelChunkWithLightPacket) {
+                chunkPackets.incrementAndGet();
+            }
+        }
+
+        public ScenarioType detectScenario() {
+            long now = System.currentTimeMillis();
+
+            if (now - lastResetTime > 1000) {
+                int move = movePackets.get();
+                int entity = entityPackets.get();
+                int block = blockPackets.get();
+                int damage = damagePackets.get();
+                int falling = fallingBlockPackets.get();
+                int container = containerPackets.get();
+                int chunk = chunkPackets.get();
+
+                ScenarioType detected = ScenarioType.NORMAL;
+
+                if (falling > 50 || block > 100) {
+                    detected = ScenarioType.SAND_DUPER;
+                }
+
+                else if (entity > 80) {
+                    detected = ScenarioType.FARM;
+                }
+
+                else if (container > 50) {
+                    detected = ScenarioType.HIGH_DENSITY;
+                }
+
+                else if (damage > 20 && entity > 30) {
+                    detected = ScenarioType.PVE;
+                }
+
+                else if (move > 30 && chunk > 10) {
+                    detected = ScenarioType.ELYTRA;
+                }
+
+                else if (damage > 10 && move > 20) {
+                    detected = ScenarioType.PVP;
+                }
+
+                currentScenario = detected;
+
+                movePackets.set(0);
+                entityPackets.set(0);
+                blockPackets.set(0);
+                damagePackets.set(0);
+                fallingBlockPackets.set(0);
+                containerPackets.set(0);
+                chunkPackets.set(0);
+                lastResetTime = now;
+            }
+
             return currentScenario;
         }
+
+        public ScenarioType getCurrentScenario() {
+            return currentScenario;
+        }
+    }
+
+    private static final ConcurrentHashMap<UUID, PlayerScenarioStats> playerStats =
+        new ConcurrentHashMap<>();
+
+    public static void recordPacket(UUID playerId, Packet<?> packet) {
+        if (playerId == null || packet == null) {
+            return;
+        }
+
+        PlayerScenarioStats stats = playerStats.computeIfAbsent(
+            playerId, k -> new PlayerScenarioStats()
+        );
+
+        stats.recordPacket(packet);
+    }
+
+    public static ScenarioType detectScenario(UUID playerId) {
+        if (playerId == null) {
+            return ScenarioType.NORMAL;
+        }
+
+        PlayerScenarioStats stats = playerStats.get(playerId);
+        if (stats == null) {
+            return ScenarioType.NORMAL;
+        }
+
+        return stats.detectScenario();
+    }
+
+    public static ScenarioType getCurrentScenario(UUID playerId) {
+        if (playerId == null) {
+            return ScenarioType.NORMAL;
+        }
+
+        PlayerScenarioStats stats = playerStats.get(playerId);
+        if (stats == null) {
+            return ScenarioType.NORMAL;
+        }
+
+        return stats.getCurrentScenario();
+    }
+
+    public static void removePlayer(UUID playerId) {
+        if (playerId != null) {
+            playerStats.remove(playerId);
+        }
+    }
+
+    public static void clearAll() {
+        playerStats.clear();
+    }
+
+    public static int getTrackedPlayerCount() {
+        return playerStats.size();
     }
 }

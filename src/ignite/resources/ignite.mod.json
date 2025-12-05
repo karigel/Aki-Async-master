@@ -1,0 +1,22 @@
+{
+  "id": "akiasync",
+  "name": "Aki-Async",
+  "version": "3.2.16-SNAPSHOT",
+  "description": "High-performance async optimization mod for Paper servers using Ignite mixin loader.",
+  "authors": [
+    "virgil698",
+    "kari"
+  ],
+  "website": "https://github.com/virgil698/Aki-Async",
+  "mixins": [
+    "aki-async.mixins.json",
+    "aki-async.ignite.mixins.json"
+  ],
+  "wideners": [
+    "aki-async.accesswidener"
+  ],
+  "dependencies": {
+    "minecraft": ">=1.21",
+    "java": ">=21"
+  }
+}

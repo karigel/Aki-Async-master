@@ -12,6 +12,8 @@ repositories {
     mavenCentral()
     maven("https://repo.papermc.io/repository/maven-public/")
     maven("https://oss.sonatype.org/content/groups/public/")
+    maven("https://repo.viaversion.com") // ViaVersion
+    maven("https://repo.codemc.io/repository/maven-public/") // codemc
     
     exclusiveContent {
         forRepository {
@@ -40,9 +42,37 @@ repositories {
 }
 
 sourceSets {
+    // Mixin source set - 原项目的 Mixin 代码（需要先定义，因为 main 依赖它）
+    create("mixin") {
+        java.srcDirs("src/mixin/java")
+        resources.srcDirs("src/mixin/resources")
+    }
+    
     main {
         java.srcDirs("src/main/java")
         resources.srcDirs("src/main/resources")
+        // main 依赖 mixin（原项目的 AkiAsyncPlugin 引用了 mixin 中的类）
+        compileClasspath += sourceSets["mixin"].output
+        runtimeClasspath += sourceSets["mixin"].output
+    }
+    
+    // Ignite source set - Ignite 适配专用代码
+    create("ignite") {
+        java.srcDirs("src/ignite/java")
+        resources.srcDirs("src/ignite/resources")
+        compileClasspath += sourceSets.main.get().output
+        compileClasspath += sourceSets.main.get().compileClasspath
+        compileClasspath += sourceSets["mixin"].output
+    }
+}
+
+// 配置 mixin 的依赖（在 sourceSets 之后）
+configurations {
+    named("mixinCompileClasspath") {
+        extendsFrom(configurations.compileClasspath.get())
+    }
+    named("mixinRuntimeClasspath") {
+        extendsFrom(configurations.runtimeClasspath.get())
     }
 }
 
@@ -53,6 +83,18 @@ dependencies {
     compileOnly(libs.spongeMixin)
     compileOnly(libs.mixinExtras)
     compileOnly(libs.fastutil)
+    
+    // Mixin source set dependencies
+    "mixinCompileOnly"(libs.igniteApi)
+    "mixinCompileOnly"(libs.spongeMixin)
+    "mixinCompileOnly"(libs.mixinExtras)
+    "mixinCompileOnly"(libs.fastutil)
+    
+    // Ignite source set dependencies
+    "igniteCompileOnly"(libs.igniteApi)
+    "igniteCompileOnly"(libs.spongeMixin)
+    "igniteCompileOnly"(libs.mixinExtras)
+    "igniteCompileOnly"(libs.fastutil)
     
     // Optional plugin dependencies for land protection integration
     // Note: These are optional dependencies, the plugin will work without them
@@ -79,6 +121,11 @@ dependencies {
     compileOnly("com.github.rutgerkok:BlockLocker:1.13") {
         isTransitive = false
     }
+    
+    // ViaVersion API
+    compileOnly("com.viaversion:viaversion-api:5.1.1") {
+        isTransitive = false
+    }
 }
 
 tasks {
@@ -90,9 +137,21 @@ tasks {
     processResources {
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
     }
+    
+    named<ProcessResources>("processMixinResources") {
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    }
+    
+    named<ProcessResources>("processIgniteResources") {
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    }
 
     shadowJar {
         archiveFileName.set("${project.name}-${project.version}.jar")
+        // 包含所有 source sets
+        from(sourceSets.main.get().output)
+        from(sourceSets["mixin"].output)
+        from(sourceSets["ignite"].output)
     }
     
     build {

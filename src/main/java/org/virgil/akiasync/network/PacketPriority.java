@@ -1,10 +1,5 @@
 package org.virgil.akiasync.network;
 
-/**
- * 数据包优先级枚举 / Packet Priority Enum
- * 定义不同类型数据包的发送优先级
- * Defines sending priority for different packet types
- */
 public enum PacketPriority {
 
     CRITICAL(0, "关键数据包", "Critical Packets"),

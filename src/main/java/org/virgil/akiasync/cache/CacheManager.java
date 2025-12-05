@@ -2,104 +2,87 @@ package org.virgil.akiasync.cache;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import java.util.logging.Logger;
 
-import org.virgil.akiasync.mixin.bridge.Bridge;
-import org.virgil.akiasync.mixin.bridge.BridgeManager;
-
+import org.virgil.akiasync.AkiAsyncPlugin;
 
 public class CacheManager {
-    
-    private static final Logger LOGGER = Logger.getLogger("AkiAsync-Cache");
-    private static CacheManager instance;
-    
+
+    private final AkiAsyncPlugin plugin;
     private final Map<String, CacheEntry> globalCache = new ConcurrentHashMap<>();
     private static final int MAX_CACHE_SIZE = 10000;
     private static final long DEFAULT_EXPIRATION_MS = 30 * 60 * 1000;
-    
-    private ScheduledExecutorService cleanupExecutor;
-    
-    private CacheManager() {
+
+    public CacheManager(AkiAsyncPlugin plugin) {
+        this.plugin = plugin;
         startPeriodicCleanup();
     }
     
-    public static synchronized CacheManager getInstance() {
-        if (instance == null) {
-            instance = new CacheManager();
-        }
-        return instance;
-    }
-
-
+    
     private void startPeriodicCleanup() {
-        cleanupExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
-            Thread t = new Thread(r, "AkiAsync-CacheCleanup");
-            t.setDaemon(true);
-            return t;
-        });
-        
-        cleanupExecutor.scheduleAtFixedRate(() -> {
+
+        plugin.getServer().getScheduler().runTaskTimerAsynchronously(plugin, () -> {
             try {
                 cleanupExpired();
-                SakuraCacheStatistics.performPeriodicCleanup();
                 
-                Bridge bridge = BridgeManager.getBridge();
-                if (bridge != null && bridge.isDebugLoggingEnabled()) {
-                    bridge.debugLog("[AkiAsync-Cache] Periodic cleanup completed");
+
+                org.virgil.akiasync.cache.SakuraCacheStatistics.performPeriodicCleanup();
+                
+                if (plugin.getConfigManager().isDebugLoggingEnabled()) {
+                    plugin.getLogger().info("[AkiAsync-Cache] Periodic cleanup completed");
                 }
             } catch (Exception e) {
-                LOGGER.warning("[AkiAsync-Cache] Error during periodic cleanup: " + e.getMessage());
+                plugin.getLogger().warning("[AkiAsync-Cache] Error during periodic cleanup: " + e.getMessage());
             }
-        }, 5, 5, TimeUnit.MINUTES);
+        }, 6000L, 6000L);
     }
-    
+
     public void invalidateAll() {
-        LOGGER.info("[AkiAsync] Invalidating all caches...");
-        
+        plugin.getLogger().info("[AkiAsync] Invalidating all caches...");
+
         globalCache.clear();
-        
-        try {
-            org.virgil.akiasync.mixin.async.villager.VillagerBreedExecutor.clearOldCache(Long.MAX_VALUE);
-        } catch (Exception e) {
-            LOGGER.warning("Failed to clear villager breed cache: " + e.getMessage());
-        }
-        
-        try {
-            org.virgil.akiasync.mixin.brain.core.AsyncBrainExecutor.resetStatistics();
-        } catch (Exception e) {
-            LOGGER.warning("Failed to reset brain executor statistics: " + e.getMessage());
-        }
-        
-        try {
-            clearSakuraOptimizationCaches();
-        } catch (Exception e) {
-            LOGGER.warning("Failed to clear Sakura optimization caches: " + e.getMessage());
-        }
-        
-        LOGGER.info("[AkiAsync] Main caches cleared, controlled cleanup in progress");
-    }
 
-
-    private void clearSakuraOptimizationCaches() {
-        try {
-            Bridge bridge = BridgeManager.getBridge();
-            if (bridge != null) {
-                bridge.clearSakuraOptimizationCaches();
-                LOGGER.info("[AkiAsync] Cleared Sakura optimization caches");
+        plugin.getExecutorManager().getExecutorService().execute(() -> {
+            try {
+                org.virgil.akiasync.mixin.async.villager.VillagerBreedExecutor.clearOldCache(Long.MAX_VALUE);
+            } catch (Exception e) {
+                plugin.getLogger().warning("Failed to clear villager breed cache: " + e.getMessage());
             }
-        } catch (Exception e) {
-            LOGGER.warning("Failed to clear Sakura optimization caches: " + e.getMessage());
-        }
+
+            try {
+                org.virgil.akiasync.mixin.brain.core.AsyncBrainExecutor.resetStatistics();
+            } catch (Exception e) {
+                plugin.getLogger().warning("Failed to reset brain executor statistics: " + e.getMessage());
+            }
+            
+
+            try {
+                clearSakuraOptimizationCaches();
+            } catch (Exception e) {
+                plugin.getLogger().warning("Failed to clear Sakura optimization caches: " + e.getMessage());
+            }
+        });
+
+        plugin.getLogger().info("[AkiAsync] Main caches cleared, controlled cleanup in progress");
     }
     
+    
+    private void clearSakuraOptimizationCaches() {
+
+        try {
+            if (plugin.getBridge() != null) {
+                plugin.getBridge().clearSakuraOptimizationCaches();
+                plugin.getLogger().info("[AkiAsync] Cleared Sakura optimization caches");
+            }
+        } catch (Exception e) {
+            plugin.getLogger().warning("Failed to clear Sakura optimization caches: " + e.getMessage());
+        }
+    }
+
     public void put(String key, Object value) {
         put(key, value, DEFAULT_EXPIRATION_MS);
     }
-    
+
     public void put(String key, Object value, long expirationMs) {
 
         if (globalCache.size() >= MAX_CACHE_SIZE) {
@@ -108,7 +91,7 @@ public class CacheManager {
         
         globalCache.put(key, new CacheEntry(value, System.currentTimeMillis(), expirationMs));
     }
-    
+
     public Object get(String key) {
         CacheEntry entry = globalCache.get(key);
         if (entry == null) {
@@ -123,20 +106,19 @@ public class CacheManager {
         
         return entry.value;
     }
-    
+
     public Object remove(String key) {
-        CacheEntry entry = globalCache.remove(key);
-        return entry != null ? entry.value : null;
+        return globalCache.remove(key);
     }
-    
+
     public void clear() {
         globalCache.clear();
     }
-    
+
     public int size() {
         return globalCache.size();
     }
-    
+
     public boolean containsKey(String key) {
         CacheEntry entry = globalCache.get(key);
         if (entry != null && entry.isExpired()) {
@@ -145,8 +127,8 @@ public class CacheManager {
         }
         return entry != null;
     }
-
-
+    
+    
     private void evictOldEntries() {
         int toRemove = MAX_CACHE_SIZE / 10;
         
@@ -157,14 +139,15 @@ public class CacheManager {
             .collect(Collectors.toList())
             .forEach(globalCache::remove);
         
-        Bridge bridge = BridgeManager.getBridge();
-        if (bridge != null && bridge.isDebugLoggingEnabled()) {
-            bridge.debugLog("[AkiAsync-Cache] Evicted %d old entries, current size: %d/%d",
-                toRemove, globalCache.size(), MAX_CACHE_SIZE);
+        if (plugin.getConfigManager().isDebugLoggingEnabled()) {
+            plugin.getLogger().info(String.format(
+                "[AkiAsync-Cache] Evicted %d old entries, current size: %d/%d",
+                toRemove, globalCache.size(), MAX_CACHE_SIZE
+            ));
         }
     }
-
-
+    
+    
     public void cleanupExpired() {
         int removed = 0;
         var iterator = globalCache.entrySet().iterator();
@@ -176,41 +159,31 @@ public class CacheManager {
             }
         }
         
-        Bridge bridge = BridgeManager.getBridge();
-        if (removed > 0 && bridge != null && bridge.isDebugLoggingEnabled()) {
-            bridge.debugLog("[AkiAsync-Cache] Cleaned up %d expired entries", removed);
+        if (removed > 0 && plugin.getConfigManager().isDebugLoggingEnabled()) {
+            plugin.getLogger().info(String.format(
+                "[AkiAsync-Cache] Cleaned up %d expired entries",
+                removed
+            ));
         }
     }
-
-
+    
+    
     public String getAllCacheStatistics() {
         StringBuilder sb = new StringBuilder();
         
+
         sb.append("§6=== AkiAsync Cache Statistics ===§r\n");
         sb.append(String.format("§e[Global Cache]§r\n  §7Size: §f%d/%d§r\n", 
             globalCache.size(), MAX_CACHE_SIZE));
         
+
         sb.append("\n");
-        sb.append(SakuraCacheStatistics.formatStatistics());
+        sb.append(org.virgil.akiasync.cache.SakuraCacheStatistics.formatStatistics());
         
         return sb.toString();
     }
     
-    public void shutdown() {
-        if (cleanupExecutor != null && !cleanupExecutor.isShutdown()) {
-            cleanupExecutor.shutdown();
-            try {
-                if (!cleanupExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
-                    cleanupExecutor.shutdownNow();
-                }
-            } catch (InterruptedException e) {
-                cleanupExecutor.shutdownNow();
-                Thread.currentThread().interrupt();
-            }
-        }
-    }
-
-
+    
     private static class CacheEntry {
         final Object value;
         final long timestamp;

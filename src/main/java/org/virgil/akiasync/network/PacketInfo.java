@@ -2,11 +2,6 @@ package org.virgil.akiasync.network;
 
 import net.minecraft.network.protocol.Packet;
 
-/**
- * 数据包信息包装类 / Packet Info Wrapper
- * 包含数据包及其优先级和时间戳信息
- * Contains packet with its priority and timestamp information
- */
 public class PacketInfo implements Comparable<PacketInfo> {
 
     private final Packet<?> packet;
@@ -47,13 +42,31 @@ public class PacketInfo implements Comparable<PacketInfo> {
 
     @Override
     public int compareTo(PacketInfo other) {
-        // 首先按优先级排序 / First sort by priority
+
         int priorityCompare = Integer.compare(this.priority.getLevel(), other.priority.getLevel());
         if (priorityCompare != 0) {
             return priorityCompare;
         }
-        // 相同优先级按时间戳排序(FIFO) / Same priority sorted by timestamp (FIFO)
+
         return Long.compare(this.timestamp, other.timestamp);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        PacketInfo other = (PacketInfo) obj;
+        return timestamp == other.timestamp && 
+               priority == other.priority &&
+               packet == other.packet;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = priority.hashCode();
+        result = 31 * result + Long.hashCode(timestamp);
+        result = 31 * result + (packet != null ? System.identityHashCode(packet) : 0);
+        return result;
     }
 
     @Override

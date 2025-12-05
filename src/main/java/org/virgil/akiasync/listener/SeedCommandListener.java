@@ -7,20 +7,15 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.server.ServerCommandEvent;
 import org.bukkit.entity.Player;
 import org.bukkit.ChatColor;
-import org.virgil.akiasync.config.ConfigManager;
-import org.virgil.akiasync.mixin.bridge.Bridge;
-import org.virgil.akiasync.mixin.bridge.BridgeManager;
-
-import java.util.logging.Logger;
+import org.virgil.akiasync.AkiAsyncPlugin;
 
 
 public class SeedCommandListener implements Listener {
     
-    private static final Logger LOGGER = Logger.getLogger("AkiAsync-SeedCommand");
-    private final ConfigManager configManager;
+    private final AkiAsyncPlugin plugin;
     
-    public SeedCommandListener(ConfigManager configManager) {
-        this.configManager = configManager;
+    public SeedCommandListener(AkiAsyncPlugin plugin) {
+        this.plugin = plugin;
     }
     
     
@@ -48,13 +43,7 @@ public class SeedCommandListener implements Listener {
             player.sendMessage(ChatColor.RED + denyMessage);
             
 
-            Bridge bridge = BridgeManager.getBridge();
-            if (bridge != null && bridge.isSecureSeedDebugLogging()) {
-                bridge.debugLog("[SecureSeed] Player %s attempted to use /seed command without OP permission",
-                    player.getName());
-            }
-            
-            LOGGER.warning(String.format(
+            plugin.getLogger().warning(String.format(
                 "Player %s attempted to use /seed command without OP permission",
                 player.getName()
             ));
@@ -86,8 +75,7 @@ public class SeedCommandListener implements Listener {
     
     private boolean isEnabled() {
         try {
-            Bridge bridge = BridgeManager.getBridge();
-            return bridge != null && bridge.isSeedEncryptionEnabled();
+            return plugin.getConfig().getBoolean("seed-encryption.restrict-seed-command", true);
         } catch (Exception e) {
 
             return true;
@@ -97,14 +85,14 @@ public class SeedCommandListener implements Listener {
     
     private String getDenyMessage() {
         try {
-            Bridge bridge = BridgeManager.getBridge();
-            if (bridge != null) {
-                String message = bridge.getSeedCommandDenyMessage();
-                if (message != null && !message.isEmpty()) {
-                    return ChatColor.translateAlternateColorCodes('&', message);
-                }
+            String message = plugin.getConfig().getString(
+                "seed-encryption.seed-command-deny-message",
+                "You don't have permission to use this command. Only server operators can view the world seed."
+            );
+            if (message == null) {
+                message = "You don't have permission to use this command. Only server operators can view the world seed.";
             }
-            return "You don't have permission to use this command. Only server operators can view the world seed.";
+            return ChatColor.translateAlternateColorCodes('&', message);
         } catch (Exception e) {
             return "You don't have permission to use this command. Only server operators can view the world seed.";
         }

@@ -3,10 +3,6 @@ package org.virgil.akiasync.network;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.*;
 
-/**
- * 传送数据包检测器 / Teleport Packet Detector
- * 识别和分类与传送相关的数据包
- */
 public class TeleportPacketDetector {
 
     public static boolean isTeleportPacket(Packet<?> packet) {

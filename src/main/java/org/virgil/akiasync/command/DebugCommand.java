@@ -1,23 +1,23 @@
 package org.virgil.akiasync.command;
 import org.bukkit.Bukkit;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.virgil.akiasync.AkiAsyncPlugin;
 import org.virgil.akiasync.event.ConfigReloadEvent;
 
+import io.papermc.paper.command.brigadier.BasicCommand;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
 @NullMarked
-public class DebugCommand implements CommandExecutor {
+public class DebugCommand implements BasicCommand {
     private final AkiAsyncPlugin plugin;
     public DebugCommand(AkiAsyncPlugin plugin) {
         this.plugin = plugin;
     }
     @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+    public void execute(CommandSourceStack source, String[] args) {
         if (args.length != 1) {
-            sender.sendMessage("[AkiAsync] Usage: /aki-debug <true|false>");
-            return true;
+            source.getSender().sendMessage("[AkiAsync] Usage: /aki-debug <true|false>");
+            return;
         }
         String arg = args[0].toLowerCase();
         boolean enableDebug;
@@ -26,18 +26,21 @@ public class DebugCommand implements CommandExecutor {
         } else if (arg.equals("false") || arg.equals("off") || arg.equals("disable")) {
             enableDebug = false;
         } else {
-            sender.sendMessage("[AkiAsync] Invalid argument. Use 'true' or 'false'");
-            return true;
+            source.getSender().sendMessage("[AkiAsync] Invalid argument. Use 'true' or 'false'");
+            return;
         }
         try {
             plugin.getConfigManager().setDebugLoggingEnabled(enableDebug);
-            sender.sendMessage("[AkiAsync] Debug logging " + (enableDebug ? "enabled" : "disabled") + " successfully!");
+            source.getSender().sendMessage("[AkiAsync] Debug logging " + (enableDebug ? "enabled" : "disabled") + " successfully!");
             Bukkit.getPluginManager().callEvent(new ConfigReloadEvent());
-            sender.sendMessage("[AkiAsync] Configuration reloaded to apply debug changes.");
+            source.getSender().sendMessage("[AkiAsync] Configuration reloaded to apply debug changes.");
         } catch (Exception e) {
-            sender.sendMessage("[AkiAsync] Failed to toggle debug logging: " + e.getMessage());
+            source.getSender().sendMessage("[AkiAsync] Failed to toggle debug logging: " + e.getMessage());
             plugin.getLogger().severe("Error toggling debug logging: " + e.getMessage());
         }
-        return true;
+    }
+    @Override
+    public @Nullable String permission() {
+        return "akiasync.debug";
     }
 }

@@ -1,86 +1,102 @@
 # ==========================================
-# AkiAsync 实体配置文件 / Entity Configuration File
+# AkiAsync 实体列表配置 / Entity List Configuration
 # ==========================================
-# 说明：此文件包含 universal-ai-optimization 和 zero-delay-factory-optimization 的实体列表
-# Description: This file contains entity lists for universal-ai-optimization and zero-delay-factory-optimization
-# 版本 / Version: 8.0
+
+# 实体ID格式：minecraft:entity_name
+# Entity ID format: minecraft:entity_name
 
 # ==========================================
-# Universal AI Optimization 实体列表
+# 统一AI优化实体列表 / Universal AI Optimization Entity List
 # ==========================================
-universal-ai-optimization:
-  # 启用的实体列表 / Enabled entity types
-  # 格式 / Format: "minecraft:entity_name"
-  entities:
-    # 攻击型 / Attack type (hostile)
-    - "minecraft:skeleton"
-    - "minecraft:zombie"
-    - "minecraft:creeper"
-    - "minecraft:spider"
-    - "minecraft:enderman"
-    - "minecraft:phantom"
-    - "minecraft:drowned"
-    - "minecraft:hoglin"
-    - "minecraft:zoglin"
-    - "minecraft:stray"
-    - "minecraft:husk"
-    - "minecraft:zombie_villager"
-    - "minecraft:shulker"
-    - "minecraft:silverfish"
-    - "minecraft:endermite"
-    - "minecraft:cave_spider"
-    # 防御型 / Defense type (golems)
-    - "minecraft:iron_golem"
-    - "minecraft:snow_golem"
-    # 被动型 / Passive type (animals)
-    - "minecraft:pig"
-    - "minecraft:cow"
-    - "minecraft:sheep"
-    - "minecraft:chicken"
-    - "minecraft:rabbit"
-    - "minecraft:bat"
-    - "minecraft:fox"
-    - "minecraft:strider"
-    - "minecraft:frog"
-    - "minecraft:camel"
-    - "minecraft:goat"
-    - "minecraft:mushroom_cow"
-    # 水生型 / Aquatic type
-    - "minecraft:dolphin"
-    - "minecraft:squid"
-    - "minecraft:glow_squid"
-    - "minecraft:turtle"
-    - "minecraft:pufferfish"
-    - "minecraft:tropical_fish"
-    - "minecraft:cod"
-    - "minecraft:salmon"
-    - "minecraft:axolotl"
-    # 驯服/中立型 / Tamed/Neutral type
-    - "minecraft:wolf"
-    - "minecraft:cat"
-    - "minecraft:horse"
-    - "minecraft:donkey"
-    - "minecraft:mule"
-    - "minecraft:llama"
-    - "minecraft:parrot"
-    - "minecraft:polar_bear"
-    - "minecraft:panda"
-    - "minecraft:bee"
-    - "minecraft:ocelot"
-    - "minecraft:trader_llama"
+universal-ai-entities:
+  # 攻击型生物 / Hostile Mobs
+  - "minecraft:skeleton"
+  - "minecraft:zombie"
+  - "minecraft:creeper"
+  - "minecraft:spider"
+  - "minecraft:enderman"
+  - "minecraft:phantom"
+  - "minecraft:drowned"
+  - "minecraft:hoglin"
+  - "minecraft:zoglin"
+  - "minecraft:stray"
+  - "minecraft:husk"
+  - "minecraft:zombie_villager"
+  - "minecraft:shulker"
+  - "minecraft:silverfish"
+  - "minecraft:endermite"
+  - "minecraft:cave_spider"
+  - "minecraft:wither_skeleton"
+  - "minecraft:witch"
+  - "minecraft:slime"
+  - "minecraft:magma_cube"
+  
+  # 防御型生物 / Defense Mobs (Golems)
+  - "minecraft:iron_golem"
+  - "minecraft:snow_golem"
+  
+  # 被动型生物 / Passive Mobs (Animals)
+  - "minecraft:pig"
+  - "minecraft:cow"
+  - "minecraft:sheep"
+  - "minecraft:chicken"
+  - "minecraft:rabbit"
+  - "minecraft:bat"
+  - "minecraft:fox"
+  - "minecraft:strider"
+  - "minecraft:frog"
+  - "minecraft:camel"
+  - "minecraft:goat"
+  - "minecraft:mushroom_cow"
+  - "minecraft:sniffer"
+  
+  # 水生生物 / Aquatic Mobs
+  - "minecraft:dolphin"
+  - "minecraft:squid"
+  - "minecraft:glow_squid"
+  - "minecraft:turtle"
+  - "minecraft:pufferfish"
+  - "minecraft:tropical_fish"
+  - "minecraft:cod"
+  - "minecraft:salmon"
+  - "minecraft:axolotl"
+  
+  # 驯服/中立型生物 / Tamed/Neutral Mobs
+  - "minecraft:wolf"
+  - "minecraft:cat"
+  - "minecraft:horse"
+  - "minecraft:donkey"
+  - "minecraft:mule"
+  - "minecraft:llama"
+  - "minecraft:parrot"
+  - "minecraft:polar_bear"
+  - "minecraft:panda"
+  - "minecraft:bee"
+  - "minecraft:ocelot"
+  - "minecraft:trader_llama"
+  
+  # 村民相关 / Villager Related
+  # 注意：村民和流浪商人有专门的优化模块，通常不需要在这里启用
+  # Note: Villagers and wandering traders have dedicated optimization modules
+  # - "minecraft:villager"
+  # - "minecraft:wandering_trader"
 
 # ==========================================
-# Zero-Delay Factory Optimization 实体列表
+# 零延迟工厂实体列表 / Zero-Delay Factory Entity List
 # ==========================================
-zero-delay-factory-optimization:
-  # 启用的实体列表 / Enabled entity types
-  # 格式 / Format: "minecraft:entity_name"
-  entities:
-    - "minecraft:furnace"
-    - "minecraft:blast_furnace"
-    - "minecraft:smoker"
-    - "minecraft:hopper"
-    - "minecraft:chest"
-    - "minecraft:barrel"
-    - "minecraft:trapped_chest"
-
+# 说明：这些方块实体使用零延迟工厂模式优化
+# Description: These block entities use zero-delay factory pattern optimization
+zero-delay-factory-entities:
+  - "minecraft:hopper"
+  - "minecraft:furnace"
+  - "minecraft:blast_furnace"
+  - "minecraft:smoker"
+  - "minecraft:brewing_stand"
+  - "minecraft:beacon"
+  - "minecraft:chest"
+  - "minecraft:trapped_chest"
+  - "minecraft:barrel"
+  - "minecraft:shulker_box"
+  - "minecraft:ender_chest"
+  - "minecraft:dropper"
+  - "minecraft:dispenser"

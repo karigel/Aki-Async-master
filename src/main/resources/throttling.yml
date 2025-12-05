@@ -1,49 +1,355 @@
 # ==========================================
-# AkiAsync 节流配置文件 / Throttling Configuration File
+# AkiAsync 实体节流配置 / Entity Throttling Configuration
 # ==========================================
-# 说明：此文件包含实体节流配置（Dynamic Activation of Brain - DAB）
-# Description: This file contains entity throttling configuration (Dynamic Activation of Brain - DAB)
-# 版本 / Version: 8.0
-# 来源 / Source: Pufferfish
+
+# 配置说明 / Configuration Guide:
+# limit: 实体数量限制，超过该数量后实体每3 tick才会被更新一次
+#        Entity count limit, entities will be updated every 3 ticks when exceeded
+# removal: 实体移除限制，超过该数量后最先生成的实体会被逐步移除
+#          Entity removal limit, oldest entities will be gradually removed when exceeded
+
+# 注意事项 / Notes:
+# 1. limit应该小于removal（limit < removal）
+# 2. 设置为-1表示不限制该项
+# 3. 实体ID格式：minecraft:entity_name
+# 4. 移除优先级：最早生成的实体优先被移除
 
 # ==========================================
-# 实体节流配置 / Entity Throttling Configuration
+# 攻击型生物 / Hostile Mobs
 # ==========================================
-# 说明：根据距离动态激活实体大脑，减少不必要的 AI 计算
-# Description: Dynamically activate entity brains based on distance to reduce unnecessary AI calculations
+minecraft:zombie:
+  limit: 500      # 超过500只僵尸后开始节流
+  removal: 1000   # 超过1000只僵尸后开始移除
 
-throttling:
-  # 启用开关 / Enable toggle
-  enabled: true
-  
-  # 默认配置 / Default configuration
-  default:
-    # 激活距离（格）/ Activation distance (blocks)
-    # 说明：玩家在此距离内时，实体 AI 正常更新
-    # Description: Entity AI updates normally when players are within this distance
-    activation-distance: 32
-    
-    # 最大激活距离（格）/ Maximum activation distance (blocks)
-    # 说明：超过此距离的实体将完全停止 AI 更新
-    # Description: Entities beyond this distance will completely stop AI updates
-    max-activation-distance: 64
-    
-    # 节流间隔（tick）/ Throttle interval (ticks)
-    # 说明：距离较远的实体每 N tick 更新一次 AI
-    # Description: Entities at distance update AI every N ticks
-    throttle-interval: 20
-  
-  # 实体特定配置 / Entity-specific configuration
-  entities:
-    # 示例：村民特殊配置 / Example: Villager specific config
-    # "minecraft:villager":
-    #   activation-distance: 48
-    #   max-activation-distance: 96
-    #   throttle-interval: 10
-    
-    # 示例：动物特殊配置 / Example: Animal specific config
-    # "minecraft:cow":
-    #   activation-distance: 24
-    #   max-activation-distance: 48
-    #   throttle-interval: 40
+minecraft:skeleton:
+  limit: 400
+  removal: 800
 
+minecraft:creeper:
+  limit: 300
+  removal: 600
+
+minecraft:spider:
+  limit: 300
+  removal: 600
+
+minecraft:enderman:
+  limit: 200
+  removal: 400
+
+minecraft:phantom:
+  limit: 100
+  removal: 200
+
+minecraft:drowned:
+  limit: 200
+  removal: 400
+
+minecraft:husk:
+  limit: 200
+  removal: 400
+
+minecraft:stray:
+  limit: 200
+  removal: 400
+
+minecraft:zombie_villager:
+  limit: 100
+  removal: 200
+
+minecraft:witch:
+  limit: 50
+  removal: 100
+
+minecraft:blaze:
+  limit: 100
+  removal: 200
+
+minecraft:ghast:
+  limit: 50
+  removal: 100
+
+minecraft:magma_cube:
+  limit: 200
+  removal: 400
+
+minecraft:slime:
+  limit: 200
+  removal: 400
+
+minecraft:silverfish:
+  limit: 100
+  removal: 200
+
+minecraft:endermite:
+  limit: 50
+  removal: 100
+
+minecraft:shulker:
+  limit: 100
+  removal: 200
+
+minecraft:hoglin:
+  limit: 150
+  removal: 300
+
+minecraft:zoglin:
+  limit: 100
+  removal: 200
+
+minecraft:piglin:
+  limit: 200
+  removal: 400
+
+minecraft:piglin_brute:
+  limit: 50
+  removal: 100
+
+minecraft:wither_skeleton:
+  limit: 100
+  removal: 200
+
+# ==========================================
+# 被动型生物 / Passive Mobs
+# ==========================================
+minecraft:pig:
+  limit: 300
+  removal: 600
+
+minecraft:cow:
+  limit: 300
+  removal: 600
+
+minecraft:sheep:
+  limit: 300
+  removal: 600
+
+minecraft:chicken:
+  limit: 400
+  removal: 800
+
+minecraft:rabbit:
+  limit: 200
+  removal: 400
+
+minecraft:horse:
+  limit: 100
+  removal: 200
+
+minecraft:donkey:
+  limit: 50
+  removal: 100
+
+minecraft:mule:
+  limit: 50
+  removal: 100
+
+minecraft:llama:
+  limit: 100
+  removal: 200
+
+minecraft:fox:
+  limit: 100
+  removal: 200
+
+minecraft:wolf:
+  limit: 100
+  removal: 200
+
+minecraft:cat:
+  limit: 100
+  removal: 200
+
+minecraft:ocelot:
+  limit: 50
+  removal: 100
+
+minecraft:panda:
+  limit: 50
+  removal: 100
+
+minecraft:polar_bear:
+  limit: 50
+  removal: 100
+
+minecraft:bee:
+  limit: 200
+  removal: 400
+
+minecraft:bat:
+  limit: 100
+  removal: 200
+
+minecraft:parrot:
+  limit: 100
+  removal: 200
+
+minecraft:turtle:
+  limit: 100
+  removal: 200
+
+minecraft:strider:
+  limit: 100
+  removal: 200
+
+minecraft:goat:
+  limit: 100
+  removal: 200
+
+minecraft:axolotl:
+  limit: 100
+  removal: 200
+
+minecraft:frog:
+  limit: 100
+  removal: 200
+
+minecraft:camel:
+  limit: 50
+  removal: 100
+
+# ==========================================
+# 村民相关 / Villager Related
+# ==========================================
+minecraft:villager:
+  limit: 500      # 村民较重要，限制较宽松
+  removal: 1000
+
+minecraft:wandering_trader:
+  limit: 10
+  removal: 20
+
+minecraft:trader_llama:
+  limit: 20
+  removal: 40
+
+# ==========================================
+# 水生生物 / Aquatic Mobs
+# ==========================================
+minecraft:squid:
+  limit: 200
+  removal: 400
+
+minecraft:glow_squid:
+  limit: 100
+  removal: 200
+
+minecraft:dolphin:
+  limit: 50
+  removal: 100
+
+minecraft:cod:
+  limit: 300
+  removal: 600
+
+minecraft:salmon:
+  limit: 300
+  removal: 600
+
+minecraft:tropical_fish:
+  limit: 300
+  removal: 600
+
+minecraft:pufferfish:
+  limit: 100
+  removal: 200
+
+minecraft:guardian:
+  limit: 100
+  removal: 200
+
+minecraft:elder_guardian:
+  limit: 10
+  removal: 20
+
+# ==========================================
+# 特殊实体 / Special Entities
+# ==========================================
+minecraft:iron_golem:
+  limit: 50
+  removal: 100
+
+minecraft:snow_golem:
+  limit: 50
+  removal: 100
+
+minecraft:wither:
+  limit: 5       # Boss实体严格限制
+  removal: 10
+
+minecraft:ender_dragon:
+  limit: 1
+  removal: 2
+
+# ==========================================
+# 掉落物和经验球 / Items and Experience
+# ==========================================
+minecraft:item:
+  limit: 2000     # 掉落物限制较宽松
+  removal: 5000
+
+minecraft:experience_orb:
+  limit: 1000
+  removal: 3000
+
+# ==========================================
+# 投射物 / Projectiles
+# ==========================================
+minecraft:arrow:
+  limit: 500
+  removal: 1000
+
+minecraft:spectral_arrow:
+  limit: 200
+  removal: 400
+
+minecraft:trident:
+  limit: 100
+  removal: 200
+
+minecraft:fireball:
+  limit: 100
+  removal: 200
+
+minecraft:small_fireball:
+  limit: 200
+  removal: 400
+
+minecraft:dragon_fireball:
+  limit: 50
+  removal: 100
+
+minecraft:wither_skull:
+  limit: 100
+  removal: 200
+
+# ==========================================
+# 载具 / Vehicles
+# ==========================================
+minecraft:minecart:
+  limit: 200
+  removal: 400
+
+minecraft:chest_minecart:
+  limit: 100
+  removal: 200
+
+minecraft:furnace_minecart:
+  limit: 50
+  removal: 100
+
+minecraft:hopper_minecart:
+  limit: 100
+  removal: 200
+
+minecraft:tnt_minecart:
+  limit: 50
+  removal: 100
+
+minecraft:boat:
+  limit: 200
+  removal: 400
+
+minecraft:chest_boat:
+  limit: 100
+  removal: 200

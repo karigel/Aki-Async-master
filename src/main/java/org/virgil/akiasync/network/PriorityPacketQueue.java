@@ -1,17 +1,12 @@
 package org.virgil.akiasync.network;
 
-import net.minecraft.network.protocol.Packet;
-
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Logger;
 
-/**
- * 优先级数据包队列 / Priority Packet Queue
- * 根据数据包优先级进行排序的阻塞队列
- * Blocking queue that sorts packets by priority
- */
+import net.minecraft.network.protocol.Packet;
+
 public class PriorityPacketQueue {
 
     private final PriorityBlockingQueue<PacketInfo> queue;
@@ -40,6 +35,7 @@ public class PriorityPacketQueue {
     }
 
     public boolean offer(Packet<?> packet, PacketPriority priority) {
+        
         int currentSize = queue.size();
         if (currentSize >= MAX_QUEUE_SIZE) {
             droppedPackets.incrementAndGet();

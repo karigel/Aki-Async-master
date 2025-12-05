@@ -9,10 +9,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
-/**
- * 插件检测器注册表 / Plugin Detector Registry
- * 管理多个虚拟实体检测器
- */
 public class PluginDetectorRegistry {
     
     private final List<PluginDetector> detectors;
@@ -66,6 +62,7 @@ public class PluginDetectorRegistry {
         
         for (PluginDetector detector : detectors) {
             try {
+                
                 if (!detector.isAvailable()) {
                     continue;
                 }
@@ -74,9 +71,13 @@ public class PluginDetectorRegistry {
                     return true;
                 }
             } catch (Exception e) {
+                
                 logger.warning("[VirtualEntity] Detector " + detector.getPluginName() + 
                              " threw exception while checking entity " + entity.getUniqueId() + 
                              ": " + e.getMessage());
+                if (logger.isLoggable(java.util.logging.Level.FINE)) {
+                    e.printStackTrace();
+                }
             }
         }
         
@@ -90,6 +91,7 @@ public class PluginDetectorRegistry {
         
         for (PluginDetector detector : detectors) {
             try {
+                
                 if (!detector.isAvailable()) {
                     continue;
                 }
@@ -98,8 +100,13 @@ public class PluginDetectorRegistry {
                     return detector.getPluginName();
                 }
             } catch (Exception e) {
+                
                 logger.warning("[VirtualEntity] Detector " + detector.getPluginName() + 
-                             " threw exception: " + e.getMessage());
+                             " threw exception while checking entity " + entity.getUniqueId() + 
+                             ": " + e.getMessage());
+                if (logger.isLoggable(java.util.logging.Level.FINE)) {
+                    e.printStackTrace();
+                }
             }
         }
         

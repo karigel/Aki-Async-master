@@ -3,8 +3,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jspecify.annotations.NullMarked;
@@ -12,38 +10,42 @@ import org.jspecify.annotations.Nullable;
 import org.virgil.akiasync.AkiAsyncPlugin;
 import org.virgil.akiasync.event.ConfigReloadEvent;
 
+import io.papermc.paper.command.brigadier.BasicCommand;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
+
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 @NullMarked
-public class ReloadCommand implements CommandExecutor {
+public class ReloadCommand implements BasicCommand {
     private final AkiAsyncPlugin plugin;
     private final Map<UUID, Long> confirmationMap = new ConcurrentHashMap<>();
-    
+
     public ReloadCommand(AkiAsyncPlugin plugin) {
         this.plugin = plugin;
     }
-    
+
     @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+    public void execute(CommandSourceStack source, String[] args) {
+        CommandSender sender = source.getSender();
         FileConfiguration config = plugin.getConfig();
-        
+
         boolean requireConfirmation = config.getBoolean("commands.reload.require-confirmation", true);
-        
+
         if (!requireConfirmation) {
             performReload(sender);
-            return true;
+            return;
         }
-        
+
         int timeoutSeconds = config.getInt("commands.reload.confirmation-timeout", 30);
         long timeoutMillis = timeoutSeconds * 1000L;
-        
+
         UUID senderId = getSenderId(sender);
-        
+
         Long lastConfirmTime = confirmationMap.get(senderId);
         long currentTime = System.currentTimeMillis();
-        
+
         if (lastConfirmTime != null && (currentTime - lastConfirmTime) < timeoutMillis) {
             confirmationMap.remove(senderId);
             performReload(sender);
@@ -51,15 +53,14 @@ public class ReloadCommand implements CommandExecutor {
             confirmationMap.put(senderId, currentTime);
             sendWarningMessage(sender, timeoutSeconds);
         }
-        return true;
     }
-    
+
     private void performReload(CommandSender sender) {
         Bukkit.getPluginManager().callEvent(new ConfigReloadEvent());
         sender.sendMessage(Component.text("[AkiAsync] ", NamedTextColor.GOLD)
             .append(Component.text("Configuration hot-reloaded, thread pools smoothly restarted.", NamedTextColor.GREEN)));
     }
-    
+
     private void sendWarningMessage(CommandSender sender, int timeoutSeconds) {
         sender.sendMessage(Component.empty());
         sender.sendMessage(Component.text("⚠ ", NamedTextColor.YELLOW, TextDecoration.BOLD)
@@ -83,11 +84,16 @@ public class ReloadCommand implements CommandExecutor {
             .append(Component.text(" to confirm.", NamedTextColor.GOLD)));
         sender.sendMessage(Component.empty());
     }
-    
+
     private UUID getSenderId(CommandSender sender) {
         if (sender instanceof org.bukkit.entity.Player player) {
             return player.getUniqueId();
         }
         return UUID.fromString("00000000-0000-0000-0000-000000000000");
+    }
+
+    @Override
+    public @Nullable String permission() {
+        return "akiasync.reload";
     }
 }

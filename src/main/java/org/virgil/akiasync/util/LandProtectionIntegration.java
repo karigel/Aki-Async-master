@@ -4,332 +4,510 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.plugin.Plugin;
 
-/**
- * 土地保护集成
- * Land Protection Integration
- * 
- * 支持与土地保护插件集成，防止 TNT 在保护区域内爆炸
- * Supports integration with land protection plugins to prevent TNT explosions in protected areas
- * 
- * 支持的插件 / Supported plugins:
- * - Residence (com.github.Zrips:Residence)
- * - Lands (com.github.angeschossen:LandsAPI)
- * - WorldGuard (com.sk89q.worldguard)
- * - KariClaims (org.kari.kariClaims)
- * 
- * 版本 / Version: 8.1
- */
+import java.lang.reflect.Method;
+import java.util.concurrent.ConcurrentHashMap;
+
 public class LandProtectionIntegration {
-    
-    private static boolean residenceEnabled = false;
-    private static boolean landsEnabled = false;
-    private static boolean worldGuardEnabled = false;
-    private static boolean kariClaimsEnabled = false;
-    
-    private static Object residenceAPI = null;
-    private static Object landsAPI = null;
-    private static Object worldGuardAPI = null;
-    private static Object kariClaimsManager = null;
-    
-    private static volatile boolean initialized = false;
-    private static volatile boolean pluginsChecked = false;
-    
-    /**
-     * 确保已初始化（延迟初始化）
-     * Ensure initialized (lazy initialization)
-     * 
-     * 如果首次检测时没有找到插件，会在下次调用时重新检测
-     * If no plugins found on first check, will re-check on next call
-     */
-    private static void ensureInitialized() {
-        // 如果已检测到插件，无需再次初始化
-        if (initialized && pluginsChecked) {
-            return;
+
+    private static volatile Boolean residenceEnabled = null;
+    private static volatile Boolean dominionEnabled = null;
+    private static volatile Boolean worldGuardEnabled = null;
+    private static volatile Boolean landsEnabled = null;
+    private static volatile Boolean kariClaimsEnabled = null;
+
+    private static volatile Object residenceAPI = null;
+    private static volatile Method residenceGetByLocMethod = null;
+    private static volatile Method residenceHasFlagMethod = null;
+
+    private static volatile Object dominionAPI = null;
+    private static volatile Method dominionGetDominionMethod = null;
+    private static volatile Method dominionGetFlagMethod = null;
+
+    private static volatile Object worldGuardPlugin = null;
+    private static volatile Object regionContainer = null;
+    private static volatile Method createQueryMethod = null;
+
+    private static volatile Object landsIntegration = null;
+    private static volatile Method getLandByChunkMethod = null;
+    private static volatile Method hasRoleFlagMethod = null;
+
+    private static volatile Object kariClaimsPlugin = null;
+    private static volatile Object kariClaimsChunkManager = null;
+    private static volatile Method findChunkClaimAtMethod = null;
+    private static volatile Method getClaimFromOptionalMethod = null;
+    private static volatile Method isTntMethod = null;
+    private static volatile Method isExplosionMethod = null;
+
+    private static final ConcurrentHashMap<String, CacheEntry> CACHE = new ConcurrentHashMap<>();
+    private static final long CACHE_DURATION_MS = 5000;
+    private static final int MAX_CACHE_SIZE = 1000;
+
+    private static class CacheEntry {
+        final boolean allowed;
+        final long timestamp;
+
+        CacheEntry(boolean allowed) {
+            this.allowed = allowed;
+            this.timestamp = System.currentTimeMillis();
         }
-        
-        synchronized (LandProtectionIntegration.class) {
-            // 双重检查
-            if (initialized && pluginsChecked) {
-                return;
-            }
-            
-            // 检查 Bukkit 是否已准备好
-            try {
-                if (Bukkit.getPluginManager() == null || Bukkit.getPluginManager().getPlugins().length == 0) {
-                    // Bukkit 还没准备好，稍后再试
-                    return;
-                }
-            } catch (Exception e) {
-                // Bukkit 还没准备好
-                return;
-            }
-            
-            // 重置状态并重新初始化
-            residenceEnabled = false;
-            landsEnabled = false;
-            worldGuardEnabled = false;
-            kariClaimsEnabled = false;
-            residenceAPI = null;
-            landsAPI = null;
-            worldGuardAPI = null;
-            kariClaimsManager = null;
-            
-            initialize();
-            initialized = true;
-            
-            // 如果找到了任何插件，标记为已完成检测
-            if (residenceEnabled || landsEnabled || worldGuardEnabled || kariClaimsEnabled) {
-                pluginsChecked = true;
-            }
+
+        boolean isValid() {
+            return System.currentTimeMillis() - timestamp < CACHE_DURATION_MS;
         }
     }
-    
-    private static void initialize() {
-        java.util.logging.Logger logger = Bukkit.getLogger();
-        
-        // 检查 Residence
-        Plugin residence = Bukkit.getPluginManager().getPlugin("Residence");
-        logger.info("[AkiAsync] Checking Residence: " + (residence != null ? "found, enabled=" + residence.isEnabled() : "not found"));
-        if (residence != null && residence.isEnabled()) {
-            try {
-                // 使用插件的类加载器（Ignite 环境需要）
-                ClassLoader pluginClassLoader = residence.getClass().getClassLoader();
-                Class<?> residenceClass = Class.forName("com.bekvon.bukkit.residence.Residence", true, pluginClassLoader);
-                residenceAPI = residenceClass.getMethod("getInstance").invoke(null);
-                residenceEnabled = true;
-                logger.info("[AkiAsync] Residence integration successful");
-            } catch (Exception e) {
-                logger.warning("[AkiAsync] Residence integration failed: " + e.getMessage());
-            }
-        }
-        
-        // 检查 Lands
-        Plugin lands = Bukkit.getPluginManager().getPlugin("Lands");
-        logger.info("[AkiAsync] Checking Lands: " + (lands != null ? "found, enabled=" + lands.isEnabled() : "not found"));
-        if (lands != null && lands.isEnabled()) {
-            try {
-                // 使用插件的类加载器（Ignite 环境需要）
-                ClassLoader pluginClassLoader = lands.getClass().getClassLoader();
-                Class<?> landsClass = Class.forName("me.angeschossen.lands.api.LandsIntegration", true, pluginClassLoader);
-                landsAPI = landsClass.getMethod("getInstance").invoke(null);
-                landsEnabled = true;
-                logger.info("[AkiAsync] Lands integration successful");
-            } catch (Exception e) {
-                logger.warning("[AkiAsync] Lands integration failed: " + e.getMessage());
-            }
-        }
-        
-        // 检查 WorldGuard
-        Plugin worldGuard = Bukkit.getPluginManager().getPlugin("WorldGuard");
-        logger.info("[AkiAsync] Checking WorldGuard: " + (worldGuard != null ? "found, enabled=" + worldGuard.isEnabled() : "not found"));
-        if (worldGuard != null && worldGuard.isEnabled()) {
-            try {
-                // 使用插件的类加载器（Ignite 环境需要）
-                ClassLoader pluginClassLoader = worldGuard.getClass().getClassLoader();
-                Class<?> wgClass = Class.forName("com.sk89q.worldguard.WorldGuard", true, pluginClassLoader);
-                worldGuardAPI = wgClass.getMethod("getInstance").invoke(null);
-                worldGuardEnabled = true;
-                logger.info("[AkiAsync] WorldGuard integration successful");
-            } catch (Exception e) {
-                logger.warning("[AkiAsync] WorldGuard integration failed: " + e.getMessage());
-            }
-        }
-        
-        // 检查 KariClaims
-        Plugin kariClaims = Bukkit.getPluginManager().getPlugin("KariClaims");
-        logger.info("[AkiAsync] Checking KariClaims: " + (kariClaims != null ? "found, enabled=" + kariClaims.isEnabled() : "not found"));
-        if (kariClaims != null && kariClaims.isEnabled()) {
-            try {
-                // 使用插件的类加载器（Ignite 环境需要）
-                ClassLoader pluginClassLoader = kariClaims.getClass().getClassLoader();
-                Class<?> kcClass = Class.forName("org.kari.kariClaims.KariClaims", true, pluginClassLoader);
-                Object instance = kcClass.getMethod("getInstance").invoke(null);
-                kariClaimsManager = kcClass.getMethod("getChunkClaimManager").invoke(instance);
-                kariClaimsEnabled = true;
-                logger.info("[AkiAsync] KariClaims integration successful");
-            } catch (Exception e) {
-                logger.warning("[AkiAsync] KariClaims integration failed: " + e.getMessage());
-            }
-        }
-    }
-    
-    /**
-     * 检查 TNT 是否可以在指定位置爆炸
-     * Check if TNT can explode at the specified location
-     * 
-     * @param level 服务器世界 / Server level
-     * @param pos 位置 / Position
-     * @return true 如果可以爆炸，false 如果被保护 / true if can explode, false if protected
-     */
+
     public static boolean canTNTExplode(ServerLevel level, BlockPos pos) {
-        ensureInitialized();
-        org.bukkit.World bukkitWorld = level.getWorld();
-        Location location = new Location(
-            bukkitWorld,
-            pos.getX(),
-            pos.getY(),
-            pos.getZ()
-        );
-        
-        // 检查 Residence
-        if (residenceEnabled && residenceAPI != null) {
-            try {
-                Object resManager = residenceAPI.getClass().getMethod("getResidenceManager").invoke(residenceAPI);
-                Object res = resManager.getClass().getMethod("getByLoc", Location.class).invoke(resManager, location);
-                if (res != null) {
-                    return false; // 在 Residence 保护区域内
-                }
-            } catch (Exception e) {
-                // 忽略错误，继续检查其他插件
+        try {
+            String cacheKey = getCacheKey(level, pos);
+            CacheEntry cached = CACHE.get(cacheKey);
+            if (cached != null && cached.isValid()) {
+                return cached.allowed;
             }
-        }
-        
-        // 检查 Lands
-        if (landsEnabled && landsAPI != null) {
-            try {
-                Object land = landsAPI.getClass().getMethod("getLand", Location.class).invoke(landsAPI, location);
-                if (land != null) {
-                    // 检查是否允许爆炸
-                    boolean canExplode = (Boolean) land.getClass().getMethod("isFlagSet", String.class).invoke(land, "explosion");
-                    return canExplode;
-                }
-            } catch (Exception e) {
-                // 忽略错误，继续检查其他插件
+
+            if (CACHE.size() > MAX_CACHE_SIZE) {
+                CACHE.entrySet().removeIf(entry -> !entry.getValue().isValid());
             }
-        }
-        
-        // 检查 WorldGuard
-        if (worldGuardEnabled && worldGuardAPI != null) {
-            try {
-                Object regionManager = worldGuardAPI.getClass().getMethod("getPlatform").invoke(worldGuardAPI)
-                    .getClass().getMethod("getRegionContainer").invoke(null);
-                Object query = regionManager.getClass().getMethod("createQuery").invoke(regionManager);
-                Object flagValue = query.getClass().getMethod("queryValue", 
-                    org.bukkit.Location.class, 
-                    Class.forName("com.sk89q.worldguard.protection.flags.Flag")).invoke(
-                    query, location, 
-                    Class.forName("com.sk89q.worldguard.protection.flags.Flags").getField("TNT").get(null)
-                );
-                if (flagValue != null && flagValue.toString().equals("DENY")) {
-                    return false; // WorldGuard 禁止爆炸
+
+            World bukkitWorld = level.getWorld();
+            Location location = new Location(bukkitWorld, pos.getX(), pos.getY(), pos.getZ());
+
+            boolean allowed = true;
+
+            if (isResidenceEnabled()) {
+                boolean residenceAllowed = checkResidence(location);
+                if (!residenceAllowed) {
+                    allowed = false;
                 }
-            } catch (Exception e) {
-                // 忽略错误
             }
-        }
-        
-        // 检查 KariClaims
-        if (kariClaimsEnabled && kariClaimsManager != null) {
-            try {
-                // 调用 findChunkClaimAt(Location) 方法
-                java.lang.reflect.Method findMethod = kariClaimsManager.getClass()
-                    .getMethod("findChunkClaimAt", Location.class);
-                Object claimOptional = findMethod.invoke(kariClaimsManager, location);
-                
-                // 检查 Optional 是否有值
-                java.lang.reflect.Method isPresentMethod = claimOptional.getClass().getMethod("isPresent");
-                boolean hasClaim = (Boolean) isPresentMethod.invoke(claimOptional);
-                
-                if (hasClaim) {
-                    // 获取 claim 对象并检查 explosion 设置
-                    java.lang.reflect.Method getMethod = claimOptional.getClass().getMethod("get");
-                    Object claim = getMethod.invoke(claimOptional);
-                    
-                    // 检查是否允许爆炸 (isExplosion) 和 TNT (isTnt)
-                    java.lang.reflect.Method isExplosionMethod = claim.getClass().getMethod("isExplosion");
-                    java.lang.reflect.Method isTntMethod = claim.getClass().getMethod("isTnt");
-                    
-                    boolean explosionAllowed = (Boolean) isExplosionMethod.invoke(claim);
-                    boolean tntAllowed = (Boolean) isTntMethod.invoke(claim);
-                    
-                    if (!explosionAllowed || !tntAllowed) {
-                        return false; // KariClaims 禁止爆炸
-                    }
+
+            if (allowed && isDominionEnabled()) {
+                boolean dominionAllowed = checkDominion(location);
+                if (!dominionAllowed) {
+                    allowed = false;
                 }
-            } catch (Exception e) {
-                // 忽略错误
             }
+
+            if (allowed && isWorldGuardEnabled()) {
+                boolean worldGuardAllowed = checkWorldGuard(location);
+                if (!worldGuardAllowed) {
+                    allowed = false;
+                }
+            }
+
+            if (allowed && isLandsEnabled()) {
+                boolean landsAllowed = checkLands(location);
+                if (!landsAllowed) {
+                    allowed = false;
+                }
+            }
+
+            if (allowed && isKariClaimsEnabled()) {
+                boolean kariClaimsAllowed = checkKariClaims(location);
+                if (!kariClaimsAllowed) {
+                    allowed = false;
+                }
+            }
+
+            CACHE.put(cacheKey, new CacheEntry(allowed));
+
+            return allowed;
+        } catch (Exception e) {
+            DebugLogger.error("[LandProtection] Error checking land protection: " + e.getMessage());
+            return true;
         }
-        
-        return true; // 默认允许爆炸
     }
-    
-    public static boolean isResidenceEnabled() {
-        ensureInitialized();
+
+    private static boolean checkResidence(Location location) {
+        try {
+            if (residenceAPI == null) {
+                Plugin residence = Bukkit.getPluginManager().getPlugin("Residence");
+                if (residence == null) {
+                    residenceEnabled = false;
+                    return true;
+                }
+
+                Class<?> residenceClass = Class.forName("com.bekvon.bukkit.residence.Residence");
+                Method getAPIMethod = residenceClass.getMethod("getInstance");
+                residenceAPI = getAPIMethod.invoke(null);
+
+                Class<?> residenceAPIClass = Class.forName("com.bekvon.bukkit.residence.api.ResidenceApi");
+                residenceGetByLocMethod = residenceAPIClass.getMethod("getByLoc", Location.class);
+
+                Class<?> claimedResidenceClass = Class.forName("com.bekvon.bukkit.residence.protection.ClaimedResidence");
+                residenceHasFlagMethod = claimedResidenceClass.getMethod("hasFlag", String.class);
+            }
+
+            Object claimedResidence = residenceGetByLocMethod.invoke(residenceAPI, location);
+            if (claimedResidence == null) {
+                return true;
+            }
+
+            Boolean hasTNTFlag = (Boolean) residenceHasFlagMethod.invoke(claimedResidence, "tnt");
+
+            return hasTNTFlag != null && hasTNTFlag;
+
+        } catch (ClassNotFoundException e) {
+            residenceEnabled = false;
+            return true;
+        } catch (Exception e) {
+            DebugLogger.error("[LandProtection] Error checking Residence: " + e.getMessage());
+            return true;
+        }
+    }
+
+    private static boolean checkDominion(Location location) {
+        try {
+            if (dominionAPI == null) {
+                Plugin dominion = Bukkit.getPluginManager().getPlugin("Dominion");
+                if (dominion == null) {
+                    dominionEnabled = false;
+                    return true;
+                }
+
+                Class<?> cacheClass = Class.forName("cn.lunadeer.dominion.Cache");
+                Method getInstanceMethod = cacheClass.getMethod("instance");
+                dominionAPI = getInstanceMethod.invoke(null);
+
+                dominionGetDominionMethod = cacheClass.getMethod("getDominionByLoc", Location.class);
+
+                Class<?> dominionDTOClass = Class.forName("cn.lunadeer.dominion.dtos.DominionDTO");
+                dominionGetFlagMethod = dominionDTOClass.getMethod("getFlagValue",
+                    Class.forName("cn.lunadeer.dominion.dtos.Flag$FlagType"));
+            }
+
+            Object dominionDTO = dominionGetDominionMethod.invoke(dominionAPI, location);
+            if (dominionDTO == null) {
+                return true;
+            }
+
+            Class<?> flagTypeClass = Class.forName("cn.lunadeer.dominion.dtos.Flag$FlagType");
+            Object tntFlag = null;
+            for (Object enumConstant : flagTypeClass.getEnumConstants()) {
+                if (enumConstant.toString().equals("TNT_EXPLODE")) {
+                    tntFlag = enumConstant;
+                    break;
+                }
+            }
+
+            if (tntFlag == null) {
+                DebugLogger.error("[LandProtection] TNT_EXPLODE flag not found in Dominion");
+                return true;
+            }
+
+            Boolean allowed = (Boolean) dominionGetFlagMethod.invoke(dominionDTO, tntFlag);
+
+            return allowed != null && allowed;
+
+        } catch (ClassNotFoundException e) {
+            dominionEnabled = false;
+            return true;
+        } catch (Exception e) {
+            DebugLogger.error("[LandProtection] Error checking Dominion: " + e.getMessage());
+            return true;
+        }
+    }
+
+    private static boolean checkWorldGuard(Location location) {
+        try {
+            if (worldGuardPlugin == null) {
+                Plugin wg = Bukkit.getPluginManager().getPlugin("WorldGuard");
+                if (wg == null) {
+                    worldGuardEnabled = false;
+                    return true;
+                }
+                worldGuardPlugin = wg;
+
+                Class<?> worldGuardClass = Class.forName("com.sk89q.worldguard.WorldGuard");
+                Method getInstanceMethod = worldGuardClass.getMethod("getInstance");
+                Object worldGuardInstance = getInstanceMethod.invoke(null);
+
+                Method getPlatformMethod = worldGuardClass.getMethod("getPlatform");
+                Object platform = getPlatformMethod.invoke(worldGuardInstance);
+
+                Class<?> platformClass = Class.forName("com.sk89q.worldguard.platform.Platform");
+                Method getRegionContainerMethod = platformClass.getMethod("getRegionContainer");
+                regionContainer = getRegionContainerMethod.invoke(platform);
+
+                Class<?> regionContainerClass = Class.forName("com.sk89q.worldguard.protection.regions.RegionContainer");
+                createQueryMethod = regionContainerClass.getMethod("createQuery");
+            }
+
+            Object query = createQueryMethod.invoke(regionContainer);
+
+            Class<?> wgLocationClass = Class.forName("com.sk89q.worldedit.util.Location");
+            Class<?> bukkitAdapterClass = Class.forName("com.sk89q.worldedit.bukkit.BukkitAdapter");
+            Method adaptLocationMethod = bukkitAdapterClass.getMethod("adapt", Location.class);
+            Object wgLocation = adaptLocationMethod.invoke(null, location);
+
+            Class<?> flagsClass = Class.forName("com.sk89q.worldguard.protection.flags.Flags");
+            Object tntFlag = flagsClass.getField("TNT").get(null);
+
+            Class<?> regionQueryClass = Class.forName("com.sk89q.worldguard.protection.regions.RegionQuery");
+            Class<?> stateFlagClass = Class.forName("com.sk89q.worldguard.protection.flags.StateFlag");
+            Method testStateMethod = regionQueryClass.getMethod("testState", wgLocationClass, stateFlagClass);
+            Object result = testStateMethod.invoke(query, wgLocation, tntFlag);
+
+            if (result == null) {
+                return true;
+            }
+
+            String stateName = result.toString();
+            return "ALLOW".equals(stateName);
+
+        } catch (ClassNotFoundException e) {
+            worldGuardEnabled = false;
+            return true;
+        } catch (Exception e) {
+            DebugLogger.error("[LandProtection] Error checking WorldGuard: " + e.getMessage());
+            return true;
+        }
+    }
+
+    private static boolean checkLands(Location location) {
+        try {
+            if (landsIntegration == null) {
+                Plugin lands = Bukkit.getPluginManager().getPlugin("Lands");
+                if (lands == null) {
+                    landsEnabled = false;
+                    return true;
+                }
+
+                Class<?> landsIntegrationClass = Class.forName("me.angeschossen.lands.api.integration.LandsIntegration");
+                Method getInstanceMethod = landsIntegrationClass.getMethod("of", Plugin.class);
+                landsIntegration = getInstanceMethod.invoke(null, lands);
+
+                getLandByChunkMethod = landsIntegrationClass.getMethod("getLandByChunk", World.class, int.class, int.class);
+
+                Class<?> landClass = Class.forName("me.angeschossen.lands.api.land.Land");
+                Class<?> roleFlagClass = Class.forName("me.angeschossen.lands.api.flags.type.RoleFlag");
+                hasRoleFlagMethod = landClass.getMethod("hasRoleFlag",
+                    Class.forName("me.angeschossen.lands.api.player.LandPlayer"),
+                    roleFlagClass,
+                    boolean.class);
+            }
+
+            int chunkX = location.getBlockX() >> 4;
+            int chunkZ = location.getBlockZ() >> 4;
+
+            Object land = getLandByChunkMethod.invoke(landsIntegration, location.getWorld(), chunkX, chunkZ);
+            if (land == null) {
+                return true;
+            }
+
+            Class<?> roleFlagsClass = Class.forName("me.angeschossen.lands.api.flags.type.Flags");
+            Object tntFlag = roleFlagsClass.getField("BLOCK_IGNITE").get(null);
+
+            Boolean allowed = (Boolean) hasRoleFlagMethod.invoke(land, null, tntFlag, true);
+
+            return allowed != null && allowed;
+
+        } catch (ClassNotFoundException e) {
+            landsEnabled = false;
+            return true;
+        } catch (Exception e) {
+            DebugLogger.error("[LandProtection] Error checking Lands: " + e.getMessage());
+            return true;
+        }
+    }
+
+    private static boolean isResidenceEnabled() {
+        if (residenceEnabled == null) {
+            residenceEnabled = Bukkit.getPluginManager().isPluginEnabled("Residence");
+        }
         return residenceEnabled;
     }
-    
-    public static boolean isLandsEnabled() {
-        ensureInitialized();
-        return landsEnabled;
+
+    private static boolean isDominionEnabled() {
+        if (dominionEnabled == null) {
+            dominionEnabled = Bukkit.getPluginManager().isPluginEnabled("Dominion");
+        }
+        return dominionEnabled;
     }
-    
-    public static boolean isWorldGuardEnabled() {
-        ensureInitialized();
+
+    private static boolean isWorldGuardEnabled() {
+        if (worldGuardEnabled == null) {
+            worldGuardEnabled = Bukkit.getPluginManager().isPluginEnabled("WorldGuard");
+        }
         return worldGuardEnabled;
     }
-    
-    public static boolean isKariClaimsEnabled() {
-        ensureInitialized();
+
+    private static boolean isLandsEnabled() {
+        if (landsEnabled == null) {
+            landsEnabled = Bukkit.getPluginManager().isPluginEnabled("Lands");
+        }
+        return landsEnabled;
+    }
+
+    private static boolean checkKariClaims(Location location) {
+        try {
+            if (kariClaimsChunkManager == null) {
+                Plugin kariClaims = Bukkit.getPluginManager().getPlugin("KariClaims");
+                if (kariClaims == null) {
+                    kariClaimsEnabled = false;
+                    return true;
+                }
+                kariClaimsPlugin = kariClaims;
+
+                Class<?> kariClaimsClass = Class.forName("org.kari.kariClaims.KariClaims");
+                Method getChunkClaimManagerMethod = kariClaimsClass.getMethod("getChunkClaimManager");
+                kariClaimsChunkManager = getChunkClaimManagerMethod.invoke(kariClaims);
+
+                Class<?> chunkClaimManagerClass = Class.forName("org.kari.kariClaims.managers.ChunkClaimManager");
+                findChunkClaimAtMethod = chunkClaimManagerClass.getMethod("findChunkClaimAt", Location.class);
+                
+                // 获取 ChunkClaim 类的方法
+                Class<?> chunkClaimClass = Class.forName("org.kari.kariClaims.models.ChunkClaim");
+                isTntMethod = chunkClaimClass.getMethod("isTnt");
+                isExplosionMethod = chunkClaimClass.getMethod("isExplosion");
+                
+                // 获取 Optional.get() 方法
+                Class<?> optionalClass = Class.forName("java.util.Optional");
+                getClaimFromOptionalMethod = optionalClass.getMethod("get");
+            }
+
+            Object optionalClaim = findChunkClaimAtMethod.invoke(kariClaimsChunkManager, location);
+            if (optionalClaim == null) {
+                return true; // 没有领地，允许TNT
+            }
+
+            // Check if Optional is present
+            Class<?> optionalClass = Class.forName("java.util.Optional");
+            Method isPresentMethod = optionalClass.getMethod("isPresent");
+            Boolean isPresent = (Boolean) isPresentMethod.invoke(optionalClaim);
+
+            if (isPresent == null || !isPresent) {
+                return true; // 没有领地，允许TNT
+            }
+
+            // 获取 ChunkClaim 对象
+            Object chunkClaim = getClaimFromOptionalMethod.invoke(optionalClaim);
+            
+            // 检查领地的 TNT 设置
+            Boolean tntAllowed = (Boolean) isTntMethod.invoke(chunkClaim);
+            if (tntAllowed != null && tntAllowed) {
+                return true; // 领地明确允许TNT
+            }
+            
+            // 检查领地的爆炸设置（作为备选）
+            Boolean explosionAllowed = (Boolean) isExplosionMethod.invoke(chunkClaim);
+            if (explosionAllowed != null && explosionAllowed) {
+                return true; // 领地允许爆炸
+            }
+            
+            // 默认：领地存在但未允许TNT/爆炸，阻止TNT
+            return false;
+
+        } catch (ClassNotFoundException e) {
+            kariClaimsEnabled = false;
+            return true;
+        } catch (Exception e) {
+            DebugLogger.error("[LandProtection] Error checking KariClaims: " + e.getMessage());
+            return true; // 出错时默认允许，避免误伤
+        }
+    }
+
+    private static boolean isKariClaimsEnabled() {
+        if (kariClaimsEnabled == null) {
+            kariClaimsEnabled = Bukkit.getPluginManager().isPluginEnabled("KariClaims");
+        }
         return kariClaimsEnabled;
     }
-    
-    /**
-     * 获取所有已检测到的保护插件列表
-     * Get list of all detected protection plugins
-     */
-    public static java.util.List<String> getDetectedPlugins() {
-        ensureInitialized();
-        java.util.List<String> plugins = new java.util.ArrayList<>();
-        if (residenceEnabled) plugins.add("Residence");
-        if (landsEnabled) plugins.add("Lands");
-        if (worldGuardEnabled) plugins.add("WorldGuard");
-        if (kariClaimsEnabled) plugins.add("KariClaims");
-        return plugins;
+
+    private static String getCacheKey(ServerLevel level, BlockPos pos) {
+        return level.dimension().location().toString() + ":" +
+               pos.getX() + "," + pos.getY() + "," + pos.getZ();
+    }
+
+    public static void clearCache() {
+        CACHE.clear();
+    }
+
+    public static void reset() {
+        residenceEnabled = null;
+        dominionEnabled = null;
+        worldGuardEnabled = null;
+        landsEnabled = null;
+        kariClaimsEnabled = null;
+        residenceAPI = null;
+        dominionAPI = null;
+        worldGuardPlugin = null;
+        regionContainer = null;
+        landsIntegration = null;
+        kariClaimsPlugin = null;
+        kariClaimsChunkManager = null;
+        residenceGetByLocMethod = null;
+        residenceHasFlagMethod = null;
+        dominionGetDominionMethod = null;
+        dominionGetFlagMethod = null;
+        createQueryMethod = null;
+        getLandByChunkMethod = null;
+        hasRoleFlagMethod = null;
+        findChunkClaimAtMethod = null;
+        getClaimFromOptionalMethod = null;
+        isTntMethod = null;
+        isExplosionMethod = null;
+        clearCache();
     }
     
     /**
-     * 检查是否有任何保护插件被检测到
-     * Check if any protection plugin is detected
-     */
-    public static boolean hasAnyProtectionPlugin() {
-        ensureInitialized();
-        return residenceEnabled || landsEnabled || worldGuardEnabled || kariClaimsEnabled;
-    }
-    
-    /**
-     * 打印兼容状态日志
-     * Print compatibility status log
+     * 初始化并记录兼容性状态
+     * Initialize and log compatibility status
      */
     public static void logCompatibilityStatus(java.util.logging.Logger logger) {
-        if (hasAnyProtectionPlugin()) {
-            logger.info("[AkiAsync] Land protection plugins detected:");
-            if (residenceEnabled) logger.info("  [✓] Residence - Compatible");
-            if (landsEnabled) logger.info("  [✓] Lands - Compatible");
-            if (worldGuardEnabled) logger.info("  [✓] WorldGuard - Compatible");
-            if (kariClaimsEnabled) logger.info("  [✓] KariClaims - Compatible");
-            logger.info("[AkiAsync] TNT explosions will respect protected areas.");
+        // 强制重新检测插件状态
+        reset();
+        
+        StringBuilder status = new StringBuilder("[AkiAsync] Land protection plugin compatibility:");
+        int detected = 0;
+        
+        // 检测 Residence
+        if (isResidenceEnabled()) {
+            status.append("\n  - Residence: ✓ Detected");
+            detected++;
         } else {
-            logger.info("[AkiAsync] No land protection plugins detected.");
+            status.append("\n  - Residence: ✗ Not found");
         }
-    }
-    
-    public static void reload() {
-        synchronized (LandProtectionIntegration.class) {
-            residenceEnabled = false;
-            landsEnabled = false;
-            worldGuardEnabled = false;
-            kariClaimsEnabled = false;
-            residenceAPI = null;
-            landsAPI = null;
-            worldGuardAPI = null;
-            kariClaimsManager = null;
-            initialized = false;
-            pluginsChecked = false;
+        
+        // 检测 Dominion
+        if (isDominionEnabled()) {
+            status.append("\n  - Dominion: ✓ Detected");
+            detected++;
+        } else {
+            status.append("\n  - Dominion: ✗ Not found");
         }
-        ensureInitialized();
+        
+        // 检测 WorldGuard
+        if (isWorldGuardEnabled()) {
+            status.append("\n  - WorldGuard: ✓ Detected");
+            detected++;
+        } else {
+            status.append("\n  - WorldGuard: ✗ Not found");
+        }
+        
+        // 检测 Lands
+        if (isLandsEnabled()) {
+            status.append("\n  - Lands: ✓ Detected");
+            detected++;
+        } else {
+            status.append("\n  - Lands: ✗ Not found");
+        }
+        
+        // 检测 KariClaims
+        if (isKariClaimsEnabled()) {
+            status.append("\n  - KariClaims: ✓ Detected");
+            detected++;
+        } else {
+            status.append("\n  - KariClaims: ✗ Not found");
+        }
+        
+        if (detected > 0) {
+            status.append("\n  Total: ").append(detected).append(" protection plugin(s) detected");
+            logger.info(status.toString());
+        } else {
+            logger.info("[AkiAsync] No land protection plugins detected - TNT explosions will not be restricted by claims");
+        }
     }
 }
-

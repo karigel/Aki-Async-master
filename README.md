@@ -31,8 +31,6 @@
 - ✅ **Chunk Tick Async** - 区块 Tick 异步
 - ✅ **Structure Location Async** - 异步结构定位
 - ✅ **DataPack Optimization** - 数据包加载优化
-
-### v3.2.16 新增功能
 - ✅ **Adaptive Load Balancer** - 自适应负载均衡
 - ✅ **Task Smoothing Scheduler** - 任务平滑调度
 - ✅ **PandaWire Redstone Algorithm** - PandaWire 红石优化算法
@@ -42,6 +40,11 @@
 - ✅ **Entity Throttling** - 实体节流
 - ✅ **Mob Despawn Optimization** - 怪物消失检查优化
 - ✅ **SecureSeed Protection** - 种子加密保护（防止种子逆向）
+- ✅ **KariClaims 完整兼容** - 支持自定义领地权限系统（TNT、爆炸、能源箱保护）
+- ✅ **IgniteConfigManager 完善** - 修复 Chunk Tick Async 等配置项无法生效的问题
+- ✅ **StructureCacheManager 适配** - 在 Ignite 环境下独立工作，无需 AkiAsyncPlugin
+- ✅ **EntityThrottlingManager 适配** - 完整支持实体节流功能
+- ✅ **配置系统优化** - 所有配置项正确从 config.yml 加载并生效
 
 ### 插件兼容性（完全支持）
 - ✅ **WorldGuard** - 区域保护

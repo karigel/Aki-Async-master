@@ -8,15 +8,15 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public final class ExceptionHandler {
-    
+
     private ExceptionHandler() {
         throw new UnsupportedOperationException("Utility class");
     }
-    
+
     public static void safeExecute(Runnable operation, String operationName) {
         safeExecute(operation, operationName, null);
     }
-    
+
     public static void safeExecute(Runnable operation, String operationName, Runnable fallback) {
         try {
             operation.run();
@@ -31,7 +31,7 @@ public final class ExceptionHandler {
             }
         }
     }
-    
+
     public static <T> T safeSupply(Supplier<T> supplier, String operationName, T defaultValue) {
         try {
             return supplier.get();
@@ -40,7 +40,7 @@ public final class ExceptionHandler {
             return defaultValue;
         }
     }
-    
+
     public static <T> T safeSupply(Supplier<T> supplier, String operationName, Supplier<T> fallback) {
         try {
             return supplier.get();
@@ -57,7 +57,7 @@ public final class ExceptionHandler {
             return null;
         }
     }
-    
+
     public static void safeReflection(ReflectiveRunnable reflectionOperation, String operationName) {
         try {
             reflectionOperation.run();
@@ -67,12 +67,12 @@ public final class ExceptionHandler {
             logError("Unexpected error in reflection operation '" + operationName + "': " + e.getMessage(), e);
         }
     }
-    
+
     @FunctionalInterface
     public interface ReflectiveRunnable {
         void run() throws ReflectiveOperationException;
     }
-    
+
     public static <T> T safeReflectionSupply(ReflectiveSupplier<T> reflectionOperation, String operationName, T defaultValue) {
         try {
             return reflectionOperation.get();
@@ -84,37 +84,44 @@ public final class ExceptionHandler {
             return defaultValue;
         }
     }
-    
+
     @FunctionalInterface
     public interface ReflectiveSupplier<T> {
         T get() throws ReflectiveOperationException;
     }
-    
+
     public static void logError(String message, Throwable throwable) {
         Bridge bridge = BridgeManager.getBridge();
         if (bridge != null) {
             bridge.errorLog(AkiAsyncConstants.Logging.ERROR_PREFIX + " " + message);
+            if (throwable != null && bridge.isDebugLoggingEnabled()) {
+                java.io.StringWriter sw = new java.io.StringWriter();
+                throwable.printStackTrace(new java.io.PrintWriter(sw));
+                bridge.debugLog("Stack trace: " + sw.toString());
+            }
         } else {
             System.err.println(AkiAsyncConstants.Logging.ERROR_PREFIX + " " + message);
             if (throwable != null) {
-                throwable.printStackTrace();
+                java.io.StringWriter sw = new java.io.StringWriter();
+                throwable.printStackTrace(new java.io.PrintWriter(sw));
+                System.err.println("Stack trace: " + sw.toString());
             }
         }
     }
-    
+
     public static void logDebug(String message) {
         Bridge bridge = BridgeManager.getBridge();
         if (bridge != null && bridge.isDebugLoggingEnabled()) {
             bridge.debugLog(AkiAsyncConstants.Logging.DEBUG_PREFIX + " " + message);
         }
     }
-    
+
     public static boolean isAsyncCatcherError(Throwable throwable) {
         if (throwable == null) return false;
         StackTraceElement[] stack = throwable.getStackTrace();
         return stack.length > 0 && "org.spigotmc.AsyncCatcher".equals(stack[0].getClassName());
     }
-    
+
     public static <T> Consumer<T> safeConsumer(Consumer<T> consumer, String operationName) {
         return item -> safeExecute(() -> consumer.accept(item), operationName);
     }
