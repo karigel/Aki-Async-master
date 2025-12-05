@@ -12,6 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.virgil.akiasync.bootstrap.AkiAsyncInitializer;
 import org.virgil.akiasync.command.AkiDebugCommand;
 import org.virgil.akiasync.command.AkiReloadCommand;
+import org.virgil.akiasync.command.AkiTeleportStatsCommand;
 import org.virgil.akiasync.command.AkiVersionCommand;
 
 @Mixin(value = CraftServer.class)
@@ -54,7 +55,8 @@ public abstract class CraftServerLoadPluginsMixin {
                 commandMap.register("akiasync", new AkiReloadCommand());
                 commandMap.register("akiasync", new AkiDebugCommand());
                 commandMap.register("akiasync", new AkiVersionCommand());
-                getLogger().info("[AkiAsync/Ignite] 命令已成功注册：/aki-reload, /aki-debug, /aki-version");
+                commandMap.register("akiasync", new AkiTeleportStatsCommand());
+                getLogger().info("[AkiAsync/Ignite] 命令已成功注册：/aki-reload, /aki-debug, /aki-version, /aki-teleport-stats");
             } else {
                 getLogger().warning("[AkiAsync/Ignite] CommandMap 未初始化，无法注册命令");
             }

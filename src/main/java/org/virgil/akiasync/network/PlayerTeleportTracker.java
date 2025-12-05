@@ -32,6 +32,15 @@ public class PlayerTeleportTracker {
     private long maxTeleportDelayNanos = 0;
     private long bypassedPackets = 0;
     private long filteredPackets = 0;
+    
+    // Global static statistics for Ignite mode
+    private static long globalTotalTeleports = 0;
+    private static long globalOptimizedTeleports = 0;
+    private static long globalPendingTeleports = 0;
+    private static long globalTotalProcessTimeNanos = 0;
+    private static long globalPacketsSent = 0;
+    private static long globalPacketsOptimized = 0;
+    private static PlayerTeleportTracker globalInstance = null;
 
     private static class TeleportState {
         private final long startTime;
@@ -360,6 +369,90 @@ public class PlayerTeleportTracker {
 
         if (debugEnabled) {
             logger.info("[TeleportTracker] Teleport tracker shut down");
+        }
+    }
+    
+    // ==========================================
+    // Static Global Statistics (for Ignite mode)
+    // ==========================================
+    
+    public static void setGlobalInstance(PlayerTeleportTracker instance) {
+        globalInstance = instance;
+    }
+    
+    public static PlayerTeleportTracker getGlobalInstance() {
+        return globalInstance;
+    }
+    
+    public static long getTotalTeleports() {
+        if (globalInstance != null) {
+            return globalInstance.totalTeleports;
+        }
+        return globalTotalTeleports;
+    }
+    
+    public static long getOptimizedTeleports() {
+        if (globalInstance != null) {
+            return globalInstance.successfulTeleports;
+        }
+        return globalOptimizedTeleports;
+    }
+    
+    public static long getPendingTeleportCount() {
+        if (globalInstance != null) {
+            return globalInstance.getActiveTeleportCount();
+        }
+        return globalPendingTeleports;
+    }
+    
+    public static double getAverageProcessTime() {
+        if (globalInstance != null && globalInstance.successfulTeleports > 0) {
+            return globalInstance.totalTeleportDelayNanos / globalInstance.successfulTeleports / 1_000_000.0;
+        }
+        if (globalTotalTeleports > 0 && globalTotalProcessTimeNanos > 0) {
+            return globalTotalProcessTimeNanos / globalTotalTeleports / 1_000_000.0;
+        }
+        return 0.0;
+    }
+    
+    public static long getPacketsSent() {
+        if (globalInstance != null) {
+            return globalInstance.bypassedPackets + globalInstance.filteredPackets;
+        }
+        return globalPacketsSent;
+    }
+    
+    public static long getPacketsOptimized() {
+        if (globalInstance != null) {
+            return globalInstance.filteredPackets;
+        }
+        return globalPacketsOptimized;
+    }
+    
+    public static void resetGlobalStatistics() {
+        if (globalInstance != null) {
+            globalInstance.resetStatistics();
+        }
+        globalTotalTeleports = 0;
+        globalOptimizedTeleports = 0;
+        globalPendingTeleports = 0;
+        globalTotalProcessTimeNanos = 0;
+        globalPacketsSent = 0;
+        globalPacketsOptimized = 0;
+    }
+    
+    public static void incrementGlobalTeleport() {
+        globalTotalTeleports++;
+    }
+    
+    public static void incrementOptimizedTeleport() {
+        globalOptimizedTeleports++;
+    }
+    
+    public static void recordPacketSent(boolean optimized) {
+        globalPacketsSent++;
+        if (optimized) {
+            globalPacketsOptimized++;
         }
     }
 }
