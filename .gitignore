@@ -1,2 +1,23 @@
-/.idea/
-/.vscode/
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Build
+build/
+out/
+target/
+
+# Gradle
+.gradle/
+gradle/
+gradlew
+gradlew.bat
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
