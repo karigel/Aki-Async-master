@@ -362,6 +362,21 @@ tnt-explosion-optimization:
     #   - Residence (com.github.Zrips:Residence)
     #   - Lands (com.github.angeschossen:LandsAPI)
     #   - WorldGuard (com.sk89q.worldguard)
+  
+  # ==========================================
+  # Sakura TNT 优化 (v3.2.16)
+  # ==========================================
+  sakura:
+    # 密度缓存 / Density cache for explosion calculations
+    density-cache: true
+    # TNT 合并优化 / TNT merge optimization
+    merge-enabled: true
+    # 合并半径 / Merge radius (blocks)
+    merge-radius: 0.5
+    # 最大引信差 / Max fuse time difference (ticks)
+    max-fuse-difference: 5
+    # 合并威力倍率 / Merged power multiplier
+    merged-power-multiplier: 1.0
 
 # ==========================================
 # 方块实体优化 / Block Entity Optimizations
@@ -968,6 +983,39 @@ virtual-entity-compatibility:
     enabled: true
     # 优先级 / Priority
     priority: 90
+
+# ==========================================
+# 红石优化 / Redstone Optimization (v3.2.16)
+# ==========================================
+# 说明：使用 PandaWire 算法优化红石线更新，减少不必要的方块更新
+# Description: Use PandaWire algorithm to optimize redstone wire updates
+redstone-optimization:
+  # 启用 PandaWire 算法 / Enable PandaWire algorithm
+  panda-wire: true
+  # 启用网络缓存 / Enable network cache
+  network-cache:
+    enabled: true
+    # 缓存过期时间 (ticks) / Cache expire time (ticks)
+    expire-ticks: 100
+
+# ==========================================
+# SecureSeed 种子保护 / SecureSeed Protection (v3.2.16)
+# ==========================================
+# 说明：加密保护服务器种子，防止种子破解
+# Description: Encrypt and protect server seed from cracking
+secure-seed:
+  # 启用 SecureSeed / Enable SecureSeed
+  enabled: true
+  # 保护矿石生成 / Protect ore generation
+  protect-ores: true
+  # 保护史莱姆区块 / Protect slime chunks
+  protect-slimes: true
+  # 保护结构生成 / Protect structure generation
+  protect-structures: true
+  # 加密位数 / Encryption bits
+  bits: 1024
+  # 调试日志 / Debug logging
+  debug: false
 
 # ==========================================
 # 种子加密 / Seed Encryption (v3.2.16)

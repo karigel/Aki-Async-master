@@ -47,7 +47,17 @@
     "crypto.SlimeChunkMixin",
     "crypto.StructureSeedMixin",
     "datapack.PackRepositoryMixin",
-    "datapack.ZipFileSystemProviderMixin"
+    "datapack.ZipFileSystemProviderMixin",
+    "structure.ChestLootMixin",
+    "structure.DolphinMixin",
+    "structure.LocateCommandMixin",
+    "structure.VillagerTradesMixin",
+    "secureseed.ChunkGeneratorMixin",
+    "secureseed.GeodeFeatureMixin",
+    "secureseed.ServerLevelMixin",
+    "secureseed.SlimeMixin",
+    "secureseed.WorldOptionsMixin",
+    "secureseed.structure.RandomSpreadStructurePlacementMixin"
   ],
   "plugin": "org.virgil.akiasync.mixin.AkiAsyncMixinPlugin",
   "injectors": {

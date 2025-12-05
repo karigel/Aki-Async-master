@@ -454,8 +454,8 @@ public class ConfigManager {
         // ==========================================
         // TNT Sakura Optimization Config (v3.2.16)
         // ==========================================
-        tntUseSakuraDensityCache = config.getBoolean("tnt-explosion-optimization.sakura.density-cache", false);
-        tntMergeEnabled = config.getBoolean("tnt-explosion-optimization.sakura.merge-enabled", false);
+        tntUseSakuraDensityCache = config.getBoolean("tnt-explosion-optimization.sakura.density-cache", true);
+        tntMergeEnabled = config.getBoolean("tnt-explosion-optimization.sakura.merge-enabled", true);
         tntMergeRadius = config.getDouble("tnt-explosion-optimization.sakura.merge-radius", 0.5);
         tntMaxFuseDifference = config.getInt("tnt-explosion-optimization.sakura.max-fuse-difference", 5);
         tntMergedPowerMultiplier = (float) config.getDouble("tnt-explosion-optimization.sakura.merged-power-multiplier", 1.0);
@@ -463,9 +463,9 @@ public class ConfigManager {
         // ==========================================
         // Redstone Sakura Optimization Config (v3.2.16)
         // ==========================================
-        usePandaWireAlgorithm = config.getBoolean("redstone-optimizations.sakura.panda-wire-algorithm", false);
-        redstoneNetworkCacheEnabled = config.getBoolean("redstone-optimizations.sakura.network-cache-enabled", false);
-        redstoneNetworkCacheExpireTicks = config.getInt("redstone-optimizations.sakura.network-cache-expire-ticks", 20);
+        usePandaWireAlgorithm = config.getBoolean("redstone-optimization.panda-wire", true);
+        redstoneNetworkCacheEnabled = config.getBoolean("redstone-optimization.network-cache.enabled", true);
+        redstoneNetworkCacheExpireTicks = config.getInt("redstone-optimization.network-cache.expire-ticks", 100);
         
         // ==========================================
         // SecureSeed Config (v3.2.16)
