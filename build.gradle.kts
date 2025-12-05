@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "org.virgil"
-version = "3.2.16-SNAPSHOT"
+version = "3.2.16-ignite-1.0.1"
 
 repositories {
     mavenCentral()
