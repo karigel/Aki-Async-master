@@ -2,6 +2,10 @@
 
 [![GitHub](https://img.shields.io/badge/Fork_of-Aki--Async-blue)](https://github.com/virgil698/Aki-Async)
 [![Ignite](https://img.shields.io/badge/Powered_by-Ignite-orange)](https://github.com/vectrix-space/ignite)
+[![Version](https://img.shields.io/badge/Version-3.2.16--SNAPSHOT-green)](https://github.com/virgil698/Aki-Async)
+[![Synced](https://img.shields.io/badge/Synced-0ccfb5b-purple)](https://github.com/virgil698/Aki-Async/commit/0ccfb5bc80498ed842940c169f8e250173b4ff39)
+
+**[English](#english-version)** | **中文**
 
 这是 [Aki-Async](https://github.com/virgil698/Aki-Async) 的 **Ignite 专用 Fork**，将原本设计为 Bukkit 插件的 Aki-Async 完全适配到 **Ignite Mod Loader** 环境，实现 100% 功能支持。
 
@@ -20,13 +24,24 @@
 ### 核心优化（100% 工作）
 - ✅ **Entity Tick Parallel** - 实体 Tick 并行处理
 - ✅ **Mob Spawning Async** - 异步怪物生成
-- ✅ **TNT Optimization** - TNT 爆炸优化
+- ✅ **TNT Optimization** - TNT 爆炸优化 + TNT 合并
 - ✅ **Brain Throttle** - AI 大脑节流
 - ✅ **Async Lighting** - 异步光照计算
 - ✅ **Block Entity Parallel** - 方块实体并行处理
 - ✅ **Chunk Tick Async** - 区块 Tick 异步
 - ✅ **Structure Location Async** - 异步结构定位
 - ✅ **DataPack Optimization** - 数据包加载优化
+
+### v3.2.16 新增功能
+- ✅ **Adaptive Load Balancer** - 自适应负载均衡
+- ✅ **Task Smoothing Scheduler** - 任务平滑调度
+- ✅ **PandaWire Redstone Algorithm** - PandaWire 红石优化算法
+- ✅ **TNT Merge Optimization** - TNT 合并优化
+- ✅ **Hopper Cache** - 漏斗容器缓存
+- ✅ **Villager POI Optimization** - 村民 POI 批量查询优化
+- ✅ **Entity Throttling** - 实体节流
+- ✅ **Mob Despawn Optimization** - 怪物消失检查优化
+- ✅ **SecureSeed Protection** - 种子加密保护（防止种子逆向）
 
 ### 插件兼容性（完全支持）
 - ✅ **WorldGuard** - 区域保护
@@ -36,6 +51,7 @@
 - ✅ **ViaVersion** - 跨版本协议
 - ✅ **FancyNpcs** - NPC 插件
 - ✅ **ZNPCsPlus** - NPC 插件
+- ✅ **BlockLocker** - 容器保护
 
 ### 辅助功能（完全支持）
 - ✅ **NetworkOptimization** - 网络优化
@@ -244,5 +260,133 @@ git merge upstream/main
 ## 📚 相关链接
 
 - [原版 Aki-Async](https://github.com/virgil698/Aki-Async)
+- [Ignite Mod Loader](https://github.com/vectrix-space/ignite)
+- [Paper MC](https://papermc.io/)
+
+---
+
+# English Version
+
+This is an **Ignite-dedicated Fork** of [Aki-Async](https://github.com/virgil698/Aki-Async), fully adapting the original Bukkit plugin to the **Ignite Mod Loader** environment with 100% feature support.
+
+## 📋 Why This Fork?
+
+The original Aki-Async is an excellent server async optimization project, but it's designed as a Bukkit plugin relying on the `JavaPlugin` lifecycle (`onEnable()`) for initialization. However, **Ignite Mod Loader doesn't support the traditional plugins folder** - it uses Mixin injection to modify code at server startup.
+
+This fork solves this by:
+- **Removing plugin.yml**: No longer loaded as a Bukkit plugin
+- **Mixin Auto-initialization**: Automatically injects and initializes at server startup
+- **Adapter Layer Bridge**: Makes Plugin-dependent components work under Ignite
+- **Plugin ClassLoader Fix**: Resolves ClassLoader isolation issues in Ignite environment
+
+## ✨ Key Features
+
+### Core Optimizations (100% Working)
+- ✅ **Entity Tick Parallel** - Parallel entity tick processing
+- ✅ **Mob Spawning Async** - Asynchronous mob spawning
+- ✅ **TNT Optimization** - TNT explosion optimization + merging
+- ✅ **Brain Throttle** - AI brain throttling
+- ✅ **Async Lighting** - Asynchronous lighting calculation
+- ✅ **Block Entity Parallel** - Parallel block entity processing
+- ✅ **Chunk Tick Async** - Asynchronous chunk ticking
+- ✅ **Structure Location Async** - Async structure location
+- ✅ **DataPack Optimization** - DataPack loading optimization
+
+### v3.2.16 New Features
+- ✅ **Adaptive Load Balancer** - Dynamic task submission rate control
+- ✅ **Task Smoothing Scheduler** - Prevents performance spikes
+- ✅ **PandaWire Redstone Algorithm** - Optimized redstone wire updates
+- ✅ **TNT Merge Optimization** - Merge nearby TNT entities
+- ✅ **Hopper Cache** - Container lookup caching
+- ✅ **Villager POI Optimization** - Batch POI queries for villagers
+- ✅ **Entity Throttling** - Selective entity tick throttling
+- ✅ **Mob Despawn Optimization** - Reduced despawn check frequency
+- ✅ **SecureSeed Protection** - Seed encryption (prevents seed cracking)
+
+### Plugin Compatibility (Fully Supported)
+- ✅ **WorldGuard** - Region protection
+- ✅ **Residence** - Residence plugin
+- ✅ **Lands** - Land claim plugin
+- ✅ **KariClaims** - Custom claims plugin
+- ✅ **ViaVersion** - Cross-version protocol
+- ✅ **FancyNpcs** - NPC plugin
+- ✅ **ZNPCsPlus** - NPC plugin
+- ✅ **BlockLocker** - Container protection
+
+### Auxiliary Features (Fully Supported)
+- ✅ **NetworkOptimization** - Network optimization
+- ✅ **ChunkLoadScheduler** - Chunk loading scheduler
+- ✅ **VirtualEntityCompat** - Virtual entity compatibility
+
+## 🚀 Installation
+
+1. Place the compiled JAR into the server's `mods/` folder
+2. Start the server, Aki-Async will initialize automatically
+3. Config files are created in `mods/AkiAsync/` directory
+
+## 📁 Config File Locations
+
+- **Main Config**: `mods/AkiAsync/config.yml`
+- **Entity Config**: `mods/AkiAsync/entities.yml`
+- **Throttling Config**: `mods/AkiAsync/throttling.yml`
+
+Default configs are extracted from the JAR on first run.
+
+## 📊 Feature Comparison
+
+| Feature | Original Aki-Async | This Fork |
+|---------|-------------------|-----------|
+| Runtime | Bukkit Plugin | Ignite Mod |
+| Initialization | `onEnable()` | Mixin Auto-inject |
+| Config Path | `plugins/AkiAsync/` | `mods/AkiAsync/` |
+| Plugin Detection | Default ClassLoader | Plugin ClassLoader |
+| Auxiliary Features | Requires Plugin instance | Adapter Layer Bridge |
+| Ignite Support | ❌ | ✅ |
+| Upstream Updates | - | Easy to merge |
+
+## 📝 Usage
+
+### Installation
+
+1. Ensure [Ignite Mod Loader](https://github.com/vectrix-space/ignite) is installed
+2. Place the JAR in `mods/` folder
+3. Start the server
+
+### Verify Installation
+
+Check logs for successful initialization:
+```
+[AkiAsync/Ignite] Initializing AkiAsync...
+[AkiAsync] Bridge registered successfully with all executors
+[AkiAsync] Land protection plugins detected:
+  [✓] WorldGuard - Compatible
+  [✓] KariClaims - Compatible
+[AkiAsync/Ignite] All compatibility layers initialized
+```
+
+### Commands
+
+- `/aki-reload` - Reload configuration files
+- `/aki-debug` - View debug information
+- `/aki-version` - View version information
+
+## ⚠️ Important Notes
+
+1. **Requires Ignite**: This fork is designed specifically for Ignite Mod Loader
+2. **JAR in mods/**: NOT in the plugins/ folder
+3. **Config in mods/AkiAsync/**: Created automatically on first run
+
+## 📄 License
+
+Same as the original Aki-Async project.
+
+## 🙏 Credits
+
+- **Original Project**: [Aki-Async](https://github.com/virgil698/Aki-Async) by virgil698
+- **Ignite Mod Loader**: [Ignite](https://github.com/vectrix-space/ignite) by vectrix-space
+
+## 📚 Related Links
+
+- [Original Aki-Async](https://github.com/virgil698/Aki-Async)
 - [Ignite Mod Loader](https://github.com/vectrix-space/ignite)
 - [Paper MC](https://papermc.io/)

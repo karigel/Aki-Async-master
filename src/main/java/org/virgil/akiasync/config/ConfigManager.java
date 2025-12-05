@@ -158,6 +158,38 @@ public class ConfigManager {
     private boolean tntLandProtectionEnabled;
     
     // ==========================================
+    // Suffocation Optimization Config (v3.2.15)
+    // ==========================================
+    private boolean suffocationOptimizationEnabled;
+    
+    // ==========================================
+    // BlockLocker Protection Config (v3.2.15)
+    // ==========================================
+    private boolean blockLockerProtectionEnabled;
+    
+    // ==========================================
+    // TNT Sakura Optimization Config (v3.2.16)
+    // ==========================================
+    private boolean tntUseSakuraDensityCache;
+    private boolean tntMergeEnabled;
+    private double tntMergeRadius;
+    private int tntMaxFuseDifference;
+    private float tntMergedPowerMultiplier;
+    
+    // ==========================================
+    // Redstone Sakura Optimization Config (v3.2.16)
+    // ==========================================
+    private boolean usePandaWireAlgorithm;
+    private boolean redstoneNetworkCacheEnabled;
+    private int redstoneNetworkCacheExpireTicks;
+    
+    // ==========================================
+    // SecureSeed Configuration (v3.2.16)
+    // ==========================================
+    private boolean seedEncryptionEnabled;
+    private String seedCommandDenyMessage;
+    
+    // ==========================================
     // Falling Block Parallel Config (v14.0)
     // ==========================================
     private boolean fallingBlockParallelEnabled;
@@ -408,6 +440,39 @@ public class ConfigManager {
         // TNT ?????? / TNT Land Protection Config (v8.0)
         // ==========================================
         tntLandProtectionEnabled = config.getBoolean("tnt-explosion-optimization.land-protection.enabled", false);
+        
+        // ==========================================
+        // Suffocation Optimization Config (v3.2.15)
+        // ==========================================
+        suffocationOptimizationEnabled = config.getBoolean("pufferfish-optimizations.suffocation-optimization.enabled", true);
+        
+        // ==========================================
+        // BlockLocker Protection Config (v3.2.15)
+        // ==========================================
+        blockLockerProtectionEnabled = config.getBoolean("block-entity-optimizations.parallel-tick.blocklocker-protection", false);
+        
+        // ==========================================
+        // TNT Sakura Optimization Config (v3.2.16)
+        // ==========================================
+        tntUseSakuraDensityCache = config.getBoolean("tnt-explosion-optimization.sakura.density-cache", false);
+        tntMergeEnabled = config.getBoolean("tnt-explosion-optimization.sakura.merge-enabled", false);
+        tntMergeRadius = config.getDouble("tnt-explosion-optimization.sakura.merge-radius", 0.5);
+        tntMaxFuseDifference = config.getInt("tnt-explosion-optimization.sakura.max-fuse-difference", 5);
+        tntMergedPowerMultiplier = (float) config.getDouble("tnt-explosion-optimization.sakura.merged-power-multiplier", 1.0);
+        
+        // ==========================================
+        // Redstone Sakura Optimization Config (v3.2.16)
+        // ==========================================
+        usePandaWireAlgorithm = config.getBoolean("redstone-optimizations.sakura.panda-wire-algorithm", false);
+        redstoneNetworkCacheEnabled = config.getBoolean("redstone-optimizations.sakura.network-cache-enabled", false);
+        redstoneNetworkCacheExpireTicks = config.getInt("redstone-optimizations.sakura.network-cache-expire-ticks", 20);
+        
+        // ==========================================
+        // SecureSeed Config (v3.2.16)
+        // ==========================================
+        seedEncryptionEnabled = config.getBoolean("seed-encryption.enabled", false);
+        seedCommandDenyMessage = config.getString("seed-encryption.deny-message", 
+            "You don't have permission to use this command. Only server operators can view the world seed.");
         
         validateConfigVersion();
         validateConfig();
@@ -1187,6 +1252,38 @@ public class ConfigManager {
     public int getFancynpcsPriority() { return fancynpcsPriority; }
     public boolean isZnpcsplusCompatEnabled() { return znpcsplusCompatEnabled; }
     public int getZnpcsplusPriority() { return znpcsplusPriority; }
+    
+    // ==========================================
+    // Suffocation Optimization Getters (v3.2.15)
+    // ==========================================
+    public boolean isSuffocationOptimizationEnabled() { return suffocationOptimizationEnabled; }
+    
+    // ==========================================
+    // BlockLocker Protection Getters (v3.2.15)
+    // ==========================================
+    public boolean isBlockLockerProtectionEnabled() { return blockLockerProtectionEnabled; }
+    
+    // ==========================================
+    // TNT Sakura Optimization Getters (v3.2.16)
+    // ==========================================
+    public boolean isTNTUseSakuraDensityCache() { return tntUseSakuraDensityCache; }
+    public boolean isTNTMergeEnabled() { return tntMergeEnabled; }
+    public double getTNTMergeRadius() { return tntMergeRadius; }
+    public int getTNTMaxFuseDifference() { return tntMaxFuseDifference; }
+    public float getTNTMergedPowerMultiplier() { return tntMergedPowerMultiplier; }
+    
+    // ==========================================
+    // Redstone Sakura Optimization Getters (v3.2.16)
+    // ==========================================
+    public boolean isUsePandaWireAlgorithm() { return usePandaWireAlgorithm; }
+    public boolean isRedstoneNetworkCacheEnabled() { return redstoneNetworkCacheEnabled; }
+    public int getRedstoneNetworkCacheExpireTicks() { return redstoneNetworkCacheExpireTicks; }
+    
+    // ==========================================
+    // SecureSeed Getters (v3.2.16)
+    // ==========================================
+    public boolean isSeedEncryptionEnabled() { return seedEncryptionEnabled; }
+    public String getSeedCommandDenyMessage() { return seedCommandDenyMessage; }
     
     public boolean getBoolean(String path, boolean defaultValue) {
         return config != null ? config.getBoolean(path, defaultValue) : defaultValue;

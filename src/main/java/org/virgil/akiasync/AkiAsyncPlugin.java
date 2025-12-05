@@ -55,7 +55,7 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         configManager = new ConfigManager(this);
         configManager.loadConfig();
         
-        cacheManager = new CacheManager(this);
+        cacheManager = CacheManager.getInstance();
         executorManager = new AsyncExecutorManager(this);
         
         bridge = new AkiAsyncBridge(

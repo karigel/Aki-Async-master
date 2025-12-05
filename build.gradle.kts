@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "org.virgil"
-version = "3.2.8-SNAPSHOT"
+version = "3.2.16-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -22,6 +22,7 @@ repositories {
         filter {
             includeGroup("com.github.angeschossen") // LandsAPI
             includeGroup("com.github.Zrips") // Residence
+            includeGroup("com.github.rutgerkok") // BlockLocker
         }
     }
     
@@ -71,6 +72,11 @@ dependencies {
     }
     
     compileOnly("com.sk89q.worldguard:worldguard-bukkit:7.1.0-SNAPSHOT") {
+        isTransitive = false
+    }
+    
+    // BlockLocker Integration (v3.2.15)
+    compileOnly("com.github.rutgerkok:BlockLocker:1.13") {
         isTransitive = false
     }
 }

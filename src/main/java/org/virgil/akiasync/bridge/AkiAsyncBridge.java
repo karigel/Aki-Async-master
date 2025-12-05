@@ -945,4 +945,289 @@ public class AkiAsyncBridge implements org.virgil.akiasync.mixin.bridge.Bridge {
         }
         return -1;
     }
+    
+    // ==========================================
+    // Suffocation Optimization (v3.2.15)
+    // ==========================================
+    @Override
+    public boolean isSuffocationOptimizationEnabled() {
+        return config != null ? config.isSuffocationOptimizationEnabled() : true;
+    }
+    
+    // ==========================================
+    // BlockLocker Protection (v3.2.15)
+    // ==========================================
+    @Override
+    public boolean isBlockLockerProtectionEnabled() {
+        return config != null ? config.isBlockLockerProtectionEnabled() : false;
+    }
+    
+    @Override
+    public boolean isBlockLockerProtected(net.minecraft.server.level.ServerLevel level, net.minecraft.core.BlockPos pos, net.minecraft.world.level.block.state.BlockState state) {
+        if (!isBlockLockerProtectionEnabled()) {
+            return false;
+        }
+        return org.virgil.akiasync.util.BlockLockerIntegration.isProtected(level, pos, state);
+    }
+    
+    // ==========================================
+    // Performance Metrics (v3.2.16)
+    // ==========================================
+    @Override
+    public double getCurrentTPS() {
+        try {
+            net.minecraft.server.MinecraftServer server = net.minecraft.server.MinecraftServer.getServer();
+            if (server != null) {
+                return Math.min(20.0, 1000.0 / Math.max(server.getAverageTickTimeNanos() / 1_000_000.0, 50.0));
+            }
+        } catch (Exception e) {
+            // Ignore
+        }
+        return 20.0;
+    }
+    
+    @Override
+    public double getCurrentMSPT() {
+        try {
+            net.minecraft.server.MinecraftServer server = net.minecraft.server.MinecraftServer.getServer();
+            if (server != null) {
+                return server.getAverageTickTimeNanos() / 1_000_000.0;
+            }
+        } catch (Exception e) {
+            // Ignore
+        }
+        return 50.0;
+    }
+    
+    // ==========================================
+    // Task Smoothing Scheduler (v3.2.16)
+    // ==========================================
+    @Override
+    public Object getBlockTickSmoothingScheduler() {
+        // Return null for now - schedulers are optional
+        return null;
+    }
+    
+    @Override
+    public Object getEntityTickSmoothingScheduler() {
+        return null;
+    }
+    
+    @Override
+    public Object getBlockEntitySmoothingScheduler() {
+        return null;
+    }
+    
+    @Override
+    public boolean submitSmoothTask(Object scheduler, Runnable task, int priority, String category) {
+        if (scheduler instanceof org.virgil.akiasync.executor.TaskSmoothingScheduler) {
+            org.virgil.akiasync.executor.TaskSmoothingScheduler.Priority p = 
+                org.virgil.akiasync.executor.TaskSmoothingScheduler.Priority.values()[Math.min(priority, 3)];
+            return ((org.virgil.akiasync.executor.TaskSmoothingScheduler) scheduler).submit(task, p, category);
+        }
+        // Fallback: execute directly
+        if (task != null && generalExecutor != null) {
+            generalExecutor.execute(task);
+            return true;
+        }
+        return false;
+    }
+    
+    @Override
+    public int submitSmoothTaskBatch(Object scheduler, java.util.List<Runnable> tasks, int priority, String category) {
+        if (tasks == null || tasks.isEmpty()) return 0;
+        int submitted = 0;
+        for (Runnable task : tasks) {
+            if (submitSmoothTask(scheduler, task, priority, category)) {
+                submitted++;
+            }
+        }
+        return submitted;
+    }
+    
+    @Override
+    public void notifySmoothSchedulerTick(Object scheduler) {
+        if (scheduler instanceof org.virgil.akiasync.executor.TaskSmoothingScheduler) {
+            ((org.virgil.akiasync.executor.TaskSmoothingScheduler) scheduler).onTick();
+        }
+    }
+    
+    @Override
+    public void updateSmoothSchedulerMetrics(Object scheduler, double tps, double mspt) {
+        if (scheduler instanceof org.virgil.akiasync.executor.TaskSmoothingScheduler) {
+            ((org.virgil.akiasync.executor.TaskSmoothingScheduler) scheduler).updatePerformanceMetrics(tps, mspt);
+        }
+    }
+    
+    // ==========================================
+    // TNT Sakura Optimization (v3.2.16)
+    // ==========================================
+    @Override
+    public boolean isTNTUseSakuraDensityCache() {
+        return config != null ? config.isTNTUseSakuraDensityCache() : false;
+    }
+    
+    @Override
+    public boolean isTNTMergeEnabled() {
+        return config != null ? config.isTNTMergeEnabled() : false;
+    }
+    
+    @Override
+    public double getTNTMergeRadius() {
+        return config != null ? config.getTNTMergeRadius() : 0.5;
+    }
+    
+    @Override
+    public int getTNTMaxFuseDifference() {
+        return config != null ? config.getTNTMaxFuseDifference() : 5;
+    }
+    
+    @Override
+    public float getTNTMergedPowerMultiplier() {
+        return config != null ? config.getTNTMergedPowerMultiplier() : 1.0f;
+    }
+    
+    // ==========================================
+    // Redstone Sakura Optimization (v3.2.16)
+    // ==========================================
+    @Override
+    public boolean isUsePandaWireAlgorithm() {
+        return config != null ? config.isUsePandaWireAlgorithm() : false;
+    }
+    
+    @Override
+    public boolean isRedstoneNetworkCacheEnabled() {
+        return config != null ? config.isRedstoneNetworkCacheEnabled() : false;
+    }
+    
+    @Override
+    public int getRedstoneNetworkCacheExpireTicks() {
+        return config != null ? config.getRedstoneNetworkCacheExpireTicks() : 20;
+    }
+    
+    // ==========================================
+    // Sakura Cache Management (v3.2.16)
+    // ==========================================
+    @Override
+    public void clearSakuraOptimizationCaches() {
+        try {
+            org.virgil.akiasync.mixin.async.redstone.RedstoneWireHelper.clearAllCaches();
+            org.virgil.akiasync.mixin.async.redstone.RedstoneNetworkCache.clearAllCaches();
+            org.virgil.akiasync.mixin.async.redstone.AsyncRedstoneNetworkManager.shutdown();
+            debugLog("[AkiAsync] Cleared all Sakura optimization caches");
+        } catch (Exception e) {
+            errorLog("[AkiAsync] Error clearing Sakura caches: " + e.getMessage());
+        }
+    }
+    
+    @Override
+    public java.util.Map<String, Object> getSakuraCacheStatistics() {
+        java.util.Map<String, Object> stats = new java.util.HashMap<>();
+        try {
+            // PandaWire Evaluators
+            stats.put("pandawire_evaluators", 
+                org.virgil.akiasync.mixin.async.redstone.RedstoneWireHelper.getEvaluatorCount());
+            
+            // Redstone Network Cache
+            java.util.Map<String, String> networkStats = new java.util.HashMap<>();
+            networkStats.put("cache_count", String.valueOf(
+                org.virgil.akiasync.mixin.async.redstone.RedstoneNetworkCache.getCacheCount()));
+            stats.put("network_cache", networkStats);
+        } catch (Exception e) {
+            errorLog("[AkiAsync] Error getting Sakura cache statistics: " + e.getMessage());
+        }
+        return stats;
+    }
+    
+    @Override
+    public void performSakuraCacheCleanup() {
+        try {
+            org.virgil.akiasync.mixin.async.redstone.RedstoneNetworkCache.cleanupExpired();
+        } catch (Exception e) {
+            errorLog("[AkiAsync] Error during Sakura cache cleanup: " + e.getMessage());
+        }
+    }
+    
+    // ==========================================
+    // Main Thread Execution (v3.2.16)
+    // ==========================================
+    @Override
+    public void runOnMainThread(Runnable task) {
+        if (task == null) return;
+        try {
+            net.minecraft.server.MinecraftServer server = net.minecraft.server.MinecraftServer.getServer();
+            if (server != null) {
+                server.execute(task);
+            } else if (plugin != null) {
+                org.virgil.akiasync.compat.FoliaSchedulerAdapter.runTask(plugin, task);
+            }
+        } catch (Exception e) {
+            errorLog("[AkiAsync] Error running task on main thread: " + e.getMessage());
+        }
+    }
+    
+    // ==========================================
+    // SecureSeed Configuration (v3.2.16)
+    // ==========================================
+    @Override
+    public boolean isSeedEncryptionEnabled() {
+        return config.isSeedEncryptionEnabled();
+    }
+    
+    @Override
+    public String getSeedCommandDenyMessage() {
+        return config.getSeedCommandDenyMessage();
+    }
+    
+    // SecureSeed Protection Methods
+    @Override
+    public boolean isSeedProtectionEnabled() {
+        return config.isSeedEncryptionEnabled() || isSecureSeedEnabled();
+    }
+    
+    @Override
+    public boolean isSeedEncryptionProtectOres() {
+        return isSecureSeedProtectOres();
+    }
+    
+    @Override
+    public boolean isSeedEncryptionProtectSlimes() {
+        return isSecureSeedProtectSlimes();
+    }
+    
+    @Override
+    public boolean isSeedEncryptionProtectStructures() {
+        return isSecureSeedProtectStructures();
+    }
+    
+    @Override
+    public boolean isQuantumSeedEnabled() {
+        // Quantum seed is an advanced feature - disabled by default
+        return false;
+    }
+    
+    @Override
+    public long getEncryptedSeed(long originalSeed, int chunkX, int chunkZ, String dimension, String saltType, long gameTime) {
+        // Use Hashing from secureseed.crypto package
+        long[] worldSeed = getSecureSeedWorldSeed();
+        if (worldSeed == null || worldSeed.length == 0) {
+            return originalSeed;
+        }
+        
+        // Mix the seed with position and salt
+        long mixed = originalSeed;
+        for (int i = 0; i < Math.min(worldSeed.length, 8); i++) {
+            mixed ^= worldSeed[i];
+            mixed = Long.rotateLeft(mixed, 7 + i);
+        }
+        mixed ^= ((long) chunkX << 32) | (chunkZ & 0xFFFFFFFFL);
+        mixed ^= saltType.hashCode();
+        
+        return mixed;
+    }
+    
+    @Override
+    public long[] getSecureSeedWorldSeed() {
+        return org.virgil.akiasync.mixin.secureseed.crypto.Globals.worldSeed;
+    }
 }

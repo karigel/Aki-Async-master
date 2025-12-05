@@ -422,6 +422,22 @@ block-entity-optimizations:
     # 说明：并行执行超时后降级到同步执行
     # Description: Fallback to sync execution on timeout
     timeout-ms: 50
+    # BlockLocker 保护 / BlockLocker protection (v3.2.15)
+    # 说明：集成 BlockLocker 插件，防止并行处理受保护的容器
+    # Description: Integrate BlockLocker plugin, prevent parallel processing of protected containers
+    blocklocker-protection: false
+
+# ==========================================
+# Pufferfish 优化 / Pufferfish Optimizations (v3.2.15)
+# ==========================================
+# 说明：来自 Pufferfish 服务端的优化
+# Description: Optimizations from Pufferfish server
+pufferfish-optimizations:
+  # 窒息优化 / Suffocation Optimization
+  # 说明：减少窒息检查频率 80-90%，仅在受伤或健康状态变化时检查
+  # Description: Reduce suffocation checks by 80-90%, only check when hurt or health changes
+  suffocation-optimization:
+    enabled: true
 
 # ==========================================
 # 光照优化套件 / Lighting Optimizations
@@ -952,3 +968,18 @@ virtual-entity-compatibility:
     enabled: true
     # 优先级 / Priority
     priority: 90
+
+# ==========================================
+# 种子加密 / Seed Encryption (v3.2.16)
+# ==========================================
+# 说明：保护服务器种子不被非管理员查看
+# Description: Protect server seed from non-operator access
+seed-encryption:
+  # 启用 / Enable
+  # 说明：启用后，非OP玩家无法使用/seed命令
+  # Description: When enabled, non-OP players cannot use /seed command
+  enabled: false
+  # 拒绝消息 / Deny message
+  # 说明：玩家尝试使用/seed命令时显示的消息
+  # Description: Message shown when player tries to use /seed command
+  deny-message: "&cYou don't have permission to use this command. Only server operators can view the world seed."

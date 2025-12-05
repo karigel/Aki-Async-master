@@ -318,4 +318,75 @@ public interface Bridge {
     boolean isPlayerUsingViaVersion(java.util.UUID playerId);
     boolean isViaConnectionInPlayState(java.util.UUID playerId);
     int getPlayerProtocolVersion(java.util.UUID playerId);
+    
+    // ==========================================
+    // 窒息优化 / Suffocation Optimization (v3.2.15)
+    // ==========================================
+    boolean isSuffocationOptimizationEnabled();
+    
+    // ==========================================
+    // BlockLocker 保护 / BlockLocker Protection (v3.2.15)
+    // ==========================================
+    boolean isBlockLockerProtectionEnabled();
+    boolean isBlockLockerProtected(net.minecraft.server.level.ServerLevel level, net.minecraft.core.BlockPos pos, net.minecraft.world.level.block.state.BlockState state);
+    
+    // ==========================================
+    // 性能指标 / Performance Metrics (v3.2.16)
+    // ==========================================
+    double getCurrentTPS();
+    double getCurrentMSPT();
+    
+    // ==========================================
+    // 任务平滑调度 / Task Smoothing Scheduler (v3.2.16)
+    // ==========================================
+    Object getBlockTickSmoothingScheduler();
+    Object getEntityTickSmoothingScheduler();
+    Object getBlockEntitySmoothingScheduler();
+    boolean submitSmoothTask(Object scheduler, Runnable task, int priority, String category);
+    int submitSmoothTaskBatch(Object scheduler, java.util.List<Runnable> tasks, int priority, String category);
+    void notifySmoothSchedulerTick(Object scheduler);
+    void updateSmoothSchedulerMetrics(Object scheduler, double tps, double mspt);
+    
+    // ==========================================
+    // TNT Sakura 优化 / TNT Sakura Optimization (v3.2.16)
+    // ==========================================
+    boolean isTNTUseSakuraDensityCache();
+    boolean isTNTMergeEnabled();
+    double getTNTMergeRadius();
+    int getTNTMaxFuseDifference();
+    float getTNTMergedPowerMultiplier();
+    
+    // ==========================================
+    // 红石 Sakura 优化 / Redstone Sakura Optimization (v3.2.16)
+    // ==========================================
+    boolean isUsePandaWireAlgorithm();
+    boolean isRedstoneNetworkCacheEnabled();
+    int getRedstoneNetworkCacheExpireTicks();
+    
+    // ==========================================
+    // Sakura 缓存管理 / Sakura Cache Management (v3.2.16)
+    // ==========================================
+    void clearSakuraOptimizationCaches();
+    java.util.Map<String, Object> getSakuraCacheStatistics();
+    void performSakuraCacheCleanup();
+    
+    // ==========================================
+    // 主线程执行 / Main Thread Execution (v3.2.16)
+    // ==========================================
+    void runOnMainThread(Runnable task);
+    
+    // ==========================================
+    // SecureSeed 配置 / SecureSeed Configuration (v3.2.16)
+    // ==========================================
+    boolean isSeedEncryptionEnabled();
+    String getSeedCommandDenyMessage();
+    
+    // SecureSeed 保护方法 / SecureSeed Protection Methods
+    boolean isSeedProtectionEnabled();
+    boolean isSeedEncryptionProtectOres();
+    boolean isSeedEncryptionProtectSlimes();
+    boolean isSeedEncryptionProtectStructures();
+    boolean isQuantumSeedEnabled();
+    long getEncryptedSeed(long originalSeed, int chunkX, int chunkZ, String dimension, String saltType, long gameTime);
+    long[] getSecureSeedWorldSeed();
 }

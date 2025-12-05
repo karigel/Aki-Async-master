@@ -193,5 +193,23 @@ public class AsyncPathProcessor {
             }
         }
     }
+    
+    /**
+     * 刷新待处理的路径 - 每tick调用
+     * Flush pending paths - called every tick
+     */
+    public static void flushPendingPaths() {
+        if (instance == null) {
+            return;
+        }
+        
+        // 清理过期的待处理路径
+        long currentTime = System.currentTimeMillis();
+        instance.pendingPaths.entrySet().removeIf(entry -> {
+            AsyncPath path = entry.getValue();
+            return path == null || path.isExpired() || 
+                   (path.getFuture() != null && path.getFuture().isDone());
+        });
+    }
 }
 
