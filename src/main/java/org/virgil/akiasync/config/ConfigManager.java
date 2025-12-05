@@ -1284,6 +1284,12 @@ public class ConfigManager {
     // ==========================================
     public boolean isSeedEncryptionEnabled() { return seedEncryptionEnabled; }
     public String getSeedCommandDenyMessage() { return seedCommandDenyMessage; }
+    public String getSeedEncryptionScheme() { 
+        return config != null ? config.getString("seed-encryption.scheme", "secureseed") : "secureseed"; 
+    }
+    public int getQuantumSeedEncryptionLevel() { 
+        return config != null ? config.getInt("seed-encryption.quantum-level", 3) : 3; 
+    }
     
     public boolean getBoolean(String path, boolean defaultValue) {
         return config != null ? config.getBoolean(path, defaultValue) : defaultValue;
