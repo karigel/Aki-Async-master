@@ -7,13 +7,17 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.virgil.akiasync.bootstrap.AkiAsyncInitializer;
 import org.virgil.akiasync.config.ConfigManager;
 
+/**
+ * Version command for Ignite mode
+ * Output format matches upstream project
+ */
 public final class AkiVersionCommand extends BukkitCommand {
     private static final String VERSION = "3.2.16-SNAPSHOT";
     
     public AkiVersionCommand() {
         super("aki-version");
         this.setDescription("Shows the AkiAsync version and optimization status");
-        this.setPermission("akiasync.admin");
+        this.setPermission("akiasync.version");
     }
 
     @Override
@@ -24,51 +28,61 @@ public final class AkiVersionCommand extends BukkitCommand {
         
         final AkiAsyncInitializer init = AkiAsyncInitializer.getInstance();
         if (init == null || init.getConfigManager() == null) {
-            sender.sendMessage("[AkiAsync] 初始化器未准备好");
+            sender.sendMessage("[AkiAsync] Initializer not ready");
             return true;
         }
         
         final ConfigManager config = init.getConfigManager();
-        final String prefix = "§7[§bAkiAsync§7] §f";
-        final String on = "§a✓ ON";
-        final String off = "§c✗ OFF";
+        final String prefix = "[AkiAsync] ";
         
-        sender.sendMessage("§b============ AkiAsync Status ============");
-        sender.sendMessage(prefix + "§eVersion: §f" + VERSION + " §7(Ignite Fork)");
-        sender.sendMessage(prefix + "§eServer: §f" + Bukkit.getName() + " " + Bukkit.getVersion());
-        sender.sendMessage(prefix + "§eJava: §f" + System.getProperty("java.version"));
-        sender.sendMessage("");
-        
-        // Core Optimizations
-        sender.sendMessage("§e--- Core Optimizations ---");
-        sender.sendMessage(prefix + "Entity Tick Parallel: " + (config.isEntityTickParallel() ? on : off));
-        sender.sendMessage(prefix + "Block Entity Parallel: " + (config.isBlockEntityParallelTickEnabled() ? on : off));
-        sender.sendMessage(prefix + "Mob Spawning Async: " + (config.isMobSpawningEnabled() ? on : off));
-        sender.sendMessage(prefix + "Async Lighting: " + (config.isAsyncLightingEnabled() ? on : off));
-        sender.sendMessage(prefix + "TNT Optimization: " + (config.isTNTOptimizationEnabled() ? on : off));
-        
-        // v3.2.16 New Features
-        sender.sendMessage("");
-        sender.sendMessage("§e--- v3.2.16 Sakura Features ---");
-        sender.sendMessage(prefix + "TNT Merge: " + (config.isTNTMergeEnabled() ? on : off));
-        sender.sendMessage(prefix + "PandaWire Redstone: " + (config.isUsePandaWireAlgorithm() ? on : off));
-        sender.sendMessage(prefix + "Redstone Network Cache: " + (config.isRedstoneNetworkCacheEnabled() ? on : off));
-        sender.sendMessage(prefix + "SecureSeed: " + (config.isSecureSeedEnabled() ? on : off));
-        sender.sendMessage(prefix + "Seed Encryption: " + (config.isSeedEncryptionEnabled() ? on : off));
-        
-        // Cache Statistics
-        sender.sendMessage("");
-        sender.sendMessage("§e--- Cache Statistics ---");
-        try {
-            int pandaWireCount = org.virgil.akiasync.mixin.async.redstone.RedstoneWireHelper.getEvaluatorCount();
-            int redstoneCacheCount = org.virgil.akiasync.mixin.async.redstone.RedstoneNetworkCache.getCacheCount();
-            sender.sendMessage(prefix + "PandaWire Evaluators: §f" + pandaWireCount);
-            sender.sendMessage(prefix + "Redstone Cache Entries: §f" + redstoneCacheCount);
-        } catch (Exception e) {
-            sender.sendMessage(prefix + "Cache stats unavailable");
+        // Match upstream output format exactly
+        sender.sendMessage(prefix + "========================================");
+        sender.sendMessage(prefix + "Plugin: AkiAsync");
+        sender.sendMessage(prefix + "Version: " + VERSION + " (Ignite Fork)");
+        sender.sendMessage(prefix + "Config Version: " + config.getCurrentConfigVersion());
+        sender.sendMessage(prefix + "");
+        sender.sendMessage(prefix + "Server: " + Bukkit.getName() + " " + Bukkit.getVersion());
+        sender.sendMessage(prefix + "Minecraft: " + Bukkit.getMinecraftVersion());
+        sender.sendMessage(prefix + "Java: " + System.getProperty("java.version"));
+        sender.sendMessage(prefix + "OS: " + System.getProperty("os.name") + " " + System.getProperty("os.version"));
+        sender.sendMessage(prefix + "");
+        sender.sendMessage(prefix + "Active Optimizations:");
+        sender.sendMessage(prefix + "  Entity Tracker: " + (config.isEntityTrackerEnabled() ? "ON" : "OFF"));
+        sender.sendMessage(prefix + "  Mob Spawning: " + (config.isMobSpawningEnabled() ? "ON" : "OFF"));
+        sender.sendMessage(prefix + "  Entity Tick Parallel: " + (config.isEntityTickParallel() ? "ON" : "OFF"));
+        sender.sendMessage(prefix + "  Block Entity Parallel: " + (config.isBlockEntityParallelTickEnabled() ? "ON" : "OFF"));
+        sender.sendMessage(prefix + "  Async Lighting: " + (config.isAsyncLightingEnabled() ? "ON" : "OFF"));
+        sender.sendMessage(prefix + "  Async Pathfinding: " + (config.isAsyncPathfindingEnabled() ? "ON" : "OFF"));
+        sender.sendMessage(prefix + "  Chunk Tick Async: " + (config.isChunkTickAsyncEnabled() ? "ON" : "OFF"));
+        sender.sendMessage(prefix + "  Brain Throttle: " + (config.isBrainThrottleEnabled() ? "ON" : "OFF"));
+        sender.sendMessage(prefix + "  TNT Optimization: " + (config.isTNTOptimizationEnabled() ? "ON" : "OFF"));
+        sender.sendMessage(prefix + "  Universal AI: " + (config.isUniversalAiOptimizationEnabled() ? "ON" : "OFF"));
+        sender.sendMessage(prefix + "  BeeFix: " + (config.isBeeFixEnabled() ? "ON" : "OFF"));
+        sender.sendMessage(prefix + "  Structure Location Async: " + (config.isStructureLocationAsyncEnabled() ? "ON" : "OFF"));
+
+        // Seed Encryption display (upstream format)
+        if (config.isSeedEncryptionEnabled()) {
+            String scheme = config.getSeedEncryptionScheme();
+            if ("quantum".equalsIgnoreCase(scheme)) {
+                sender.sendMessage(prefix + "  Seed Encryption: QuantumSeed (Level " + 
+                    config.getQuantumSeedEncryptionLevel() + ")");
+            } else {
+                sender.sendMessage(prefix + "  Seed Encryption: SecureSeed (" + 
+                    config.getSecureSeedBits() + " bits)");
+            }
+        } else {
+            sender.sendMessage(prefix + "  Seed Encryption: OFF");
         }
         
-        sender.sendMessage("§b==========================================");
+        sender.sendMessage(prefix + "  Falling Block Parallel: " + (config.isFallingBlockParallelEnabled() ? "ON" : "OFF"));
+        sender.sendMessage(prefix + "  Item Entity Parallel: " + (config.isItemEntityParallelEnabled() ? "ON" : "OFF"));
+        sender.sendMessage(prefix + "  Item Entity Smart Merge: " + (config.isItemEntityMergeOptimizationEnabled() ? "ON" : "OFF"));
+        sender.sendMessage(prefix + "  Item Entity Age Optimization: " + (config.isItemEntityAgeOptimizationEnabled() ? "ON" : "OFF"));
+        sender.sendMessage(prefix + "  Minecart Cauldron Destruction: " + (config.isMinecartCauldronDestructionEnabled() ? "ON" : "OFF"));
+        sender.sendMessage(prefix + "  Network Optimization: " + (config.isNetworkOptimizationEnabled() ? "ON" : "OFF"));
+        sender.sendMessage(prefix + "  Fast Movement Chunk Load: " + (config.isFastMovementChunkLoadEnabled() ? "ON" : "OFF"));
+        sender.sendMessage(prefix + "  Center Offset Loading: " + (config.isCenterOffsetEnabled() ? "ON" : "OFF"));
+        sender.sendMessage(prefix + "========================================");
         return true;
     }
 }
