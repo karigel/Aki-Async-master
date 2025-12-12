@@ -28,7 +28,6 @@ public class IgnitePluginAdapter {
     
     // 辅助管理器 / Auxiliary managers
     private Object chunkLoadScheduler;
-    private org.virgil.akiasync.network.PlayerTeleportTracker teleportTracker;
     
     private IgnitePluginAdapter() {
         this.logger = Logger.getLogger("AkiAsync");
@@ -275,53 +274,11 @@ public class IgnitePluginAdapter {
     
     /**
      * 初始化网络优化组件
+     * 注意：网络优化类在上游已移除，此处仅记录日志
      */
     private void initializeNetworkComponents(org.bukkit.plugin.Plugin proxyPlugin) {
-        try {
-            // 创建 PlayerTeleportTracker（核心组件，用于统计传送数据）
-            boolean debugEnabled = configManager.isDebugLoggingEnabled();
-            int boostDurationSeconds = configManager.getTeleportBoostDurationSeconds();
-            boolean filterNonEssentialPackets = configManager.isTeleportFilterNonEssentialPackets();
-            
-            teleportTracker = new org.virgil.akiasync.network.PlayerTeleportTracker(
-                proxyPlugin, logger, debugEnabled, boostDurationSeconds, filterNonEssentialPackets
-            );
-            
-            // 将 TeleportTracker 设置到 Bridge 中
-            org.virgil.akiasync.ignite.AkiAsyncInitializer init = org.virgil.akiasync.ignite.AkiAsyncInitializer.getInstance();
-            if (init != null && init.getBridge() != null) {
-                init.getBridge().setTeleportTracker(teleportTracker);
-                logger.info("[AkiAsync/Ignite] TeleportTracker 已关联到 Bridge");
-            }
-            
-            logger.info("[AkiAsync/Ignite] PlayerTeleportTracker 已初始化");
-            
-            // 创建视锥过滤器（不需要 plugin）
-            Class<?> frustumClass = Class.forName("org.virgil.akiasync.network.ViewFrustumPacketFilter");
-            Object frustumFilter = frustumClass.getDeclaredConstructor().newInstance();
-            
-            // 创建场景检测器（不需要 plugin）
-            Class<?> scenarioClass = Class.forName("org.virgil.akiasync.network.ScenarioDetector");
-            Object scenarioDetector = scenarioClass.getDeclaredConstructor().newInstance();
-            
-            // 创建数据包调度器 - IgniteConfigManager 现在继承 ConfigManager，类型兼容
-            Class<?> schedulerClass = Class.forName("org.virgil.akiasync.network.PriorityPacketScheduler");
-            Object packetScheduler = schedulerClass.getDeclaredConstructor(
-                org.virgil.akiasync.config.ConfigManager.class
-            ).newInstance(configManager);
-            
-            logger.info("[AkiAsync/Ignite] NetworkOptimization 组件已初始化:");
-            logger.info("  - PlayerTeleportTracker: Enabled (boost=" + boostDurationSeconds + "s, filter=" + filterNonEssentialPackets + ")");
-            logger.info("  - ViewFrustumPacketFilter: Enabled");
-            logger.info("  - ScenarioDetector: Enabled");
-            logger.info("  - PriorityPacketScheduler: Enabled");
-            logger.info("  - Packet Priority: " + (configManager.isPacketPriorityEnabled() ? "Enabled" : "Disabled"));
-            logger.info("  - Chunk Rate Control: " + (configManager.isChunkRateControlEnabled() ? "Enabled" : "Disabled"));
-            
-        } catch (Exception e) {
-            logger.warning("[AkiAsync/Ignite] NetworkOptimization 组件初始化失败: " + e.getMessage());
-            e.printStackTrace();
-        }
+        logger.info("[AkiAsync/Ignite] NetworkOptimization: 网络优化功能在上游已简化");
+        logger.info("[AkiAsync/Ignite] 基础网络功能通过 Mixin 层面实现");
     }
     
     private void initializeChunkLoadScheduler() throws Exception {
@@ -376,15 +333,6 @@ public class IgnitePluginAdapter {
     public void shutdown() {
         logger.info("[AkiAsync/Ignite] 正在关闭辅助功能...");
         
-        if (teleportTracker != null) {
-            try {
-                teleportTracker.shutdown();
-                logger.info("[AkiAsync/Ignite] PlayerTeleportTracker 已关闭");
-            } catch (Exception e) {
-                // 忽略
-            }
-        }
-        
         if (chunkLoadScheduler != null) {
             try {
                 java.lang.reflect.Method stopMethod = chunkLoadScheduler.getClass().getMethod("stop");
@@ -397,10 +345,4 @@ public class IgnitePluginAdapter {
         instance = null;
     }
     
-    /**
-     * 获取传送追踪器
-     */
-    public org.virgil.akiasync.network.PlayerTeleportTracker getTeleportTracker() {
-        return teleportTracker;
-    }
 }

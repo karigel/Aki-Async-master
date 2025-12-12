@@ -20,6 +20,7 @@ public abstract class PiglinBrainMixin {
     @Unique private static volatile int cached_tickInterval;
     @Unique private static volatile int cached_lookDistance;
     @Unique private static volatile int cached_barterDistance;
+    @Unique private static volatile int cached_skipChance;
     @Unique private static volatile boolean initialized = false;
     @Unique private PiglinSnapshot aki$snapshot;
     @Unique private long aki$nextAsyncTick = 0;
@@ -30,18 +31,47 @@ public abstract class PiglinBrainMixin {
     private void aki$takeSnapshot(CallbackInfo ci) {
         if (!initialized) { aki$initPiglinAsync(); }
         if (!cached_enabled) return;
+        
         net.minecraft.world.entity.monster.piglin.AbstractPiglin abstractPiglin =
             (net.minecraft.world.entity.monster.piglin.AbstractPiglin) (Object) this;
         ServerLevel level = (ServerLevel) abstractPiglin.level();
         if (level == null) return;
+        
+        boolean shouldSkip = false;
+        
+        boolean isTrapped = abstractPiglin.getDeltaMovement().lengthSqr() < 0.01 && 
+                           abstractPiglin.getTarget() == null;
+        
+        if (isTrapped && level.getGameTime() % 20 != 0) {
+            shouldSkip = true;
+        }
+        
+        if (!shouldSkip && cached_skipChance > 0 && level.random.nextInt(100) < cached_skipChance) {
+            shouldSkip = true;
+        }
+        
+        if (!shouldSkip && abstractPiglin.getTarget() == null) {
+            
+            java.util.List<net.minecraft.world.entity.player.Player> nearbyPlayers = 
+                org.virgil.akiasync.mixin.brain.core.AiQueryHelper.getNearbyPlayers(
+                    (net.minecraft.world.entity.Mob) abstractPiglin, 16.0
+                );
+            if (nearbyPlayers.isEmpty() && level.getGameTime() % 10 != 0) {
+                shouldSkip = true;
+            }
+        }
+        
+        if (shouldSkip || level.getGameTime() < this.aki$nextAsyncTick) {
+            return;
+        }
+        
+        this.aki$nextAsyncTick = level.getGameTime() + cached_tickInterval;
+        
         Piglin piglin = abstractPiglin instanceof Piglin ? (Piglin) abstractPiglin : null;
         net.minecraft.world.entity.monster.piglin.PiglinBrute brute =
             abstractPiglin instanceof net.minecraft.world.entity.monster.piglin.PiglinBrute ?
             (net.minecraft.world.entity.monster.piglin.PiglinBrute) abstractPiglin : null;
-        if (level.getGameTime() < this.aki$nextAsyncTick) {
-            return;
-        }
-        this.aki$nextAsyncTick = level.getGameTime() + cached_tickInterval;
+        
         try {
             if (piglin != null) {
                 this.aki$snapshot = PiglinSnapshot.capture(piglin, level);
@@ -108,9 +138,10 @@ public abstract class PiglinBrainMixin {
         if (bridge != null) {
             cached_enabled = bridge.isPiglinOptimizationEnabled();
             cached_timeoutMicros = bridge.getAsyncAITimeoutMicros();
-            cached_tickInterval = 3;
+            cached_tickInterval = 5; 
             cached_lookDistance = bridge.getPiglinLookDistance();
             cached_barterDistance = bridge.getPiglinBarterDistance();
+            cached_skipChance = 40; 
             AsyncBrainExecutor.setExecutor(bridge.getGeneralExecutor());
         } else {
             cached_enabled = false;
@@ -118,11 +149,13 @@ public abstract class PiglinBrainMixin {
             cached_tickInterval = 3;
             cached_lookDistance = 16;
             cached_barterDistance = 16;
+            cached_skipChance = 0;
         }
         initialized = true;
         org.virgil.akiasync.mixin.bridge.Bridge bridge2 = org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
         if (bridge2 != null) {
-            bridge2.debugLog("[AkiAsync] PiglinBrainMixin initialized: enabled=" + cached_enabled + ", timeout=" + cached_timeoutMicros + "μs");
+            bridge2.debugLog("[AkiAsync] PiglinBrainMixin initialized: enabled=" + cached_enabled + 
+                ", timeout=" + cached_timeoutMicros + "μs, skipChance=" + cached_skipChance + "%");
         }
     }
 }

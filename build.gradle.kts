@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "org.virgil"
-version = "3.2.16-ignite-1.0.1"
+version = "3.2.17-ignite-1.0.0"
 
 repositories {
     mavenCentral()
@@ -77,7 +77,7 @@ configurations {
 }
 
 dependencies {
-    paperweight.paperDevBundle(libs.versions.paperApi)
+    paperweight.paperDevBundle(libs.versions.paperApi.get())
 
     compileOnly(libs.igniteApi)
     compileOnly(libs.spongeMixin)

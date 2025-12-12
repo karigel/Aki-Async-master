@@ -27,6 +27,14 @@ public class AsyncPath {
     AsyncPathProcessor.queue(this);
   }
 
+  public Set<BlockPos> getPositions() {
+    return positions;
+  }
+
+  public Supplier<Path> getPathSupplier() {
+    return pathSupplier;
+  }
+
   public boolean isProcessed() {
     return this.processState == PathState.COMPLETED;
   }
@@ -54,7 +62,20 @@ public class AsyncPath {
     processState = PathState.PROCESSING;
 
     try {
-      final Path bestPath = this.pathSupplier.get();
+      
+      Path cachedPath = tryGetCachedPath();
+      
+      final Path bestPath;
+      if (cachedPath != null) {
+        bestPath = cachedPath;
+      } else {
+        
+        bestPath = this.pathSupplier.get();
+        
+        if (bestPath != null && bestPath.canReach()) {
+          cacheComputedPath(bestPath);
+        }
+      }
 
       if (bestPath != null) {
         this.delegatedPath = bestPath;
@@ -74,18 +95,76 @@ public class AsyncPath {
     }
   }
 
+  private Path tryGetCachedPath() {
+    if (positions == null || positions.isEmpty()) {
+      return null;
+    }
+    
+    BlockPos start = positions.iterator().next();
+    BlockPos target = null;
+    for (BlockPos pos : positions) {
+      target = pos;
+    }
+    
+    if (start != null && target != null && !start.equals(target)) {
+      Path cached = SharedPathCache.getCachedPath(start, target);
+      if (cached != null) {
+        AsyncPathProcessor.recordCacheHit();
+      }
+      return cached;
+    }
+    
+    return null;
+  }
+
+  private void cacheComputedPath(Path path) {
+    if (positions == null || positions.isEmpty()) {
+      return;
+    }
+    
+    BlockPos start = positions.iterator().next();
+    BlockPos target = null;
+    for (BlockPos pos : positions) {
+      target = pos;
+    }
+    
+    if (start != null && target != null && !start.equals(target)) {
+      SharedPathCache.cachePath(start, target, path);
+    }
+  }
+
   private void checkProcessed() {
-
-
     if (this.processState == PathState.WAITING) {
-
       long startTime = System.nanoTime();
+      long timeoutNanos = getTimeoutNanos();
+      
       while (this.processState == PathState.WAITING && 
-             (System.nanoTime() - startTime) < 50_000) {
-        Thread.yield();
+             (System.nanoTime() - startTime) < timeoutNanos) {
+        
+        java.util.concurrent.locks.LockSupport.parkNanos(100_000); 
+      }
+      
+      if (this.processState == PathState.WAITING && shouldFallbackToSync()) {
+        process(); 
       }
     }
-
+  }
+  
+  private long getTimeoutNanos() {
+    
+    org.virgil.akiasync.mixin.bridge.Bridge bridge = 
+        org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+    if (bridge != null) {
+      return bridge.getAsyncPathfindingTimeoutMs() * 1_000_000L;
+    }
+    return 5_000_000L; 
+  }
+  
+  private boolean shouldFallbackToSync() {
+    
+    org.virgil.akiasync.mixin.bridge.Bridge bridge = 
+        org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+    return bridge != null && bridge.isAsyncPathfindingSyncFallbackEnabled();
   }
 
   public Path getPath() {

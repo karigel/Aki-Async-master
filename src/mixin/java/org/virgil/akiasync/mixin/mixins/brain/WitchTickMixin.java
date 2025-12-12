@@ -1,6 +1,7 @@
 package org.virgil.akiasync.mixin.mixins.brain;
 import org.virgil.akiasync.mixin.bridge.Bridge;
 import org.virgil.akiasync.mixin.bridge.BridgeManager;
+import org.virgil.akiasync.mixin.util.BridgeConfigCache;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -33,7 +34,9 @@ public abstract class WitchTickMixin {
                 WitchCpuCalculator.runCpuOnly(witch, aki$snap), timeout, TimeUnit.MICROSECONDS);
             WitchDiff diff = AsyncBrainExecutor.getWithTimeoutOrRunSync(future, timeout, TimeUnit.MICROSECONDS, () -> new WitchDiff());
             if (diff != null && diff.hasChanges()) diff.applyTo(witch, level);
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            BridgeConfigCache.errorLog("[Witch] Error in async brain tick: %s", e.getMessage());
+        }
     }
     @Unique private static synchronized void aki$init() {
         if (init) return;
@@ -42,7 +45,7 @@ public abstract class WitchTickMixin {
         timeout = bridge != null ? bridge.getAsyncAITimeoutMicros() : 100;
         init = true;
         if (bridge != null) {
-            bridge.debugLog("[AkiAsync] WitchTickMixin initialized: enabled=" + enabled + ", safe reflection with printStackTrace");
+            BridgeConfigCache.debugLog("[AkiAsync] WitchTickMixin initialized: enabled=" + enabled + ", safe reflection with printStackTrace");
         }
     }
 }

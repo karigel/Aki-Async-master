@@ -16,7 +16,6 @@ public class LandProtectionIntegration {
     private static volatile Boolean dominionEnabled = null;
     private static volatile Boolean worldGuardEnabled = null;
     private static volatile Boolean landsEnabled = null;
-    private static volatile Boolean kariClaimsEnabled = null;
 
     private static volatile Object residenceAPI = null;
     private static volatile Method residenceGetByLocMethod = null;
@@ -34,16 +33,11 @@ public class LandProtectionIntegration {
     private static volatile Method getLandByChunkMethod = null;
     private static volatile Method hasRoleFlagMethod = null;
 
-    private static volatile Object kariClaimsPlugin = null;
-    private static volatile Object kariClaimsChunkManager = null;
-    private static volatile Method findChunkClaimAtMethod = null;
-    private static volatile Method getClaimFromOptionalMethod = null;
-    private static volatile Method isTntMethod = null;
-    private static volatile Method isExplosionMethod = null;
-
     private static final ConcurrentHashMap<String, CacheEntry> CACHE = new ConcurrentHashMap<>();
-    private static final long CACHE_DURATION_MS = 5000;
-    private static final int MAX_CACHE_SIZE = 1000;
+    private static final ConcurrentHashMap<String, ChunkCacheEntry> CHUNK_CACHE = new ConcurrentHashMap<>();
+    private static final long CACHE_DURATION_MS = 30000; 
+    private static final int MAX_CACHE_SIZE = 50000; 
+    private static final int MAX_CHUNK_CACHE_SIZE = 1000;
 
     private static class CacheEntry {
         final boolean allowed;
@@ -59,16 +53,43 @@ public class LandProtectionIntegration {
         }
     }
 
+    private static class ChunkCacheEntry {
+        final Boolean allAllowed; 
+        final long timestamp;
+
+        ChunkCacheEntry(Boolean allAllowed) {
+            this.allAllowed = allAllowed;
+            this.timestamp = System.currentTimeMillis();
+        }
+
+        boolean isValid() {
+            return System.currentTimeMillis() - timestamp < CACHE_DURATION_MS;
+        }
+    }
+
     public static boolean canTNTExplode(ServerLevel level, BlockPos pos) {
         try {
+            
             String cacheKey = getCacheKey(level, pos);
             CacheEntry cached = CACHE.get(cacheKey);
             if (cached != null && cached.isValid()) {
                 return cached.allowed;
             }
 
+            String chunkKey = getChunkCacheKey(level, pos);
+            ChunkCacheEntry chunkCached = CHUNK_CACHE.get(chunkKey);
+            if (chunkCached != null && chunkCached.isValid() && chunkCached.allAllowed != null) {
+                
+                boolean allowed = chunkCached.allAllowed;
+                CACHE.putIfAbsent(cacheKey, new CacheEntry(allowed));
+                return allowed;
+            }
+
             if (CACHE.size() > MAX_CACHE_SIZE) {
                 CACHE.entrySet().removeIf(entry -> !entry.getValue().isValid());
+            }
+            if (CHUNK_CACHE.size() > MAX_CHUNK_CACHE_SIZE) {
+                CHUNK_CACHE.entrySet().removeIf(entry -> !entry.getValue().isValid());
             }
 
             World bukkitWorld = level.getWorld();
@@ -104,19 +125,51 @@ public class LandProtectionIntegration {
                 }
             }
 
-            if (allowed && isKariClaimsEnabled()) {
-                boolean kariClaimsAllowed = checkKariClaims(location);
-                if (!kariClaimsAllowed) {
-                    allowed = false;
-                }
-            }
-
             CACHE.put(cacheKey, new CacheEntry(allowed));
 
             return allowed;
         } catch (Exception e) {
             DebugLogger.error("[LandProtection] Error checking land protection: " + e.getMessage());
             return true;
+        }
+    }
+
+    public static Boolean checkChunkProtection(ServerLevel level, int chunkX, int chunkZ) {
+        try {
+            String chunkKey = getChunkCacheKeyDirect(level, chunkX, chunkZ);
+            ChunkCacheEntry cached = CHUNK_CACHE.get(chunkKey);
+            if (cached != null && cached.isValid()) {
+                return cached.allAllowed;
+            }
+
+            int baseX = chunkX << 4;
+            int baseZ = chunkZ << 4;
+            
+            Boolean firstResult = null;
+            boolean allSame = true;
+
+            int[] sampleX = {0, 8, 15, 0, 15, 0, 8, 15, 8};
+            int[] sampleZ = {0, 0, 0, 8, 8, 15, 15, 15, 8};
+
+            for (int i = 0; i < sampleX.length; i++) {
+                BlockPos pos = new BlockPos(baseX + sampleX[i], 64, baseZ + sampleZ[i]);
+                boolean allowed = canTNTExplode(level, pos);
+                
+                if (firstResult == null) {
+                    firstResult = allowed;
+                } else if (firstResult != allowed) {
+                    allSame = false;
+                    break;
+                }
+            }
+
+            Boolean result = allSame ? firstResult : Boolean.FALSE;
+            CHUNK_CACHE.put(chunkKey, new ChunkCacheEntry(result));
+            
+            return result;
+        } catch (Exception e) {
+            DebugLogger.error("[LandProtection] Error checking chunk protection: " + e.getMessage());
+            return Boolean.FALSE;
         }
     }
 
@@ -341,88 +394,24 @@ public class LandProtectionIntegration {
         return landsEnabled;
     }
 
-    private static boolean checkKariClaims(Location location) {
-        try {
-            if (kariClaimsChunkManager == null) {
-                Plugin kariClaims = Bukkit.getPluginManager().getPlugin("KariClaims");
-                if (kariClaims == null) {
-                    kariClaimsEnabled = false;
-                    return true;
-                }
-                kariClaimsPlugin = kariClaims;
-
-                Class<?> kariClaimsClass = Class.forName("org.kari.kariClaims.KariClaims");
-                Method getChunkClaimManagerMethod = kariClaimsClass.getMethod("getChunkClaimManager");
-                kariClaimsChunkManager = getChunkClaimManagerMethod.invoke(kariClaims);
-
-                Class<?> chunkClaimManagerClass = Class.forName("org.kari.kariClaims.managers.ChunkClaimManager");
-                findChunkClaimAtMethod = chunkClaimManagerClass.getMethod("findChunkClaimAt", Location.class);
-                
-                // 获取 ChunkClaim 类的方法
-                Class<?> chunkClaimClass = Class.forName("org.kari.kariClaims.models.ChunkClaim");
-                isTntMethod = chunkClaimClass.getMethod("isTnt");
-                isExplosionMethod = chunkClaimClass.getMethod("isExplosion");
-                
-                // 获取 Optional.get() 方法
-                Class<?> optionalClass = Class.forName("java.util.Optional");
-                getClaimFromOptionalMethod = optionalClass.getMethod("get");
-            }
-
-            Object optionalClaim = findChunkClaimAtMethod.invoke(kariClaimsChunkManager, location);
-            if (optionalClaim == null) {
-                return true; // 没有领地，允许TNT
-            }
-
-            // Check if Optional is present
-            Class<?> optionalClass = Class.forName("java.util.Optional");
-            Method isPresentMethod = optionalClass.getMethod("isPresent");
-            Boolean isPresent = (Boolean) isPresentMethod.invoke(optionalClaim);
-
-            if (isPresent == null || !isPresent) {
-                return true; // 没有领地，允许TNT
-            }
-
-            // 获取 ChunkClaim 对象
-            Object chunkClaim = getClaimFromOptionalMethod.invoke(optionalClaim);
-            
-            // 检查领地的 TNT 设置
-            Boolean tntAllowed = (Boolean) isTntMethod.invoke(chunkClaim);
-            if (tntAllowed != null && tntAllowed) {
-                return true; // 领地明确允许TNT
-            }
-            
-            // 检查领地的爆炸设置（作为备选）
-            Boolean explosionAllowed = (Boolean) isExplosionMethod.invoke(chunkClaim);
-            if (explosionAllowed != null && explosionAllowed) {
-                return true; // 领地允许爆炸
-            }
-            
-            // 默认：领地存在但未允许TNT/爆炸，阻止TNT
-            return false;
-
-        } catch (ClassNotFoundException e) {
-            kariClaimsEnabled = false;
-            return true;
-        } catch (Exception e) {
-            DebugLogger.error("[LandProtection] Error checking KariClaims: " + e.getMessage());
-            return true; // 出错时默认允许，避免误伤
-        }
-    }
-
-    private static boolean isKariClaimsEnabled() {
-        if (kariClaimsEnabled == null) {
-            kariClaimsEnabled = Bukkit.getPluginManager().isPluginEnabled("KariClaims");
-        }
-        return kariClaimsEnabled;
-    }
-
     private static String getCacheKey(ServerLevel level, BlockPos pos) {
         return level.dimension().location().toString() + ":" +
                pos.getX() + "," + pos.getY() + "," + pos.getZ();
     }
 
+    private static String getChunkCacheKey(ServerLevel level, BlockPos pos) {
+        int chunkX = pos.getX() >> 4;
+        int chunkZ = pos.getZ() >> 4;
+        return getChunkCacheKeyDirect(level, chunkX, chunkZ);
+    }
+
+    private static String getChunkCacheKeyDirect(ServerLevel level, int chunkX, int chunkZ) {
+        return level.dimension().location().toString() + ":chunk:" + chunkX + "," + chunkZ;
+    }
+
     public static void clearCache() {
         CACHE.clear();
+        CHUNK_CACHE.clear();
     }
 
     public static void reset() {
@@ -430,14 +419,11 @@ public class LandProtectionIntegration {
         dominionEnabled = null;
         worldGuardEnabled = null;
         landsEnabled = null;
-        kariClaimsEnabled = null;
         residenceAPI = null;
         dominionAPI = null;
         worldGuardPlugin = null;
         regionContainer = null;
         landsIntegration = null;
-        kariClaimsPlugin = null;
-        kariClaimsChunkManager = null;
         residenceGetByLocMethod = null;
         residenceHasFlagMethod = null;
         dominionGetDominionMethod = null;
@@ -445,69 +431,36 @@ public class LandProtectionIntegration {
         createQueryMethod = null;
         getLandByChunkMethod = null;
         hasRoleFlagMethod = null;
-        findChunkClaimAtMethod = null;
-        getClaimFromOptionalMethod = null;
-        isTntMethod = null;
-        isExplosionMethod = null;
         clearCache();
     }
     
-    /**
-     * 初始化并记录兼容性状态
-     * Initialize and log compatibility status
-     */
     public static void logCompatibilityStatus(java.util.logging.Logger logger) {
-        // 强制重新检测插件状态
-        reset();
+        if (logger == null) return;
         
-        StringBuilder status = new StringBuilder("[AkiAsync] Land protection plugin compatibility:");
-        int detected = 0;
+        StringBuilder status = new StringBuilder("[AkiAsync] Land protection plugins: ");
+        boolean anyEnabled = false;
         
-        // 检测 Residence
         if (isResidenceEnabled()) {
-            status.append("\n  - Residence: ✓ Detected");
-            detected++;
-        } else {
-            status.append("\n  - Residence: ✗ Not found");
+            status.append("Residence(enabled) ");
+            anyEnabled = true;
         }
-        
-        // 检测 Dominion
         if (isDominionEnabled()) {
-            status.append("\n  - Dominion: ✓ Detected");
-            detected++;
-        } else {
-            status.append("\n  - Dominion: ✗ Not found");
+            status.append("Dominion(enabled) ");
+            anyEnabled = true;
         }
-        
-        // 检测 WorldGuard
         if (isWorldGuardEnabled()) {
-            status.append("\n  - WorldGuard: ✓ Detected");
-            detected++;
-        } else {
-            status.append("\n  - WorldGuard: ✗ Not found");
+            status.append("WorldGuard(enabled) ");
+            anyEnabled = true;
         }
-        
-        // 检测 Lands
         if (isLandsEnabled()) {
-            status.append("\n  - Lands: ✓ Detected");
-            detected++;
-        } else {
-            status.append("\n  - Lands: ✗ Not found");
+            status.append("Lands(enabled) ");
+            anyEnabled = true;
         }
         
-        // 检测 KariClaims
-        if (isKariClaimsEnabled()) {
-            status.append("\n  - KariClaims: ✓ Detected");
-            detected++;
-        } else {
-            status.append("\n  - KariClaims: ✗ Not found");
+        if (!anyEnabled) {
+            status.append("None detected");
         }
         
-        if (detected > 0) {
-            status.append("\n  Total: ").append(detected).append(" protection plugin(s) detected");
-            logger.info(status.toString());
-        } else {
-            logger.info("[AkiAsync] No land protection plugins detected - TNT explosions will not be restricted by claims");
-        }
+        logger.info(status.toString());
     }
 }

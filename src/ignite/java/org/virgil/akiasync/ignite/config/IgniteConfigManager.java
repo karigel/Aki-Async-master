@@ -712,6 +712,223 @@ public class IgniteConfigManager extends ConfigManager {
     public int getMapRenderingThreads() { return 2; }
     
     // ==========================================
+    // AI 空间索引
+    // ==========================================
+    public boolean isAiSpatialIndexEnabled() { return false; }
+    public int getAiSpatialIndexGridSize() { return 16; }
+    public boolean isAiSpatialIndexAutoUpdate() { return true; }
+    public boolean isAiSpatialIndexPlayerIndexEnabled() { return true; }
+    public boolean isAiSpatialIndexPoiIndexEnabled() { return true; }
+    public boolean isAiSpatialIndexStatisticsEnabled() { return false; }
+    public int getAiSpatialIndexLogIntervalSeconds() { return 60; }
+    
+    // ==========================================
+    // 额外生物优化
+    // ==========================================
+    public boolean isWanderingTraderOptimizationEnabled() { return false; }
+    public boolean isWardenOptimizationEnabled() { return false; }
+    public boolean isHoglinOptimizationEnabled() { return false; }
+    public boolean isAllayOptimizationEnabled() { return false; }
+    
+    // ==========================================
+    // Brain 优化
+    // ==========================================
+    public boolean isBrainMemoryOptimizationEnabled() { return false; }
+    public boolean isPoiSnapshotEnabled() { return true; }
+    
+    // ==========================================
+    // 增强路径查找
+    // ==========================================
+    public boolean isAsyncPathfindingSyncFallbackEnabled() { return true; }
+    public boolean isEnhancedPathfindingEnabled() { return false; }
+    public int getEnhancedPathfindingMaxConcurrentRequests() { return 100; }
+    public int getEnhancedPathfindingMaxRequestsPerTick() { return 20; }
+    public int getEnhancedPathfindingHighPriorityDistance() { return 16; }
+    public int getEnhancedPathfindingMediumPriorityDistance() { return 32; }
+    public boolean isPathPrewarmEnabled() { return false; }
+    public int getPathPrewarmRadius() { return 48; }
+    public int getPathPrewarmMaxMobsPerBatch() { return 10; }
+    public int getPathPrewarmMaxPoisPerMob() { return 3; }
+    
+    // ==========================================
+    // 修复
+    // ==========================================
+    public boolean isEndIslandDensityFixEnabled() { return true; }
+    public boolean isPortalSuffocationCheckDisabled() { return false; }
+    public boolean isShulkerBulletSelfHitFixEnabled() { return true; }
+    
+    // ==========================================
+    // 流体优化
+    // ==========================================
+    public boolean isFluidOptimizationEnabled() { return false; }
+    public boolean isFluidDebugEnabled() { return false; }
+    public boolean isFluidTickThrottleEnabled() { return false; }
+    public int getStaticFluidInterval() { return 5; }
+    public int getFlowingFluidInterval() { return 2; }
+    public boolean isFluidTickCompensationEnabled() { return false; }
+    public boolean isFluidCompensationEnabledForWater() { return true; }
+    public boolean isFluidCompensationEnabledForLava() { return true; }
+    public double getFluidCompensationTPSThreshold() { return 18.0; }
+    
+    // ==========================================
+    // 智能延迟补偿
+    // ==========================================
+    public boolean isSmartLagCompensationEnabled() { return false; }
+    public double getSmartLagTPSThreshold() { return 18.0; }
+    public boolean isSmartLagFluidCompensationEnabled() { return false; }
+    public boolean isSmartLagFluidWaterEnabled() { return true; }
+    public boolean isSmartLagFluidLavaEnabled() { return true; }
+    public boolean isSmartLagItemPickupDelayEnabled() { return false; }
+    public boolean isSmartLagPotionEffectsEnabled() { return false; }
+    public boolean isSmartLagTimeAccelerationEnabled() { return false; }
+    public boolean isSmartLagDebugEnabled() { return false; }
+    public boolean isSmartLagLogMissedTicks() { return false; }
+    public boolean isSmartLagLogCompensation() { return false; }
+    
+    // ==========================================
+    // 经验球优化
+    // ==========================================
+    public boolean isExperienceOrbInactiveTickEnabled() { return false; }
+    public double getExperienceOrbInactiveRange() { return 32.0; }
+    public int getExperienceOrbInactiveMergeInterval() { return 100; }
+    
+    // ==========================================
+    // 生物生成间隔
+    // ==========================================
+    public int getMobSpawnInterval() { return 1; }
+    
+    // ==========================================
+    // 物品实体额外配置
+    // ==========================================
+    public boolean isItemEntityCancelVanillaMerge() { return false; }
+    public boolean isItemEntityInactiveTickEnabled() { return false; }
+    public double getItemEntityInactiveRange() { return 32.0; }
+    public int getItemEntityInactiveMergeInterval() { return 100; }
+    
+    // ==========================================
+    // Execute 命令优化
+    // ==========================================
+    public boolean isExecuteCommandInactiveSkipEnabled() { return false; }
+    public int getExecuteCommandSkipLevel() { return 2; }
+    public double getExecuteCommandSimulationDistanceMultiplier() { return 1.0; }
+    public long getExecuteCommandCacheDurationMs() { return 100; }
+    public java.util.Set<String> getExecuteCommandWhitelistTypes() { return java.util.Collections.emptySet(); }
+    public boolean isExecuteCommandDebugEnabled() { return false; }
+    public boolean isCommandDeduplicationEnabled() { return false; }
+    public boolean isCommandDeduplicationDebugEnabled() { return false; }
+    
+    // ==========================================
+    // 碰撞优化
+    // ==========================================
+    public boolean isCollisionOptimizationEnabled() { return true; }
+    public boolean isCollisionAggressiveMode() { return false; }
+    public java.util.Set<String> getCollisionExcludedEntities() { return java.util.Collections.emptySet(); }
+    public boolean isCollisionCacheEnabled() { return true; }
+    public int getCollisionCacheLifetimeMs() { return 50; }
+    public double getCollisionCacheMovementThreshold() { return 0.01; }
+    public boolean isCollisionSpatialPartitionEnabled() { return true; }
+    public int getCollisionSpatialGridSize() { return 4; }
+    public int getCollisionSpatialDensityThreshold() { return 50; }
+    public int getCollisionSpatialUpdateIntervalMs() { return 100; }
+    public double getCollisionSkipMinMovement() { return 0.001; }
+    public int getCollisionSkipCheckIntervalMs() { return 50; }
+    
+    // ==========================================
+    // 推挤优化
+    // ==========================================
+    public boolean isPushOptimizationEnabled() { return true; }
+    public double getPushMaxPushPerTick() { return 0.5; }
+    public double getPushDampingFactor() { return 0.8; }
+    public int getPushHighDensityThreshold() { return 10; }
+    public double getPushHighDensityMultiplier() { return 0.5; }
+    
+    // ==========================================
+    // 高级碰撞优化
+    // ==========================================
+    public boolean isAdvancedCollisionOptimizationEnabled() { return false; }
+    public int getCollisionThreshold() { return 10; }
+    public float getSuffocationDamage() { return 1.0f; }
+    public int getMaxPushIterations() { return 3; }
+    
+    // ==========================================
+    // 光照优先级调度
+    // ==========================================
+    public boolean isLightingPrioritySchedulingEnabled() { return false; }
+    public int getLightingHighPriorityRadius() { return 2; }
+    public int getLightingMediumPriorityRadius() { return 4; }
+    public int getLightingLowPriorityRadius() { return 8; }
+    public long getLightingMaxLowPriorityDelay() { return 1000; }
+    
+    // ==========================================
+    // 光照去抖动
+    // ==========================================
+    public boolean isLightingDebouncingEnabled() { return false; }
+    public long getLightingDebounceDelay() { return 50; }
+    public int getLightingMaxUpdatesPerSecond() { return 1000; }
+    public long getLightingResetOnStableMs() { return 500; }
+    
+    // ==========================================
+    // 光照合并
+    // ==========================================
+    public boolean isLightingMergingEnabled() { return false; }
+    public int getLightingMergeRadius() { return 2; }
+    public long getLightingMergeDelay() { return 20; }
+    public int getLightingMaxMergedUpdates() { return 100; }
+    
+    // ==========================================
+    // 光照区块边界
+    // ==========================================
+    public boolean isLightingChunkBorderEnabled() { return false; }
+    public boolean isLightingBatchBorderUpdates() { return false; }
+    public long getLightingBorderUpdateDelay() { return 100; }
+    public int getLightingCrossChunkBatchSize() { return 16; }
+    
+    // ==========================================
+    // 自适应光照
+    // ==========================================
+    public boolean isLightingAdaptiveEnabled() { return false; }
+    public int getLightingMonitorInterval() { return 100; }
+    public boolean isLightingAutoAdjustThreads() { return false; }
+    public boolean isLightingAutoAdjustBatchSize() { return false; }
+    public int getLightingTargetQueueSize() { return 100; }
+    public int getLightingTargetLatency() { return 50; }
+    
+    // ==========================================
+    // 光照区块卸载
+    // ==========================================
+    public boolean isLightingChunkUnloadEnabled() { return false; }
+    public boolean isLightingAsyncCleanup() { return false; }
+    public int getLightingCleanupBatchSize() { return 16; }
+    public long getLightingCleanupDelay() { return 1000; }
+    
+    // ==========================================
+    // 光照线程池配置
+    // ==========================================
+    public String getLightingThreadPoolMode() { return "fixed"; }
+    public String getLightingThreadPoolCalculation() { return "cores"; }
+    public int getLightingMinThreads() { return 1; }
+    public int getLightingMaxThreads() { return 4; }
+    public int getLightingBatchThresholdMax() { return 256; }
+    public boolean isLightingAggressiveBatching() { return false; }
+    
+    // ==========================================
+    // 噪声和拼图优化
+    // ==========================================
+    public boolean isNoiseOptimizationEnabled() { return false; }
+    public boolean isJigsawOptimizationEnabled() { return false; }
+    
+    // ==========================================
+    // 实体数据包节流
+    // ==========================================
+    public boolean isEntityPacketThrottleEnabled() { return false; }
+    public boolean isEntityDataThrottleEnabled() { return false; }
+    
+    // ==========================================
+    // 区块可见性过滤
+    // ==========================================
+    public boolean isChunkVisibilityFilterEnabled() { return false; }
+    
+    // ==========================================
     // Setter 方法 (用于运行时修改)
     // ==========================================
     public void setDebugLoggingEnabled(boolean enabled) {

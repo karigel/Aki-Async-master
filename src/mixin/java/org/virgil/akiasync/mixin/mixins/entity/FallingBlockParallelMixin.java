@@ -6,6 +6,9 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.virgil.akiasync.mixin.util.BridgeConfigCache;
+import org.virgil.akiasync.mixin.bridge.Bridge;
+import org.virgil.akiasync.mixin.bridge.BridgeManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,37 +59,45 @@ public abstract class FallingBlockParallelMixin {
         long adaptiveTimeout = akiasync$calculateFallingTimeout(lastMspt);
 
         try {
+            
+            Bridge bridge = BridgeManager.getBridge();
+            java.util.concurrent.ExecutorService executor = dedicatedPool != null ? dedicatedPool : 
+                (bridge != null ? bridge.getGeneralExecutor() : null);
+            
+            if (executor == null) {
+                
+                batches.forEach(batch -> batch.forEach(falling -> {
+                    try {
+                        akiasync$preTick(falling);
+                    } catch (Throwable t) {
+                    }
+                }));
+                return;
+            }
+            
             List<CompletableFuture<Void>> futures = batches.stream()
-                .map(batch -> CompletableFuture.runAsync(() -> {
+                .<CompletableFuture<Void>>map(batch -> CompletableFuture.runAsync(() -> {
                     batch.forEach(falling -> {
                         try {
                             akiasync$preTick(falling);
                         } catch (Throwable t) {
                         }
                     });
-                }, dedicatedPool != null ? dedicatedPool : ForkJoinPool.commonPool()))
+                }, executor))
                 .collect(java.util.stream.Collectors.toList());
 
             CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new))
                 .get(adaptiveTimeout, TimeUnit.MILLISECONDS);
 
             if (executionCount % 100 == 0) {
-                org.virgil.akiasync.mixin.bridge.Bridge bridge =
-                    org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-                if (bridge != null) {
-                    bridge.debugLog(
-                        "[AkiAsync-FallingBlock] Processed %d falling blocks in %d batches (timeout: %dms)",
-                        fallingBlocks.size(), batches.size(), adaptiveTimeout
-                    );
-                }
+                BridgeConfigCache.debugLog(
+                    "[AkiAsync-FallingBlock] Processed %d falling blocks in %d batches (timeout: %dms)",
+                    fallingBlocks.size(), batches.size(), adaptiveTimeout
+                );
             }
         } catch (Throwable t) {
             if (executionCount <= 3) {
-                org.virgil.akiasync.mixin.bridge.Bridge bridge =
-                    org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-                if (bridge != null) {
-                    bridge.debugLog("[AkiAsync-FallingBlock] Timeout/Error: " + t.getMessage());
-                }
+                BridgeConfigCache.debugLog("[AkiAsync-FallingBlock] Timeout/Error: " + t.getMessage());
             }
         }
     }
@@ -112,8 +123,7 @@ public abstract class FallingBlockParallelMixin {
         if (entity == null) return false;
 
         try {
-            org.virgil.akiasync.mixin.bridge.Bridge bridge =
-                org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+            Bridge bridge = BridgeManager.getBridge();
             if (bridge != null) {
                 return bridge.isVirtualEntity(entity);
             }
@@ -134,13 +144,12 @@ public abstract class FallingBlockParallelMixin {
             isFolia = false;
         }
 
-        org.virgil.akiasync.mixin.bridge.Bridge bridge =
-            org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
+        Bridge bridge = BridgeManager.getBridge();
 
         if (bridge != null) {
             if (isFolia) {
                 enabled = false;
-                bridge.debugLog("[AkiAsync] FallingBlockParallelMixin disabled in Folia mode");
+                BridgeConfigCache.debugLog("[AkiAsync] FallingBlockParallelMixin disabled in Folia mode");
             } else {
                 enabled = bridge.isFallingBlockParallelEnabled();
             }
@@ -156,11 +165,9 @@ public abstract class FallingBlockParallelMixin {
 
         initialized = true;
 
-        if (bridge != null) {
-            bridge.debugLog("[AkiAsync] FallingBlockParallelMixin initialized: enabled=" + enabled +
-                ", isFolia=" + isFolia + ", batchSize=" + batchSize +
-                ", minFallingBlocks=" + minFallingBlocks +
-                ", pool=" + (dedicatedPool != null ? "dedicated" : "commonPool"));
-        }
+        BridgeConfigCache.debugLog("[AkiAsync] FallingBlockParallelMixin initialized: enabled=" + enabled +
+            ", isFolia=" + isFolia + ", batchSize=" + batchSize +
+            ", minFallingBlocks=" + minFallingBlocks +
+            ", pool=" + (dedicatedPool != null ? "dedicated" : "commonPool"));
     }
 }

@@ -5,15 +5,16 @@ import java.util.stream.Collectors;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.monster.Guardian;
-import net.minecraft.world.phys.AABB;
+import org.virgil.akiasync.mixin.brain.core.AiQueryHelper;
+
 public final class GuardianSnapshot {
     private final List<PlayerInfo> underwaterPlayers;
     private GuardianSnapshot(List<PlayerInfo> p) { this.underwaterPlayers = p; }
+    
     public static GuardianSnapshot capture(Guardian guardian, ServerLevel level) {
-        AABB box = guardian.getBoundingBox().inflate(16.0);
-        List<PlayerInfo> players = level.getEntitiesOfClass(
-            net.minecraft.world.entity.player.Player.class, box
-        ).stream()
+        
+        List<PlayerInfo> players = AiQueryHelper.getNearbyPlayers(guardian, 16.0)
+            .stream()
             .filter(p -> p.isInWater())
             .map(p -> new PlayerInfo(p.getUUID(), p.blockPosition()))
             .collect(Collectors.toList());

@@ -1,11 +1,11 @@
 [versions]
 paperApi = "1.21.1-R0.1-SNAPSHOT"
-paperweightUserdev = "1.7.2"
+paperweightUserdev = "1.7.4"
 shadow = "8.3.0"
 runPaper = "2.3.0"
 igniteApi = "1.1.0"
 spongeMixin = "0.13.3+mixin.0.8.5"
-mixinExtras = "0.3.6"
+mixinExtras = "0.4.1"
 fastutil = "8.5.12"
 accessWiden = "1.0.0"
 

@@ -4,9 +4,12 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.virgil.akiasync.AkiAsyncPlugin;
 import org.virgil.akiasync.util.concurrency.ConfigReloader;
 
+import java.io.File;
+import java.util.Set;
+
 public class ConfigManager {
 
-    private static final int CURRENT_CONFIG_VERSION = 16;
+    private static final int CURRENT_CONFIG_VERSION = 17;
 
     private final AkiAsyncPlugin plugin;
     private FileConfiguration config;
@@ -28,10 +31,23 @@ public class ConfigManager {
     private boolean mobDespawnOptimizationEnabled;
     private int mobDespawnCheckInterval;
     private long asyncAITimeoutMicros;
+    
+    private boolean aiSpatialIndexEnabled;
+    private int aiSpatialIndexGridSize;
+    private boolean aiSpatialIndexAutoUpdate;
+    private boolean aiSpatialIndexPlayerIndexEnabled;
+    private boolean aiSpatialIndexPoiIndexEnabled;
+    private boolean aiSpatialIndexStatisticsEnabled;
+    private int aiSpatialIndexLogIntervalSeconds;
+    
     private boolean villagerOptimizationEnabled;
     private boolean villagerUsePOISnapshot;
     private boolean villagerPoiCacheEnabled;
     private int villagerPoiCacheExpireTime;
+    private boolean wanderingTraderOptimizationEnabled;
+    private boolean wardenOptimizationEnabled;
+    private boolean hoglinOptimizationEnabled;
+    private boolean allayOptimizationEnabled;
     private boolean piglinOptimizationEnabled;
     private boolean piglinUsePOISnapshot;
     private int piglinLookDistance;
@@ -49,11 +65,63 @@ public class ConfigManager {
     private int dabStartDistance;
     private int dabActivationDistMod;
     private int dabMaxTickInterval;
+    
+    private boolean brainMemoryOptimizationEnabled;
+    private boolean poiSnapshotEnabled;
     private boolean asyncPathfindingEnabled;
     private int asyncPathfindingMaxThreads;
     private int asyncPathfindingKeepAliveSeconds;
     private int asyncPathfindingMaxQueueSize;
     private int asyncPathfindingTimeoutMs;
+    private boolean asyncPathfindingSyncFallbackEnabled;
+    private boolean asyncPathfindingCacheEnabled;
+    private int asyncPathfindingCacheMaxSize;
+    private int asyncPathfindingCacheExpireSeconds;
+    private int asyncPathfindingCacheReuseTolerance;
+    private int asyncPathfindingCacheCleanupIntervalSeconds;
+    
+    private boolean enhancedPathfindingEnabled;
+    private int enhancedPathfindingMaxConcurrentRequests;
+    private int enhancedPathfindingMaxRequestsPerTick;
+    private int enhancedPathfindingHighPriorityDistance;
+    private int enhancedPathfindingMediumPriorityDistance;
+    private boolean pathPrewarmEnabled;
+    private int pathPrewarmRadius;
+    private int pathPrewarmMaxMobsPerBatch;
+    private int pathPrewarmMaxPoisPerMob;
+    private boolean collisionOptimizationEnabled;
+    private boolean collisionAggressiveMode;
+    private String collisionExclusionListFile;
+    private java.util.Set<String> collisionExcludedEntities;
+    private boolean collisionCacheEnabled;
+    private int collisionCacheLifetimeMs;
+    private double collisionCacheMovementThreshold;
+    private boolean collisionSpatialPartitionEnabled;
+    private int collisionSpatialGridSize;
+    private int collisionSpatialDensityThreshold;
+    private int collisionSpatialUpdateIntervalMs;
+    private double collisionSkipMinMovement;
+    private int collisionSkipCheckIntervalMs;
+    private boolean pushOptimizationEnabled;
+    private double pushMaxPushPerTick;
+    private double pushDampingFactor;
+    private int pushHighDensityThreshold;
+    private double pushHighDensityMultiplier;
+    private boolean advancedCollisionOptimizationEnabled;
+    private int collisionThreshold;
+    private float suffocationDamage;
+    private int maxPushIterations;
+    private boolean useSectionGrid;
+    private boolean sectionGridWarmup;
+    private boolean tntCacheEnabled;
+    private boolean tntUseOptimizedCache;
+    private int tntCacheExpiryTicks;
+    private boolean tntCacheWarmupEnabled;
+    private boolean tntPrecomputedShapeEnabled;
+    private boolean tntUseOcclusionDetection;
+    private double tntOcclusionThreshold;
+    private boolean tntBatchCollisionEnabled;
+    private int tntBatchUnrollFactor;
     private boolean entityThrottlingEnabled;
     private String entityThrottlingConfigFile;
     private int entityThrottlingCheckInterval;
@@ -87,6 +155,50 @@ public class ConfigManager {
     private boolean lightDeduplicationEnabled;
     private boolean dynamicBatchAdjustmentEnabled;
     private boolean advancedLightingStatsEnabled;
+    
+    private String lightingThreadPoolMode;
+    private String lightingThreadPoolCalculation;
+    private int lightingMinThreads;
+    private int lightingMaxThreads;
+    private int lightingBatchThresholdMax;
+    private boolean lightingAggressiveBatching;
+    
+    private boolean lightingPrioritySchedulingEnabled;
+    private int lightingHighPriorityRadius;
+    private int lightingMediumPriorityRadius;
+    private int lightingLowPriorityRadius;
+    private long lightingMaxLowPriorityDelay;
+    
+    private boolean lightingDebouncingEnabled;
+    private long lightingDebounceDelay;
+    private int lightingMaxUpdatesPerSecond;
+    private long lightingResetOnStableMs;
+    
+    private boolean lightingMergingEnabled;
+    private int lightingMergeRadius;
+    private long lightingMergeDelay;
+    private int lightingMaxMergedUpdates;
+    
+    private boolean lightingChunkBorderEnabled;
+    private boolean lightingBatchBorderUpdates;
+    private long lightingBorderUpdateDelay;
+    private int lightingCrossChunkBatchSize;
+    
+    private boolean lightingAdaptiveEnabled;
+    private int lightingMonitorInterval;
+    private boolean lightingAutoAdjustThreads;
+    private boolean lightingAutoAdjustBatchSize;
+    private int lightingTargetQueueSize;
+    private int lightingTargetLatency;
+    
+    private boolean lightingChunkUnloadEnabled;
+    private boolean lightingAsyncCleanup;
+    private int lightingCleanupBatchSize;
+    private long lightingCleanupDelay;
+    
+    private boolean noiseOptimizationEnabled;
+    private boolean jigsawOptimizationEnabled;
+    
     private boolean playerChunkLoadingOptimizationEnabled;
     private int maxConcurrentChunkLoadsPerPlayer;
     private boolean entityTrackingRangeOptimizationEnabled;
@@ -98,12 +210,12 @@ public class ConfigManager {
     private boolean redstoneCacheEnabled;
     private int redstoneCacheDurationMs;
     
-
     private boolean usePandaWireAlgorithm;
     private boolean redstoneNetworkCacheEnabled;
     private int redstoneNetworkCacheExpireTicks;
     
     private boolean tntOptimizationEnabled;
+    private boolean tntDebugEnabled;
     private java.util.Set<String> tntExplosionEntities;
     private int tntThreads;
     private int tntMaxBlocks;
@@ -114,13 +226,26 @@ public class ConfigManager {
     private boolean tntUseVanillaFireLogic;
     private boolean tntUseVanillaDamageCalculation;
     private boolean beeFixEnabled;
+    private boolean endIslandDensityFixEnabled;
+    private boolean portalSuffocationCheckDisabled;
+    private boolean shulkerBulletSelfHitFixEnabled;
+    
+    private boolean executeCommandInactiveSkipEnabled;
+    private int executeCommandSkipLevel;
+    private double executeCommandSimulationDistanceMultiplier;
+    private long executeCommandCacheDurationMs;
+    private Set<String> executeCommandWhitelistTypes;
+    private boolean executeCommandDebugEnabled;
+    
+    private boolean commandDeduplicationEnabled;
+    private boolean commandDeduplicationDebugEnabled;
+    
     private boolean tntUseFullRaycast;
     private boolean tntUseVanillaBlockDestruction;
     private boolean tntUseVanillaDrops;
     private boolean tntLandProtectionEnabled;
     private boolean blockLockerProtectionEnabled;
     
-
     private boolean tntUseSakuraDensityCache;
     private boolean tntMergeEnabled;
     private double tntMergeRadius;
@@ -137,6 +262,32 @@ public class ConfigManager {
     private int chunkTickAsyncBatchSize;
     
     private boolean enableDebugLogging;
+    private boolean fluidOptimizationEnabled;
+    private boolean fluidDebugEnabled;
+    private boolean fluidTickThrottleEnabled;
+    private int staticFluidInterval;
+    private int flowingFluidInterval;
+    
+    private boolean fluidTickCompensationEnabled;
+    private boolean fluidCompensationEnabledForWater;
+    private boolean fluidCompensationEnabledForLava;
+    private double fluidCompensationTPSThreshold;
+    
+    private boolean smartLagCompensationEnabled;
+    private double smartLagTPSThreshold;
+    private boolean smartLagFluidCompensationEnabled;
+    private boolean smartLagFluidWaterEnabled;
+    private boolean smartLagFluidLavaEnabled;
+    private boolean smartLagItemPickupDelayEnabled;
+    private boolean smartLagPotionEffectsEnabled;
+    private boolean smartLagTimeAccelerationEnabled;
+    private boolean smartLagDebugEnabled;
+    private boolean smartLagLogMissedTicks;
+    private boolean smartLagLogCompensation;
+    
+    private boolean experienceOrbInactiveTickEnabled;
+    private double experienceOrbInactiveRange;
+    private int experienceOrbInactiveMergeInterval;
     private boolean enablePerformanceMetrics;
     private int configVersion;
 
@@ -169,14 +320,12 @@ public class ConfigManager {
     private long dataPackCacheExpirationMinutes;
     private int dataPackMaxFileCacheSize;
     private int dataPackMaxFileSystemCacheSize;
-    private boolean dataPackDebugEnabled;
 
     private boolean nitoriOptimizationsEnabled;
     private boolean virtualThreadEnabled;
     private boolean workStealingEnabled;
     private boolean blockPosCacheEnabled;
     private boolean optimizedCollectionsEnabled;
-
 
     private String seedEncryptionScheme;
     private boolean seedEncryptionEnabled;
@@ -185,10 +334,8 @@ public class ConfigManager {
     private boolean seedEncryptionProtectSlimes;
     private boolean seedEncryptionProtectBiomes;
     
-
     private int secureSeedBits;
     
-
     private int quantumSeedEncryptionLevel;
     private String quantumSeedPrivateKeyFile;
     private boolean quantumSeedEnableTimeDecay;
@@ -211,55 +358,27 @@ public class ConfigManager {
     private int minFallingBlocksForParallel;
     private int fallingBlockBatchSize;
 
-    private boolean networkOptimizationEnabled;
-    private boolean packetPriorityEnabled;
-    private boolean chunkRateControlEnabled;
-    private boolean congestionDetectionEnabled;
-    private boolean viewFrustumFilterEnabled;
-    private boolean viewFrustumFilterEntities;
-    private boolean viewFrustumFilterBlocks;
+    private boolean entityPacketThrottleEnabled;
+    private boolean entityDataThrottleEnabled;
+    
+    private boolean chunkVisibilityFilterEnabled;
     
     private boolean suffocationOptimizationEnabled;
     private boolean fastRayTraceEnabled;
     private boolean mapRenderingOptimizationEnabled;
     private int mapRenderingThreads;
-    private boolean viewFrustumFilterParticles;
-    private int highPingThreshold;
-    private int criticalPingThreshold;
-    private long highBandwidthThreshold;
-    private int baseChunkSendRate;
-    private int maxChunkSendRate;
-    private int minChunkSendRate;
 
-    private int packetSendRateBase;
-    private int packetSendRateMedium;
-    private int packetSendRateHeavy;
-    private int packetSendRateExtreme;
-
-    private int queueLimitMaxTotal;
-    private int queueLimitMaxCritical;
-    private int queueLimitMaxHigh;
-    private int queueLimitMaxNormal;
-
-    private int accelerationThresholdMedium;
-    private int accelerationThresholdHeavy;
-    private int accelerationThresholdExtreme;
-
-    private boolean cleanupEnabled;
-    private int cleanupStaleThreshold;
-    private int cleanupCriticalCleanup;
-    private int cleanupNormalCleanup;
-
-    private boolean itemEntityParallelEnabled;
-    private int minItemEntitiesForParallel;
-    private int itemEntityBatchSize;
     private boolean itemEntityMergeOptimizationEnabled;
+    private boolean itemEntityCancelVanillaMerge;
     private int itemEntityMergeInterval;
     private int itemEntityMinNearbyItems;
     private double itemEntityMergeRange;
     private boolean itemEntityAgeOptimizationEnabled;
     private int itemEntityAgeInterval;
     private double itemEntityPlayerDetectionRange;
+    private boolean itemEntityInactiveTickEnabled;
+    private double itemEntityInactiveRange;
+    private int itemEntityInactiveMergeInterval;
 
     private boolean fastMovementChunkLoadEnabled;
     private double fastMovementSpeedThreshold;
@@ -273,12 +392,6 @@ public class ConfigManager {
     private double maxOffsetRatio;
     private int asyncLoadingBatchSize;
     private long asyncLoadingBatchDelayMs;
-
-    private boolean teleportOptimizationEnabled;
-    private boolean teleportBypassQueue;
-    private int teleportBoostDurationSeconds;
-    private int teleportMaxChunkRate;
-    private boolean teleportFilterNonEssentialPackets;
 
     private boolean virtualEntityCompatibilityEnabled;
     private boolean virtualEntityBypassPacketQueue;
@@ -297,10 +410,13 @@ public class ConfigManager {
 
     private java.util.Set<String> loadEntitiesFromFile(String fileName, String key) {
         try {
+            
             java.io.File entitiesFile = new java.io.File(plugin.getDataFolder(), fileName);
-
+            
             if (!entitiesFile.exists()) {
+                
                 plugin.saveResource(fileName, false);
+                plugin.getLogger().info("[Config] Created " + fileName);
             }
 
             org.bukkit.configuration.file.FileConfiguration entitiesConfig =
@@ -325,6 +441,11 @@ public class ConfigManager {
         plugin.saveDefaultConfig();
         plugin.reloadConfig();
         config = plugin.getConfig();
+        
+        loadConfigValues();
+    }
+    
+    private void loadConfigValues() {
         entityTrackerEnabled = config.getBoolean("entity-tracker.enabled", true);
         threadPoolSize = config.getInt("entity-tracker.thread-pool-size", 4);
         updateIntervalTicks = config.getInt("entity-tracker.update-interval-ticks", 1);
@@ -332,9 +453,10 @@ public class ConfigManager {
         
         mobSpawningEnabled = config.getBoolean("mob-spawning.enabled", true);
         spawnerOptimizationEnabled = config.getBoolean("mob-spawning.spawner-optimization", true);
+        mobSpawnInterval = config.getInt("mob-spawning.spawn-interval", 1);
         densityControlEnabled = config.getBoolean("density.enabled", true);
         maxEntitiesPerChunk = config.getInt("density.max-per-chunk", 80);
-        brainThrottle = config.getBoolean("brain.throttle", true);
+        brainThrottle = config.getBoolean("brain.enabled", true);
         brainThrottleInterval = config.getInt("brain.throttle-interval", 10);
         livingEntityTravelOptimizationEnabled = config.getBoolean("living-entity-travel-optimization.enabled", true);
         livingEntityTravelSkipInterval = config.getInt("living-entity-travel-optimization.skip-interval", 2);
@@ -343,10 +465,23 @@ public class ConfigManager {
         mobDespawnOptimizationEnabled = config.getBoolean("mob-despawn-optimization.enabled", true);
         mobDespawnCheckInterval = config.getInt("mob-despawn-optimization.check-interval", 20);
         asyncAITimeoutMicros = config.getLong("async-ai.timeout-microseconds", 500L);
+        
+        aiSpatialIndexEnabled = config.getBoolean("async-ai.spatial-index.enabled", true);
+        aiSpatialIndexGridSize = config.getInt("async-ai.spatial-index.grid-size", 16);
+        aiSpatialIndexAutoUpdate = config.getBoolean("async-ai.spatial-index.auto-update", true);
+        aiSpatialIndexPlayerIndexEnabled = config.getBoolean("async-ai.spatial-index.index-players", true);
+        aiSpatialIndexPoiIndexEnabled = config.getBoolean("async-ai.spatial-index.index-poi", true);
+        aiSpatialIndexStatisticsEnabled = config.getBoolean("async-ai.spatial-index.statistics.enabled", true);
+        aiSpatialIndexLogIntervalSeconds = config.getInt("async-ai.spatial-index.statistics.log-interval-seconds", 300);
+        
         villagerOptimizationEnabled = config.getBoolean("async-ai.villager-optimization.enabled", false);
         villagerUsePOISnapshot = config.getBoolean("async-ai.villager-optimization.use-poi-snapshot", true);
         villagerPoiCacheEnabled = config.getBoolean("async-ai.villager-optimization.poi-cache.enabled", true);
         villagerPoiCacheExpireTime = config.getInt("async-ai.villager-optimization.poi-cache.cache-expire-time", 100);
+        wanderingTraderOptimizationEnabled = config.getBoolean("async-ai.wandering-trader-optimization.enabled", false);
+        wardenOptimizationEnabled = config.getBoolean("async-ai.warden-optimization.enabled", false);
+        hoglinOptimizationEnabled = config.getBoolean("async-ai.hoglin-optimization.enabled", false);
+        allayOptimizationEnabled = config.getBoolean("async-ai.allay-optimization.enabled", false);
         piglinOptimizationEnabled = config.getBoolean("async-ai.piglin-optimization.enabled", false);
         piglinUsePOISnapshot = config.getBoolean("async-ai.piglin-optimization.use-poi-snapshot", false);
         piglinLookDistance = config.getInt("async-ai.piglin-optimization.look-distance", 16);
@@ -364,11 +499,28 @@ public class ConfigManager {
         dabStartDistance = config.getInt("async-ai.universal-ai-optimization.dynamic-activation.start-distance", 12);
         dabActivationDistMod = config.getInt("async-ai.universal-ai-optimization.dynamic-activation.activation-dist-mod", 8);
         dabMaxTickInterval = config.getInt("async-ai.universal-ai-optimization.dynamic-activation.max-tick-interval", 20);
+        
+        brainMemoryOptimizationEnabled = config.getBoolean("async-ai.brain-memory-optimization.enabled", false);
+        poiSnapshotEnabled = config.getBoolean("async-ai.poi-snapshot.enabled", false);
+        
         asyncPathfindingEnabled = config.getBoolean("async-ai.async-pathfinding.enabled", true);
-        asyncPathfindingMaxThreads = config.getInt("async-ai.async-pathfinding.max-threads", 8);
+        asyncPathfindingMaxThreads = config.getInt("async-ai.async-pathfinding.max-threads", 6);
         asyncPathfindingKeepAliveSeconds = config.getInt("async-ai.async-pathfinding.keep-alive-seconds", 60);
         asyncPathfindingMaxQueueSize = config.getInt("async-ai.async-pathfinding.max-queue-size", 500);
-        asyncPathfindingTimeoutMs = config.getInt("async-ai.async-pathfinding.timeout-ms", 50);
+        asyncPathfindingTimeoutMs = config.getInt("async-ai.async-pathfinding.timeout-ms", 100);
+        asyncPathfindingSyncFallbackEnabled = config.getBoolean("async-ai.async-pathfinding.sync-fallback-enabled", true);
+        
+        enhancedPathfindingEnabled = config.getBoolean("async-ai.async-pathfinding.enhanced.enabled", true);
+        enhancedPathfindingMaxConcurrentRequests = config.getInt("async-ai.async-pathfinding.enhanced.max-concurrent-requests", 30);
+        enhancedPathfindingMaxRequestsPerTick = config.getInt("async-ai.async-pathfinding.enhanced.max-requests-per-tick", 15);
+        enhancedPathfindingHighPriorityDistance = config.getInt("async-ai.async-pathfinding.enhanced.priority.high-distance", 16);
+        enhancedPathfindingMediumPriorityDistance = config.getInt("async-ai.async-pathfinding.enhanced.priority.medium-distance", 48);
+        pathPrewarmEnabled = config.getBoolean("async-ai.async-pathfinding.enhanced.prewarm.enabled", true);
+        pathPrewarmRadius = config.getInt("async-ai.async-pathfinding.enhanced.prewarm.radius", 32);
+        pathPrewarmMaxMobsPerBatch = config.getInt("async-ai.async-pathfinding.enhanced.prewarm.max-mobs-per-batch", 5);
+        pathPrewarmMaxPoisPerMob = config.getInt("async-ai.async-pathfinding.enhanced.prewarm.max-pois-per-mob", 3);
+        
+        loadPathfindingAndCollisionConfigs();
         entityThrottlingEnabled = config.getBoolean("entity-throttling.enabled", true);
         entityThrottlingConfigFile = config.getString("entity-throttling.config-file", "throttling.yml");
         entityThrottlingCheckInterval = config.getInt("entity-throttling.check-interval", 100);
@@ -402,6 +554,50 @@ public class ConfigManager {
         lightDeduplicationEnabled = config.getBoolean("lighting-optimizations.advanced.enable-deduplication", true);
         dynamicBatchAdjustmentEnabled = config.getBoolean("lighting-optimizations.advanced.dynamic-batch-adjustment", true);
         advancedLightingStatsEnabled = config.getBoolean("lighting-optimizations.advanced.log-advanced-stats", false);
+        
+        lightingThreadPoolMode = config.getString("lighting-optimizations.async-lighting.thread-pool-mode", "auto");
+        lightingThreadPoolCalculation = config.getString("lighting-optimizations.async-lighting.thread-pool-calculation", "cores/3");
+        lightingMinThreads = config.getInt("lighting-optimizations.async-lighting.min-threads", 1);
+        lightingMaxThreads = config.getInt("lighting-optimizations.async-lighting.max-threads", 8);
+        lightingBatchThresholdMax = config.getInt("lighting-optimizations.async-lighting.batch-threshold-max", 64);
+        lightingAggressiveBatching = config.getBoolean("lighting-optimizations.async-lighting.aggressive-batching", false);
+        
+        lightingPrioritySchedulingEnabled = config.getBoolean("lighting-optimizations.async-lighting.priority-scheduling.enabled", true);
+        lightingHighPriorityRadius = config.getInt("lighting-optimizations.async-lighting.priority-scheduling.player-radius-high-priority", 32);
+        lightingMediumPriorityRadius = config.getInt("lighting-optimizations.async-lighting.priority-scheduling.player-radius-medium-priority", 64);
+        lightingLowPriorityRadius = config.getInt("lighting-optimizations.async-lighting.priority-scheduling.player-radius-low-priority", 128);
+        lightingMaxLowPriorityDelay = config.getLong("lighting-optimizations.async-lighting.priority-scheduling.max-low-priority-delay-ms", 500);
+        
+        lightingDebouncingEnabled = config.getBoolean("lighting-optimizations.async-lighting.debouncing.enabled", true);
+        lightingDebounceDelay = config.getLong("lighting-optimizations.async-lighting.debouncing.debounce-delay-ms", 50);
+        lightingMaxUpdatesPerSecond = config.getInt("lighting-optimizations.async-lighting.debouncing.max-updates-per-second", 20);
+        lightingResetOnStableMs = config.getLong("lighting-optimizations.async-lighting.debouncing.reset-on-stable-ms", 200);
+        
+        lightingMergingEnabled = config.getBoolean("lighting-optimizations.async-lighting.update-merging.enabled", true);
+        lightingMergeRadius = config.getInt("lighting-optimizations.async-lighting.update-merging.merge-radius", 2);
+        lightingMergeDelay = config.getLong("lighting-optimizations.async-lighting.update-merging.merge-delay-ms", 10);
+        lightingMaxMergedUpdates = config.getInt("lighting-optimizations.async-lighting.update-merging.max-merged-updates", 64);
+        
+        lightingChunkBorderEnabled = config.getBoolean("lighting-optimizations.async-lighting.chunk-border.enabled", true);
+        lightingBatchBorderUpdates = config.getBoolean("lighting-optimizations.async-lighting.chunk-border.batch-border-updates", true);
+        lightingBorderUpdateDelay = config.getLong("lighting-optimizations.async-lighting.chunk-border.border-update-delay-ms", 20);
+        lightingCrossChunkBatchSize = config.getInt("lighting-optimizations.async-lighting.chunk-border.cross-chunk-batch-size", 32);
+        
+        lightingAdaptiveEnabled = config.getBoolean("lighting-optimizations.async-lighting.adaptive.enabled", true);
+        lightingMonitorInterval = config.getInt("lighting-optimizations.async-lighting.adaptive.monitor-interval-seconds", 10);
+        lightingAutoAdjustThreads = config.getBoolean("lighting-optimizations.async-lighting.adaptive.auto-adjust-threads", true);
+        lightingAutoAdjustBatchSize = config.getBoolean("lighting-optimizations.async-lighting.adaptive.auto-adjust-batch-size", true);
+        lightingTargetQueueSize = config.getInt("lighting-optimizations.async-lighting.adaptive.target-queue-size", 100);
+        lightingTargetLatency = config.getInt("lighting-optimizations.async-lighting.adaptive.target-latency-ms", 50);
+        
+        lightingChunkUnloadEnabled = config.getBoolean("lighting-optimizations.async-lighting.chunk-unload.enabled", true);
+        lightingAsyncCleanup = config.getBoolean("lighting-optimizations.async-lighting.chunk-unload.async-cleanup", true);
+        lightingCleanupBatchSize = config.getInt("lighting-optimizations.async-lighting.chunk-unload.cleanup-batch-size", 16);
+        lightingCleanupDelay = config.getLong("lighting-optimizations.async-lighting.chunk-unload.cleanup-delay-ms", 100);
+        
+        noiseOptimizationEnabled = config.getBoolean("chunk-generation.noise-optimization.enabled", true);
+        jigsawOptimizationEnabled = config.getBoolean("chunk-generation.jigsaw-optimization.enabled", true);
+        
         playerChunkLoadingOptimizationEnabled = config.getBoolean("vmp-optimizations.chunk-loading.enabled", true);
         maxConcurrentChunkLoadsPerPlayer = config.getInt("vmp-optimizations.chunk-loading.max-concurrent-per-player", 5);
         entityTrackingRangeOptimizationEnabled = config.getBoolean("vmp-optimizations.entity-tracking.enabled", true);
@@ -413,19 +609,15 @@ public class ConfigManager {
         redstoneCacheEnabled = config.getBoolean("redstone-optimizations.cache.enabled", true);
         redstoneCacheDurationMs = config.getInt("redstone-optimizations.cache.duration-ms", 50);
         
-
         usePandaWireAlgorithm = config.getBoolean("redstone-optimizations.pandawire.enabled", false);
         redstoneNetworkCacheEnabled = config.getBoolean("redstone-optimizations.network-cache.enabled", false);
         redstoneNetworkCacheExpireTicks = config.getInt("redstone-optimizations.network-cache.expire-ticks", 600);
         
-        asyncVillagerBreedEnabled = config.getBoolean("villager-breed-optimization.async-villager-breed", true);
-        villagerAgeThrottleEnabled = config.getBoolean("villager-breed-optimization.age-throttle", true);
-        villagerBreedThreads = config.getInt("villager-breed-optimization.threads", 4);
-        villagerBreedCheckInterval = config.getInt("villager-breed-optimization.check-interval", 5);
         chunkTickAsyncEnabled = config.getBoolean("chunk-tick-async.enabled", false);
         chunkTickThreads = config.getInt("chunk-tick-async.threads", 4);
         chunkTickTimeoutMicros = config.getLong("chunk-tick-async.timeout-us", 200L);
         tntOptimizationEnabled = config.getBoolean("tnt-explosion-optimization.enabled", true);
+        tntDebugEnabled = config.getBoolean("performance.debug-logging.modules.tnt", false);
         tntExplosionEntities = new java.util.HashSet<>(config.getStringList("tnt-explosion-optimization.entities"));
         if (tntExplosionEntities.isEmpty()) {
             tntExplosionEntities.add("minecraft:tnt");
@@ -446,7 +638,6 @@ public class ConfigManager {
         tntLandProtectionEnabled = config.getBoolean("tnt-explosion-optimization.land-protection.enabled", true);
         blockLockerProtectionEnabled = config.getBoolean("tnt-explosion-optimization.blocklocker-protection.enabled", true);
         
-
         tntUseSakuraDensityCache = config.getBoolean("tnt-explosion-optimization.density-cache.enabled", true);
         tntMergeEnabled = config.getBoolean("tnt-explosion-optimization.entity-merge.enabled", false);
         tntMergeRadius = config.getDouble("tnt-explosion-optimization.entity-merge.radius", 1.5);
@@ -454,7 +645,35 @@ public class ConfigManager {
         tntMergedPowerMultiplier = (float) config.getDouble("tnt-explosion-optimization.entity-merge.power-multiplier", 0.5);
         
         beeFixEnabled = config.getBoolean("bee-fix.enabled", true);
+        endIslandDensityFixEnabled = config.getBoolean("end-island-density-fix.enabled", true);
+        
         enableDebugLogging = config.getBoolean("performance.debug-logging", false);
+        fluidOptimizationEnabled = config.getBoolean("fluid-flow-optimization.enabled", true);
+        fluidDebugEnabled = config.getBoolean("performance.debug.fluid", false);
+        fluidTickThrottleEnabled = config.getBoolean("fluid-flow-optimization.tick-throttle.enabled", true);
+        staticFluidInterval = config.getInt("fluid-flow-optimization.tick-throttle.static-fluid-interval", 5);
+        
+        fluidTickCompensationEnabled = config.getBoolean("fluid-flow-optimization.tt20-compensation.enabled", false);
+        fluidCompensationEnabledForWater = config.getBoolean("fluid-flow-optimization.tt20-compensation.enable-for-water", false);
+        fluidCompensationEnabledForLava = config.getBoolean("fluid-flow-optimization.tt20-compensation.enable-for-lava", false);
+        fluidCompensationTPSThreshold = config.getDouble("fluid-flow-optimization.tt20-compensation.tps-threshold", 18.0);
+        flowingFluidInterval = config.getInt("fluid-flow-optimization.tick-throttle.flowing-fluid-interval", 2);
+        
+        smartLagCompensationEnabled = config.getBoolean("smart-lag-compensation.enabled", true);
+        smartLagTPSThreshold = config.getDouble("smart-lag-compensation.tps-threshold", 18.0);
+        smartLagFluidCompensationEnabled = config.getBoolean("smart-lag-compensation.fluid.enabled", true);
+        smartLagFluidWaterEnabled = config.getBoolean("smart-lag-compensation.fluid.water", true);
+        smartLagFluidLavaEnabled = config.getBoolean("smart-lag-compensation.fluid.lava", true);
+        smartLagItemPickupDelayEnabled = config.getBoolean("smart-lag-compensation.item-pickup-delay.enabled", true);
+        smartLagPotionEffectsEnabled = config.getBoolean("smart-lag-compensation.potion-effects.enabled", false);
+        smartLagTimeAccelerationEnabled = config.getBoolean("smart-lag-compensation.time-acceleration.enabled", false);
+        smartLagDebugEnabled = config.getBoolean("performance.debug-logging.smart-lag-compensation.enabled", false);
+        smartLagLogMissedTicks = config.getBoolean("performance.debug-logging.smart-lag-compensation.log-missed-ticks", false);
+        smartLagLogCompensation = config.getBoolean("performance.debug-logging.smart-lag-compensation.log-compensation", false);
+        
+        experienceOrbInactiveTickEnabled = config.getBoolean("experience-orb-optimizations.inactive-tick.enabled", true);
+        experienceOrbInactiveRange = config.getDouble("experience-orb-optimizations.inactive-tick.inactive-range", 32.0);
+        experienceOrbInactiveMergeInterval = config.getInt("experience-orb-optimizations.inactive-tick.merge-interval", 100);
         enablePerformanceMetrics = config.getBoolean("performance.enable-metrics", true);
         configVersion = config.getInt("version", 6);
 
@@ -497,15 +716,12 @@ public class ConfigManager {
         dataPackCacheExpirationMinutes = config.getLong("datapack-optimization.cache-expiration-minutes", 30L);
         dataPackMaxFileCacheSize = config.getInt("datapack-optimization.max-file-cache-size", 1000);
         dataPackMaxFileSystemCacheSize = config.getInt("datapack-optimization.max-filesystem-cache-size", 50);
-        dataPackDebugEnabled = config.getBoolean("datapack-optimization.debug-enabled", false);
 
         nitoriOptimizationsEnabled = config.getBoolean("nitori.enabled", true);
         virtualThreadEnabled = config.getBoolean("nitori.virtual-threads", true);
         workStealingEnabled = config.getBoolean("nitori.work-stealing", true);
         blockPosCacheEnabled = config.getBoolean("nitori.blockpos-cache", true);
         optimizedCollectionsEnabled = config.getBoolean("nitori.optimized-collections", true);
-
-
 
         if (config.contains("seed-encryption.scheme")) {
 
@@ -516,10 +732,8 @@ public class ConfigManager {
             seedEncryptionProtectSlimes = config.getBoolean("seed-encryption.protect-slimes", true);
             seedEncryptionProtectBiomes = config.getBoolean("seed-encryption.protect-biomes", true);
             
-
             secureSeedBits = config.getInt("seed-encryption.legacy.seed-bits", 1024);
             
-
             quantumSeedEncryptionLevel = config.getInt("seed-encryption.quantum.encryption-level", 2);
             quantumSeedPrivateKeyFile = config.getString("seed-encryption.quantum.private-key-file", "quantum-seed.key");
             quantumSeedEnableTimeDecay = config.getBoolean("seed-encryption.quantum.enable-time-decay", false);
@@ -534,7 +748,6 @@ public class ConfigManager {
             seedEncryptionProtectBiomes = false;
             secureSeedBits = config.getInt("secure-seed.seed-bits", 1024);
             
-
             quantumSeedEncryptionLevel = 2;
             quantumSeedPrivateKeyFile = "quantum-seed.key";
             quantumSeedEnableTimeDecay = false;
@@ -558,50 +771,23 @@ public class ConfigManager {
         minFallingBlocksForParallel = config.getInt("falling-block-optimization.min-falling-blocks", 20);
         fallingBlockBatchSize = config.getInt("falling-block-optimization.batch-size", 10);
 
-        itemEntityParallelEnabled = config.getBoolean("item-entity-optimizations.parallel-processing.enabled", true);
-        minItemEntitiesForParallel = config.getInt("item-entity-optimizations.parallel-processing.min-item-entities", 50);
-        itemEntityBatchSize = config.getInt("item-entity-optimizations.parallel-processing.batch-size", 20);
         itemEntityMergeOptimizationEnabled = config.getBoolean("item-entity-optimizations.smart-merge.enabled", true);
+        itemEntityCancelVanillaMerge = config.getBoolean("item-entity-optimizations.smart-merge.cancel-vanilla-merge", true);
         itemEntityMergeInterval = config.getInt("item-entity-optimizations.smart-merge.merge-interval", 5);
         itemEntityMinNearbyItems = config.getInt("item-entity-optimizations.smart-merge.min-nearby-items", 3);
         itemEntityMergeRange = config.getDouble("item-entity-optimizations.smart-merge.merge-range", 1.5);
         itemEntityAgeOptimizationEnabled = config.getBoolean("item-entity-optimizations.age-optimization.enabled", true);
         itemEntityAgeInterval = config.getInt("item-entity-optimizations.age-optimization.age-interval", 10);
         itemEntityPlayerDetectionRange = config.getDouble("item-entity-optimizations.age-optimization.player-detection-range", 8.0);
+        itemEntityInactiveTickEnabled = config.getBoolean("item-entity-optimizations.inactive-tick.enabled", true);
+        itemEntityInactiveRange = config.getDouble("item-entity-optimizations.inactive-tick.inactive-range", 32.0);
+        itemEntityInactiveMergeInterval = config.getInt("item-entity-optimizations.inactive-tick.merge-interval", 100);
 
-        networkOptimizationEnabled = config.getBoolean("network-optimization.enabled", true);
-        packetPriorityEnabled = config.getBoolean("network-optimization.packet-priority.enabled", true);
-        chunkRateControlEnabled = config.getBoolean("network-optimization.chunk-rate-control.enabled", true);
-        congestionDetectionEnabled = config.getBoolean("network-optimization.congestion-detection.enabled", true);
-        viewFrustumFilterEnabled = config.getBoolean("network-optimization.view-frustum-filter.enabled", false);
-        viewFrustumFilterEntities = config.getBoolean("network-optimization.view-frustum-filter.filter-entities", true);
-        viewFrustumFilterBlocks = config.getBoolean("network-optimization.view-frustum-filter.filter-blocks", true);
-        viewFrustumFilterParticles = config.getBoolean("network-optimization.view-frustum-filter.filter-particles", true);
-        highPingThreshold = config.getInt("network-optimization.congestion-detection.high-ping-threshold", 200);
-        criticalPingThreshold = config.getInt("network-optimization.congestion-detection.critical-ping-threshold", 500);
-        highBandwidthThreshold = config.getLong("network-optimization.congestion-detection.high-bandwidth-threshold", 1048576L);
-        baseChunkSendRate = config.getInt("network-optimization.chunk-rate-control.base-rate", 10);
-        maxChunkSendRate = config.getInt("network-optimization.chunk-rate-control.max-rate", 20);
-        minChunkSendRate = config.getInt("network-optimization.chunk-rate-control.min-rate", 3);
-
-        packetSendRateBase = config.getInt("network-optimization.packet-priority.send-rate.base", 50);
-        packetSendRateMedium = config.getInt("network-optimization.packet-priority.send-rate.medium", 80);
-        packetSendRateHeavy = config.getInt("network-optimization.packet-priority.send-rate.heavy", 110);
-        packetSendRateExtreme = config.getInt("network-optimization.packet-priority.send-rate.extreme", 130);
-
-        queueLimitMaxTotal = config.getInt("network-optimization.packet-priority.queue-limits.max-total", 2500);
-        queueLimitMaxCritical = config.getInt("network-optimization.packet-priority.queue-limits.max-critical", 1200);
-        queueLimitMaxHigh = config.getInt("network-optimization.packet-priority.queue-limits.max-high", 800);
-        queueLimitMaxNormal = config.getInt("network-optimization.packet-priority.queue-limits.max-normal", 600);
-
-        accelerationThresholdMedium = config.getInt("network-optimization.packet-priority.acceleration-thresholds.medium", 100);
-        accelerationThresholdHeavy = config.getInt("network-optimization.packet-priority.acceleration-thresholds.heavy", 300);
-        accelerationThresholdExtreme = config.getInt("network-optimization.packet-priority.acceleration-thresholds.extreme", 500);
-
-        cleanupEnabled = config.getBoolean("network-optimization.packet-priority.cleanup.enabled", true);
-        cleanupStaleThreshold = config.getInt("network-optimization.packet-priority.cleanup.stale-threshold", 5);
-        cleanupCriticalCleanup = config.getInt("network-optimization.packet-priority.cleanup.critical-cleanup", 100);
-        cleanupNormalCleanup = config.getInt("network-optimization.packet-priority.cleanup.normal-cleanup", 50);
+        entityPacketThrottleEnabled = config.getBoolean("entity-packet-throttle.enabled", true);
+        
+        entityDataThrottleEnabled = config.getBoolean("entity-packet-throttle.data-throttle.enabled", true);
+        
+        chunkVisibilityFilterEnabled = config.getBoolean("chunk-visibility-filter.enabled", true);
 
         fastMovementChunkLoadEnabled = config.getBoolean("fast-movement-chunk-load.enabled", false);
         fastMovementSpeedThreshold = config.getDouble("fast-movement-chunk-load.speed-threshold", 0.5);
@@ -617,8 +803,6 @@ public class ConfigManager {
         asyncLoadingBatchSize = config.getInt("fast-movement-chunk-load.async-loading.batch-size", 2);
         asyncLoadingBatchDelayMs = config.getLong("fast-movement-chunk-load.async-loading.batch-delay-ms", 20L);
 
-        teleportOptimizationEnabled = config.getBoolean("network-optimization.teleport-optimization.enabled", true);
-        
         suffocationOptimizationEnabled = config.getBoolean("suffocation-optimization.enabled", true);
         
         fastRayTraceEnabled = config.getBoolean("async-ai.villager-optimization.fast-raytrace.enabled", true);
@@ -629,11 +813,6 @@ public class ConfigManager {
         
         mapRenderingOptimizationEnabled = config.getBoolean("fast-movement-chunk-load.map-rendering.enabled", false);
         mapRenderingThreads = config.getInt("fast-movement-chunk-load.map-rendering.threads", 2);
-        
-        teleportBypassQueue = config.getBoolean("network-optimization.teleport-optimization.bypass-queue", true);
-        teleportBoostDurationSeconds = config.getInt("network-optimization.teleport-optimization.boost-duration-seconds", 5);
-        teleportMaxChunkRate = config.getInt("network-optimization.teleport-optimization.max-chunk-rate", 25);
-        teleportFilterNonEssentialPackets = config.getBoolean("network-optimization.teleport-optimization.filter-non-essential-packets", true);
 
         virtualEntityCompatibilityEnabled = config.getBoolean("virtual-entity-compatibility.enabled", true);
         virtualEntityBypassPacketQueue = config.getBoolean("virtual-entity-compatibility.bypass-packet-queue", true);
@@ -741,13 +920,18 @@ public class ConfigManager {
         
         mobSpawningEnabled = config.getBoolean("mob-spawning.enabled", true);
         spawnerOptimizationEnabled = config.getBoolean("mob-spawning.spawner-optimization", true);
+        mobSpawnInterval = config.getInt("mob-spawning.spawn-interval", 1);
         densityControlEnabled = config.getBoolean("density.enabled", true);
         maxEntitiesPerChunk = config.getInt("density.max-per-chunk", 80);
-        brainThrottle = config.getBoolean("brain.throttle", true);
+        brainThrottle = config.getBoolean("brain.enabled", true);
         brainThrottleInterval = config.getInt("brain.throttle-interval", 10);
         asyncAITimeoutMicros = config.getLong("async-ai.timeout-microseconds", 500L);
         villagerOptimizationEnabled = config.getBoolean("async-ai.villager-optimization.enabled", false);
         villagerUsePOISnapshot = config.getBoolean("async-ai.villager-optimization.use-poi-snapshot", true);
+        wanderingTraderOptimizationEnabled = config.getBoolean("async-ai.wandering-trader-optimization.enabled", false);
+        wardenOptimizationEnabled = config.getBoolean("async-ai.warden-optimization.enabled", false);
+        hoglinOptimizationEnabled = config.getBoolean("async-ai.hoglin-optimization.enabled", false);
+        allayOptimizationEnabled = config.getBoolean("async-ai.allay-optimization.enabled", false);
         piglinOptimizationEnabled = config.getBoolean("async-ai.piglin-optimization.enabled", false);
         piglinUsePOISnapshot = config.getBoolean("async-ai.piglin-optimization.use-poi-snapshot", false);
         piglinLookDistance = config.getInt("async-ai.piglin-optimization.look-distance", 16);
@@ -765,11 +949,27 @@ public class ConfigManager {
         dabStartDistance = config.getInt("async-ai.universal-ai-optimization.dynamic-activation.start-distance", 12);
         dabActivationDistMod = config.getInt("async-ai.universal-ai-optimization.dynamic-activation.activation-dist-mod", 8);
         dabMaxTickInterval = config.getInt("async-ai.universal-ai-optimization.dynamic-activation.max-tick-interval", 20);
+        
+        brainMemoryOptimizationEnabled = config.getBoolean("async-ai.brain-memory-optimization.enabled", false);
+        poiSnapshotEnabled = config.getBoolean("async-ai.poi-snapshot.enabled", false);
+        
         asyncPathfindingEnabled = config.getBoolean("async-ai.async-pathfinding.enabled", true);
-        asyncPathfindingMaxThreads = config.getInt("async-ai.async-pathfinding.max-threads", 8);
+        asyncPathfindingMaxThreads = config.getInt("async-ai.async-pathfinding.max-threads", 6);
         asyncPathfindingKeepAliveSeconds = config.getInt("async-ai.async-pathfinding.keep-alive-seconds", 60);
         asyncPathfindingMaxQueueSize = config.getInt("async-ai.async-pathfinding.max-queue-size", 500);
-        asyncPathfindingTimeoutMs = config.getInt("async-ai.async-pathfinding.timeout-ms", 50);
+        asyncPathfindingTimeoutMs = config.getInt("async-ai.async-pathfinding.timeout-ms", 100);
+        asyncPathfindingSyncFallbackEnabled = config.getBoolean("async-ai.async-pathfinding.sync-fallback-enabled", true);
+        
+        enhancedPathfindingEnabled = config.getBoolean("async-ai.async-pathfinding.enhanced.enabled", true);
+        enhancedPathfindingMaxConcurrentRequests = config.getInt("async-ai.async-pathfinding.enhanced.max-concurrent-requests", 30);
+        enhancedPathfindingMaxRequestsPerTick = config.getInt("async-ai.async-pathfinding.enhanced.max-requests-per-tick", 15);
+        enhancedPathfindingHighPriorityDistance = config.getInt("async-ai.async-pathfinding.enhanced.priority.high-distance", 16);
+        enhancedPathfindingMediumPriorityDistance = config.getInt("async-ai.async-pathfinding.enhanced.priority.medium-distance", 48);
+        pathPrewarmEnabled = config.getBoolean("async-ai.async-pathfinding.enhanced.prewarm.enabled", true);
+        pathPrewarmRadius = config.getInt("async-ai.async-pathfinding.enhanced.prewarm.radius", 32);
+        pathPrewarmMaxMobsPerBatch = config.getInt("async-ai.async-pathfinding.enhanced.prewarm.max-mobs-per-batch", 5);
+        pathPrewarmMaxPoisPerMob = config.getInt("async-ai.async-pathfinding.enhanced.prewarm.max-pois-per-mob", 3);
+        
         entityThrottlingEnabled = config.getBoolean("entity-throttling.enabled", true);
         entityThrottlingConfigFile = config.getString("entity-throttling.config-file", "throttling.yml");
         entityThrottlingCheckInterval = config.getInt("entity-throttling.check-interval", 100);
@@ -824,6 +1024,7 @@ public class ConfigManager {
         redstoneCacheDurationMs = config.getInt("redstone-optimizations.cache.duration-ms", 50);
 
         tntOptimizationEnabled = config.getBoolean("tnt-explosion-optimization.enabled", true);
+        tntDebugEnabled = config.getBoolean("performance.debug-logging.modules.tnt", false);
         tntExplosionEntities = new java.util.HashSet<>(config.getStringList("tnt-explosion-optimization.entities"));
         if (tntExplosionEntities.isEmpty()) {
             tntExplosionEntities.add("minecraft:tnt");
@@ -843,7 +1044,20 @@ public class ConfigManager {
         tntUseVanillaDrops = config.getBoolean("tnt-explosion-optimization.vanilla-compatibility.use-vanilla-drops", true);
 
         beeFixEnabled = config.getBoolean("bee-fix.enabled", true);
-
+        endIslandDensityFixEnabled = config.getBoolean("end-island-density-fix.enabled", true);
+        portalSuffocationCheckDisabled = config.getBoolean("portal-suffocation-check.disabled", false);
+        shulkerBulletSelfHitFixEnabled = config.getBoolean("shulker-bullet-self-hit-fix.enabled", true);
+        
+        executeCommandInactiveSkipEnabled = config.getBoolean("datapack-optimization.execute-inactive-skip.enabled", false);
+        executeCommandSkipLevel = config.getInt("datapack-optimization.execute-inactive-skip.skip-level", 2);
+        executeCommandSimulationDistanceMultiplier = config.getDouble("datapack-optimization.execute-inactive-skip.simulation-distance-multiplier", 1.0);
+        executeCommandCacheDurationMs = config.getLong("datapack-optimization.execute-inactive-skip.cache-duration-ms", 1000L);
+        executeCommandWhitelistTypes = new java.util.HashSet<>(config.getStringList("datapack-optimization.execute-inactive-skip.whitelist-types"));
+        executeCommandDebugEnabled = config.getBoolean("performance.debug-logging.modules.execute-command", false);
+        
+        commandDeduplicationEnabled = config.getBoolean("datapack-optimization.command-deduplication.enabled", true);
+        commandDeduplicationDebugEnabled = config.getBoolean("performance.debug-logging.modules.command-deduplication", false);
+        
         chunkTickAsyncEnabled = config.getBoolean("chunk-tick-async.enabled", false);
         chunkTickThreads = config.getInt("chunk-tick-async.threads", 4);
         chunkTickTimeoutMicros = config.getLong("chunk-tick-async.timeout-us", 200L);
@@ -886,7 +1100,6 @@ public class ConfigManager {
         dataPackZipProcessThreads = config.getInt("datapack-optimization.zip-process-threads", 2);
         dataPackBatchSize = config.getInt("datapack-optimization.batch-size", 100);
         dataPackCacheExpirationMinutes = config.getLong("datapack-optimization.cache-expiration-minutes", 30L);
-        dataPackDebugEnabled = config.getBoolean("datapack-optimization.debug-enabled", false);
 
         enableDebugLogging = config.getBoolean("performance.debug-logging", false);
         enablePerformanceMetrics = config.getBoolean("performance.enable-metrics", true);
@@ -1062,6 +1275,98 @@ public class ConfigManager {
     public boolean isDebugLoggingEnabled() {
         return enableDebugLogging;
     }
+    
+    public boolean isFluidOptimizationEnabled() {
+        return fluidOptimizationEnabled;
+    }
+    
+    public boolean isFluidDebugEnabled() {
+        return fluidDebugEnabled;
+    }
+    
+    public boolean isFluidTickThrottleEnabled() {
+        return fluidTickThrottleEnabled;
+    }
+    
+    public int getStaticFluidInterval() {
+        return staticFluidInterval;
+    }
+    
+    public int getFlowingFluidInterval() {
+        return flowingFluidInterval;
+    }
+    
+    public boolean isFluidTickCompensationEnabled() {
+        return fluidTickCompensationEnabled;
+    }
+    
+    public boolean isFluidCompensationEnabledForWater() {
+        return fluidCompensationEnabledForWater;
+    }
+    
+    public boolean isFluidCompensationEnabledForLava() {
+        return fluidCompensationEnabledForLava;
+    }
+    
+    public double getFluidCompensationTPSThreshold() {
+        return fluidCompensationTPSThreshold;
+    }
+    
+    public boolean isSmartLagCompensationEnabled() {
+        return smartLagCompensationEnabled;
+    }
+    
+    public double getSmartLagTPSThreshold() {
+        return smartLagTPSThreshold;
+    }
+    
+    public boolean isSmartLagFluidCompensationEnabled() {
+        return smartLagFluidCompensationEnabled;
+    }
+    
+    public boolean isSmartLagFluidWaterEnabled() {
+        return smartLagFluidWaterEnabled;
+    }
+    
+    public boolean isSmartLagFluidLavaEnabled() {
+        return smartLagFluidLavaEnabled;
+    }
+    
+    public boolean isSmartLagItemPickupDelayEnabled() {
+        return smartLagItemPickupDelayEnabled;
+    }
+    
+    public boolean isSmartLagPotionEffectsEnabled() {
+        return smartLagPotionEffectsEnabled;
+    }
+    
+    public boolean isSmartLagTimeAccelerationEnabled() {
+        return smartLagTimeAccelerationEnabled;
+    }
+    
+    public boolean isSmartLagDebugEnabled() {
+        return smartLagDebugEnabled || enableDebugLogging;
+    }
+    
+    public boolean isSmartLagLogMissedTicks() {
+        return smartLagLogMissedTicks && isSmartLagDebugEnabled();
+    }
+    
+    public boolean isSmartLagLogCompensation() {
+        return smartLagLogCompensation && isSmartLagDebugEnabled();
+    }
+    
+    public boolean isExperienceOrbInactiveTickEnabled() {
+        return experienceOrbInactiveTickEnabled;
+    }
+    
+    public double getExperienceOrbInactiveRange() {
+        return experienceOrbInactiveRange;
+    }
+    
+    public int getExperienceOrbInactiveMergeInterval() {
+        return experienceOrbInactiveMergeInterval;
+    }
 
     public void setDebugLoggingEnabled(boolean enabled) {
         this.enableDebugLogging = enabled;
@@ -1088,6 +1393,12 @@ public class ConfigManager {
     public int getMaxEntitiesPerChunk() {
         return maxEntitiesPerChunk;
     }
+    
+    private int mobSpawnInterval = 1;
+    
+    public int getMobSpawnInterval() {
+        return mobSpawnInterval;
+    }
 
     public boolean isBrainThrottleEnabled() { return brainThrottle; }
     public int getBrainThrottleInterval() { return brainThrottleInterval; }
@@ -1098,10 +1409,23 @@ public class ConfigManager {
     public boolean isMobDespawnOptimizationEnabled() { return mobDespawnOptimizationEnabled; }
     public int getMobDespawnCheckInterval() { return mobDespawnCheckInterval; }
     public long getAsyncAITimeoutMicros() { return asyncAITimeoutMicros; }
+    
+    public boolean isAiSpatialIndexEnabled() { return aiSpatialIndexEnabled; }
+    public int getAiSpatialIndexGridSize() { return aiSpatialIndexGridSize; }
+    public boolean isAiSpatialIndexAutoUpdate() { return aiSpatialIndexAutoUpdate; }
+    public boolean isAiSpatialIndexPlayerIndexEnabled() { return aiSpatialIndexPlayerIndexEnabled; }
+    public boolean isAiSpatialIndexPoiIndexEnabled() { return aiSpatialIndexPoiIndexEnabled; }
+    public boolean isAiSpatialIndexStatisticsEnabled() { return aiSpatialIndexStatisticsEnabled; }
+    public int getAiSpatialIndexLogIntervalSeconds() { return aiSpatialIndexLogIntervalSeconds; }
+    
     public boolean isVillagerOptimizationEnabled() { return villagerOptimizationEnabled; }
     public boolean isVillagerUsePOISnapshot() { return villagerUsePOISnapshot; }
     public boolean isVillagerPoiCacheEnabled() { return villagerPoiCacheEnabled; }
     public int getVillagerPoiCacheExpireTime() { return villagerPoiCacheExpireTime; }
+    public boolean isWanderingTraderOptimizationEnabled() { return wanderingTraderOptimizationEnabled; }
+    public boolean isWardenOptimizationEnabled() { return wardenOptimizationEnabled; }
+    public boolean isHoglinOptimizationEnabled() { return hoglinOptimizationEnabled; }
+    public boolean isAllayOptimizationEnabled() { return allayOptimizationEnabled; }
     public boolean isPiglinOptimizationEnabled() { return piglinOptimizationEnabled; }
     public boolean isPiglinUsePOISnapshot() { return piglinUsePOISnapshot; }
     public int getPiglinLookDistance() { return piglinLookDistance; }
@@ -1118,11 +1442,62 @@ public class ConfigManager {
     public int getDabStartDistance() { return dabStartDistance; }
     public int getDabActivationDistMod() { return dabActivationDistMod; }
     public int getDabMaxTickInterval() { return dabMaxTickInterval; }
+    
+    public boolean isBrainMemoryOptimizationEnabled() { return brainMemoryOptimizationEnabled; }
+    public boolean isPoiSnapshotEnabled() { return poiSnapshotEnabled; }
     public boolean isAsyncPathfindingEnabled() { return asyncPathfindingEnabled; }
     public int getAsyncPathfindingMaxThreads() { return asyncPathfindingMaxThreads; }
     public int getAsyncPathfindingKeepAliveSeconds() { return asyncPathfindingKeepAliveSeconds; }
     public int getAsyncPathfindingMaxQueueSize() { return asyncPathfindingMaxQueueSize; }
     public int getAsyncPathfindingTimeoutMs() { return asyncPathfindingTimeoutMs; }
+    public boolean isAsyncPathfindingSyncFallbackEnabled() { return asyncPathfindingSyncFallbackEnabled; }
+    
+    public boolean isEnhancedPathfindingEnabled() { return enhancedPathfindingEnabled; }
+    public int getEnhancedPathfindingMaxConcurrentRequests() { return enhancedPathfindingMaxConcurrentRequests; }
+    public int getEnhancedPathfindingMaxRequestsPerTick() { return enhancedPathfindingMaxRequestsPerTick; }
+    public int getEnhancedPathfindingHighPriorityDistance() { return enhancedPathfindingHighPriorityDistance; }
+    public int getEnhancedPathfindingMediumPriorityDistance() { return enhancedPathfindingMediumPriorityDistance; }
+    public boolean isPathPrewarmEnabled() { return pathPrewarmEnabled; }
+    public int getPathPrewarmRadius() { return pathPrewarmRadius; }
+    public int getPathPrewarmMaxMobsPerBatch() { return pathPrewarmMaxMobsPerBatch; }
+    public int getPathPrewarmMaxPoisPerMob() { return pathPrewarmMaxPoisPerMob; }
+    public boolean isAsyncPathfindingCacheEnabled() { return asyncPathfindingCacheEnabled; }
+    public int getAsyncPathfindingCacheMaxSize() { return asyncPathfindingCacheMaxSize; }
+    public int getAsyncPathfindingCacheExpireSeconds() { return asyncPathfindingCacheExpireSeconds; }
+    public int getAsyncPathfindingCacheReuseTolerance() { return asyncPathfindingCacheReuseTolerance; }
+    public int getAsyncPathfindingCacheCleanupIntervalSeconds() { return asyncPathfindingCacheCleanupIntervalSeconds; }
+    public boolean isCollisionOptimizationEnabled() { return collisionOptimizationEnabled; }
+    public boolean isCollisionAggressiveMode() { return collisionAggressiveMode; }
+    public java.util.Set<String> getCollisionExcludedEntities() { return collisionExcludedEntities; }
+    public boolean isCollisionCacheEnabled() { return collisionCacheEnabled; }
+    public int getCollisionCacheLifetimeMs() { return collisionCacheLifetimeMs; }
+    public double getCollisionCacheMovementThreshold() { return collisionCacheMovementThreshold; }
+    public boolean isCollisionSpatialPartitionEnabled() { return collisionSpatialPartitionEnabled; }
+    public int getCollisionSpatialGridSize() { return collisionSpatialGridSize; }
+    public int getCollisionSpatialDensityThreshold() { return collisionSpatialDensityThreshold; }
+    public int getCollisionSpatialUpdateIntervalMs() { return collisionSpatialUpdateIntervalMs; }
+    public double getCollisionSkipMinMovement() { return collisionSkipMinMovement; }
+    public int getCollisionSkipCheckIntervalMs() { return collisionSkipCheckIntervalMs; }
+    public boolean isPushOptimizationEnabled() { return pushOptimizationEnabled; }
+    public double getPushMaxPushPerTick() { return pushMaxPushPerTick; }
+    public double getPushDampingFactor() { return pushDampingFactor; }
+    public int getPushHighDensityThreshold() { return pushHighDensityThreshold; }
+    public double getPushHighDensityMultiplier() { return pushHighDensityMultiplier; }
+    public boolean isAdvancedCollisionOptimizationEnabled() { return advancedCollisionOptimizationEnabled; }
+    public int getCollisionThreshold() { return collisionThreshold; }
+    public float getSuffocationDamage() { return suffocationDamage; }
+    public int getMaxPushIterations() { return maxPushIterations; }
+    public boolean isUseSectionGrid() { return useSectionGrid; }
+    public boolean isSectionGridWarmup() { return sectionGridWarmup; }
+    public boolean isTntCacheEnabled() { return tntCacheEnabled; }
+    public boolean isTntUseOptimizedCache() { return tntUseOptimizedCache; }
+    public int getTntCacheExpiryTicks() { return tntCacheExpiryTicks; }
+    public boolean isTntCacheWarmupEnabled() { return tntCacheWarmupEnabled; }
+    public boolean isTntPrecomputedShapeEnabled() { return tntPrecomputedShapeEnabled; }
+    public boolean isTntUseOcclusionDetection() { return tntUseOcclusionDetection; }
+    public double getTntOcclusionThreshold() { return tntOcclusionThreshold; }
+    public boolean isTntBatchCollisionEnabled() { return tntBatchCollisionEnabled; }
+    public int getTntBatchUnrollFactor() { return tntBatchUnrollFactor; }
     public boolean isEntityThrottlingEnabled() { return entityThrottlingEnabled; }
     public String getEntityThrottlingConfigFile() { return entityThrottlingConfigFile; }
     public int getEntityThrottlingCheckInterval() { return entityThrottlingCheckInterval; }
@@ -1166,7 +1541,6 @@ public class ConfigManager {
     public boolean isRedstoneCacheEnabled() { return redstoneCacheEnabled; }
     public int getRedstoneCacheDurationMs() { return redstoneCacheDurationMs; }
     
-
     public boolean isUsePandaWireAlgorithm() { return usePandaWireAlgorithm; }
     public boolean isRedstoneNetworkCacheEnabled() { return redstoneNetworkCacheEnabled; }
     public int getRedstoneNetworkCacheExpireTicks() { return redstoneNetworkCacheExpireTicks; }
@@ -1186,13 +1560,27 @@ public class ConfigManager {
     public int getTNTMaxBlocks() { return tntMaxBlocks; }
     public long getTNTTimeoutMicros() { return tntTimeoutMicros; }
     public int getTNTBatchSize() { return tntBatchSize; }
-    public boolean isTNTDebugEnabled() { return enableDebugLogging; }
+    public boolean isTNTDebugEnabled() { return tntDebugEnabled || enableDebugLogging; }
     public boolean isTNTVanillaCompatibilityEnabled() { return tntVanillaCompatibilityEnabled; }
     public boolean isTNTUseVanillaPower() { return tntUseVanillaPower; }
     public boolean isTNTUseVanillaFireLogic() { return tntUseVanillaFireLogic; }
     public boolean isTNTUseVanillaDamageCalculation() { return tntUseVanillaDamageCalculation; }
     public boolean isTNTUseFullRaycast() { return tntUseFullRaycast; }
     public boolean isBeeFixEnabled() { return beeFixEnabled; }
+    public boolean isEndIslandDensityFixEnabled() { return endIslandDensityFixEnabled; }
+    public boolean isPortalSuffocationCheckDisabled() { return portalSuffocationCheckDisabled; }
+    public boolean isShulkerBulletSelfHitFixEnabled() { return shulkerBulletSelfHitFixEnabled; }
+    
+    public boolean isExecuteCommandInactiveSkipEnabled() { return executeCommandInactiveSkipEnabled; }
+    public int getExecuteCommandSkipLevel() { return executeCommandSkipLevel; }
+    public double getExecuteCommandSimulationDistanceMultiplier() { return executeCommandSimulationDistanceMultiplier; }
+    public long getExecuteCommandCacheDurationMs() { return executeCommandCacheDurationMs; }
+    public Set<String> getExecuteCommandWhitelistTypes() { return executeCommandWhitelistTypes; }
+    public boolean isExecuteCommandDebugEnabled() { return executeCommandDebugEnabled; }
+    
+    public boolean isCommandDeduplicationEnabled() { return commandDeduplicationEnabled; }
+    public boolean isCommandDeduplicationDebugEnabled() { return commandDeduplicationDebugEnabled; }
+    
     public boolean isTNTUseVanillaBlockDestruction() { return tntUseVanillaBlockDestruction; }
     public boolean isTNTUseVanillaDrops() { return tntUseVanillaDrops; }
     public boolean isTNTLandProtectionEnabled() { return tntLandProtectionEnabled; }
@@ -1236,14 +1624,13 @@ public class ConfigManager {
     public long getDataPackCacheExpirationMinutes() { return dataPackCacheExpirationMinutes; }
     public int getDataPackMaxFileCacheSize() { return dataPackMaxFileCacheSize; }
     public int getDataPackMaxFileSystemCacheSize() { return dataPackMaxFileSystemCacheSize; }
-    public boolean isDataPackDebugEnabled() { return dataPackDebugEnabled; }
+    public boolean isDataPackDebugEnabled() { return enableDebugLogging; }
 
     public boolean isNitoriOptimizationsEnabled() { return nitoriOptimizationsEnabled; }
     public boolean isVirtualThreadEnabled() { return virtualThreadEnabled; }
     public boolean isWorkStealingEnabled() { return workStealingEnabled; }
     public boolean isBlockPosCacheEnabled() { return blockPosCacheEnabled; }
     public boolean isOptimizedCollectionsEnabled() { return optimizedCollectionsEnabled; }
-
 
     public String getSeedEncryptionScheme() { return seedEncryptionScheme; }
     public boolean isSeedEncryptionEnabled() { return seedEncryptionEnabled; }
@@ -1252,7 +1639,6 @@ public class ConfigManager {
     public boolean isSeedEncryptionProtectSlimes() { return seedEncryptionProtectSlimes; }
     public boolean isSeedEncryptionProtectBiomes() { return seedEncryptionProtectBiomes; }
     
-
     public boolean isSecureSeedEnabled() { return seedEncryptionEnabled; }
     public boolean isSecureSeedProtectStructures() { return seedEncryptionProtectStructures; }
     public boolean isSecureSeedProtectOres() { return seedEncryptionProtectOres; }
@@ -1260,7 +1646,6 @@ public class ConfigManager {
     public int getSecureSeedBits() { return secureSeedBits; }
     public boolean isSecureSeedDebugLogging() { return enableDebugLogging; }
     
-
     public boolean isQuantumSeedEnabled() { return seedEncryptionEnabled && "quantum".equalsIgnoreCase(seedEncryptionScheme); }
     public int getQuantumSeedEncryptionLevel() { return quantumSeedEncryptionLevel; }
     public String getQuantumSeedPrivateKeyFile() { return quantumSeedPrivateKeyFile; }
@@ -1268,12 +1653,10 @@ public class ConfigManager {
     public int getQuantumSeedCacheSize() { return quantumSeedCacheSize; }
     public boolean isQuantumSeedDebugLogging() { return enableDebugLogging; }
     
-
     public boolean isSeedCommandRestrictionEnabled() {
         return config.getBoolean("seed-encryption.restrict-seed-command", true);
     }
     
-
     public boolean isSeedProtectionEnabled() {
         return config.getBoolean("seed-encryption.anti-plugin-theft.enabled", true);
     }
@@ -1305,55 +1688,26 @@ public class ConfigManager {
     public int getMinFallingBlocksForParallel() { return minFallingBlocksForParallel; }
     public int getFallingBlockBatchSize() { return fallingBlockBatchSize; }
 
-    public boolean isItemEntityParallelEnabled() { return itemEntityParallelEnabled; }
-    public int getMinItemEntitiesForParallel() { return minItemEntitiesForParallel; }
-    public int getItemEntityBatchSize() { return itemEntityBatchSize; }
     public boolean isItemEntityMergeOptimizationEnabled() { return itemEntityMergeOptimizationEnabled; }
+    public boolean isItemEntityCancelVanillaMerge() { return itemEntityCancelVanillaMerge; }
     public int getItemEntityMergeInterval() { return itemEntityMergeInterval; }
     public int getItemEntityMinNearbyItems() { return itemEntityMinNearbyItems; }
     public double getItemEntityMergeRange() { return itemEntityMergeRange; }
     public boolean isItemEntityAgeOptimizationEnabled() { return itemEntityAgeOptimizationEnabled; }
     public int getItemEntityAgeInterval() { return itemEntityAgeInterval; }
     public double getItemEntityPlayerDetectionRange() { return itemEntityPlayerDetectionRange; }
+    public boolean isItemEntityInactiveTickEnabled() { return itemEntityInactiveTickEnabled; }
+    public double getItemEntityInactiveRange() { return itemEntityInactiveRange; }
+    public int getItemEntityInactiveMergeInterval() { return itemEntityInactiveMergeInterval; }
 
-    public boolean isNetworkOptimizationEnabled() { return networkOptimizationEnabled; }
-    public boolean isPacketPriorityEnabled() { return packetPriorityEnabled; }
-    public boolean isChunkRateControlEnabled() { return chunkRateControlEnabled; }
-    public boolean isCongestionDetectionEnabled() { return congestionDetectionEnabled; }
-    public boolean isViewFrustumFilterEnabled() { return viewFrustumFilterEnabled; }
-    public boolean isViewFrustumFilterEntities() { return viewFrustumFilterEntities; }
-    public boolean isViewFrustumFilterBlocks() { return viewFrustumFilterBlocks; }
-    public boolean isViewFrustumFilterParticles() { return viewFrustumFilterParticles; }
+    public boolean isEntityPacketThrottleEnabled() { return entityPacketThrottleEnabled; }
+    public boolean isEntityDataThrottleEnabled() { return entityDataThrottleEnabled; }
+    public boolean isChunkVisibilityFilterEnabled() { return chunkVisibilityFilterEnabled; }
     
     public boolean isSuffocationOptimizationEnabled() { return suffocationOptimizationEnabled; }
     public boolean isFastRayTraceEnabled() { return fastRayTraceEnabled; }
     public boolean isMapRenderingOptimizationEnabled() { return mapRenderingOptimizationEnabled; }
     public int getMapRenderingThreads() { return mapRenderingThreads; }
-    public int getHighPingThreshold() { return highPingThreshold; }
-    public int getCriticalPingThreshold() { return criticalPingThreshold; }
-    public long getHighBandwidthThreshold() { return highBandwidthThreshold; }
-    public int getBaseChunkSendRate() { return baseChunkSendRate; }
-    public int getMaxChunkSendRate() { return maxChunkSendRate; }
-    public int getMinChunkSendRate() { return minChunkSendRate; }
-
-    public int getPacketSendRateBase() { return packetSendRateBase; }
-    public int getPacketSendRateMedium() { return packetSendRateMedium; }
-    public int getPacketSendRateHeavy() { return packetSendRateHeavy; }
-    public int getPacketSendRateExtreme() { return packetSendRateExtreme; }
-
-    public int getQueueLimitMaxTotal() { return queueLimitMaxTotal; }
-    public int getQueueLimitMaxCritical() { return queueLimitMaxCritical; }
-    public int getQueueLimitMaxHigh() { return queueLimitMaxHigh; }
-    public int getQueueLimitMaxNormal() { return queueLimitMaxNormal; }
-
-    public int getAccelerationThresholdMedium() { return accelerationThresholdMedium; }
-    public int getAccelerationThresholdHeavy() { return accelerationThresholdHeavy; }
-    public int getAccelerationThresholdExtreme() { return accelerationThresholdExtreme; }
-
-    public boolean isCleanupEnabled() { return cleanupEnabled; }
-    public int getCleanupStaleThreshold() { return cleanupStaleThreshold; }
-    public int getCleanupCriticalCleanup() { return cleanupCriticalCleanup; }
-    public int getCleanupNormalCleanup() { return cleanupNormalCleanup; }
 
     public boolean isFastMovementChunkLoadEnabled() { return fastMovementChunkLoadEnabled; }
     public double getFastMovementSpeedThreshold() { return fastMovementSpeedThreshold; }
@@ -1372,12 +1726,6 @@ public class ConfigManager {
         return config != null ? config.getBoolean(path, defaultValue) : defaultValue;
     }
 
-    public boolean isTeleportOptimizationEnabled() { return teleportOptimizationEnabled; }
-    public boolean isTeleportPacketBypassEnabled() { return teleportBypassQueue; }
-    public int getTeleportBoostDurationSeconds() { return teleportBoostDurationSeconds; }
-    public int getTeleportMaxChunkRate() { return teleportMaxChunkRate; }
-    public boolean isTeleportFilterNonEssentialPackets() { return teleportFilterNonEssentialPackets; }
-
     public boolean isVirtualEntityCompatibilityEnabled() { return virtualEntityCompatibilityEnabled; }
     public boolean isVirtualEntityBypassPacketQueue() { return virtualEntityBypassPacketQueue; }
     public boolean isVirtualEntityExcludeFromThrottling() { return virtualEntityExcludeFromThrottling; }
@@ -1392,4 +1740,88 @@ public class ConfigManager {
     public int getZnpcsplusPriority() { return znpcsplusPriority; }
     
     public java.util.List<String> getVirtualEntityDetectionOrder() { return virtualEntityDetectionOrder; }
+
+    private void loadPathfindingAndCollisionConfigs() {
+        asyncPathfindingCacheEnabled = config.getBoolean("async-ai.async-pathfinding.cache.enabled", true);
+        asyncPathfindingCacheMaxSize = config.getInt("async-ai.async-pathfinding.cache.max-size", 1000);
+        asyncPathfindingCacheExpireSeconds = config.getInt("async-ai.async-pathfinding.cache.expire-seconds", 30);
+        asyncPathfindingCacheReuseTolerance = config.getInt("async-ai.async-pathfinding.cache.reuse-tolerance", 3);
+        asyncPathfindingCacheCleanupIntervalSeconds = config.getInt("async-ai.async-pathfinding.cache.cleanup-interval-seconds", 5);
+        collisionOptimizationEnabled = config.getBoolean("collision-optimization.enabled", true);
+        collisionAggressiveMode = config.getBoolean("collision-optimization.aggressive-mode", true);
+        collisionExclusionListFile = config.getString("collision-optimization.exclusion-list-file", "entities.yml");
+        collisionExcludedEntities = loadEntitiesFromFile(collisionExclusionListFile, "collision-optimization-excluded-entities");
+        collisionCacheEnabled = config.getBoolean("collision-optimization.cache.enabled", true);
+        collisionCacheLifetimeMs = config.getInt("collision-optimization.cache.lifetime-ms", 50);
+        collisionCacheMovementThreshold = config.getDouble("collision-optimization.cache.movement-threshold", 0.01);
+        collisionSpatialPartitionEnabled = config.getBoolean("collision-optimization.spatial-partition.enabled", true);
+        collisionSpatialGridSize = config.getInt("collision-optimization.spatial-partition.grid-size", 4);
+        collisionSpatialDensityThreshold = config.getInt("collision-optimization.spatial-partition.density-threshold", 50);
+        collisionSpatialUpdateIntervalMs = config.getInt("collision-optimization.spatial-partition.update-interval-ms", 100);
+        collisionSkipMinMovement = config.getDouble("collision-optimization.skip-checks.min-movement", 0.001);
+        collisionSkipCheckIntervalMs = config.getInt("collision-optimization.skip-checks.check-interval-ms", 50);
+        pushOptimizationEnabled = config.getBoolean("collision-optimization.push-optimization.enabled", true);
+        pushMaxPushPerTick = config.getDouble("collision-optimization.push-optimization.max-push-per-tick", 0.5);
+        pushDampingFactor = config.getDouble("collision-optimization.push-optimization.damping-factor", 0.7);
+        pushHighDensityThreshold = config.getInt("collision-optimization.push-optimization.high-density-threshold", 10);
+        pushHighDensityMultiplier = config.getDouble("collision-optimization.push-optimization.high-density-multiplier", 0.3);
+        advancedCollisionOptimizationEnabled = config.getBoolean("collision-optimization.advanced.enabled", true);
+        collisionThreshold = config.getInt("collision-optimization.advanced.collision-threshold", 8);
+        suffocationDamage = (float) config.getDouble("collision-optimization.advanced.suffocation-damage", 0.5);
+        maxPushIterations = config.getInt("collision-optimization.advanced.max-push-iterations", 8);
+        useSectionGrid = config.getBoolean("collision-optimization.advanced.use-section-grid", true);
+        sectionGridWarmup = config.getBoolean("collision-optimization.advanced.section-grid-warmup", false);
+        tntCacheEnabled = config.getBoolean("tnt-explosion-optimization.cache.enabled", true);
+        tntUseOptimizedCache = config.getBoolean("tnt-explosion-optimization.cache.use-optimized-cache", true);
+        tntCacheExpiryTicks = config.getInt("tnt-explosion-optimization.cache.cache-expiry-ticks", 600);
+        tntCacheWarmupEnabled = config.getBoolean("tnt-explosion-optimization.cache.warmup-enabled", false);
+        tntPrecomputedShapeEnabled = config.getBoolean("tnt-explosion-optimization.precomputed-shape.enabled", true);
+        tntUseOcclusionDetection = config.getBoolean("tnt-explosion-optimization.precomputed-shape.use-occlusion-detection", true);
+        tntOcclusionThreshold = config.getDouble("tnt-explosion-optimization.precomputed-shape.occlusion-threshold", 0.5);
+        tntBatchCollisionEnabled = config.getBoolean("tnt-explosion-optimization.batch-collision.enabled", true);
+        tntBatchUnrollFactor = config.getInt("tnt-explosion-optimization.batch-collision.unroll-factor", 4);
+    }
+    
+    public String getLightingThreadPoolMode() { return lightingThreadPoolMode; }
+    public String getLightingThreadPoolCalculation() { return lightingThreadPoolCalculation; }
+    public int getLightingMinThreads() { return lightingMinThreads; }
+    public int getLightingMaxThreads() { return lightingMaxThreads; }
+    public int getLightingBatchThresholdMax() { return lightingBatchThresholdMax; }
+    public boolean isLightingAggressiveBatching() { return lightingAggressiveBatching; }
+    
+    public boolean isLightingPrioritySchedulingEnabled() { return lightingPrioritySchedulingEnabled; }
+    public int getLightingHighPriorityRadius() { return lightingHighPriorityRadius; }
+    public int getLightingMediumPriorityRadius() { return lightingMediumPriorityRadius; }
+    public int getLightingLowPriorityRadius() { return lightingLowPriorityRadius; }
+    public long getLightingMaxLowPriorityDelay() { return lightingMaxLowPriorityDelay; }
+    
+    public boolean isLightingDebouncingEnabled() { return lightingDebouncingEnabled; }
+    public long getLightingDebounceDelay() { return lightingDebounceDelay; }
+    public int getLightingMaxUpdatesPerSecond() { return lightingMaxUpdatesPerSecond; }
+    public long getLightingResetOnStableMs() { return lightingResetOnStableMs; }
+    
+    public boolean isLightingMergingEnabled() { return lightingMergingEnabled; }
+    public int getLightingMergeRadius() { return lightingMergeRadius; }
+    public long getLightingMergeDelay() { return lightingMergeDelay; }
+    public int getLightingMaxMergedUpdates() { return lightingMaxMergedUpdates; }
+    
+    public boolean isLightingChunkBorderEnabled() { return lightingChunkBorderEnabled; }
+    public boolean isLightingBatchBorderUpdates() { return lightingBatchBorderUpdates; }
+    public long getLightingBorderUpdateDelay() { return lightingBorderUpdateDelay; }
+    public int getLightingCrossChunkBatchSize() { return lightingCrossChunkBatchSize; }
+    
+    public boolean isLightingAdaptiveEnabled() { return lightingAdaptiveEnabled; }
+    public int getLightingMonitorInterval() { return lightingMonitorInterval; }
+    public boolean isLightingAutoAdjustThreads() { return lightingAutoAdjustThreads; }
+    public boolean isLightingAutoAdjustBatchSize() { return lightingAutoAdjustBatchSize; }
+    public int getLightingTargetQueueSize() { return lightingTargetQueueSize; }
+    public int getLightingTargetLatency() { return lightingTargetLatency; }
+    
+    public boolean isLightingChunkUnloadEnabled() { return lightingChunkUnloadEnabled; }
+    public boolean isLightingAsyncCleanup() { return lightingAsyncCleanup; }
+    public int getLightingCleanupBatchSize() { return lightingCleanupBatchSize; }
+    public long getLightingCleanupDelay() { return lightingCleanupDelay; }
+    
+    public boolean isNoiseOptimizationEnabled() { return noiseOptimizationEnabled; }
+    public boolean isJigsawOptimizationEnabled() { return jigsawOptimizationEnabled; }
 }

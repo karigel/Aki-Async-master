@@ -18,23 +18,34 @@ public class CacheManager {
         startPeriodicCleanup();
     }
     
-    
     private void startPeriodicCleanup() {
-
-        plugin.getServer().getScheduler().runTaskTimerAsynchronously(plugin, () -> {
-            try {
-                cleanupExpired();
-                
-
-                org.virgil.akiasync.cache.SakuraCacheStatistics.performPeriodicCleanup();
-                
-                if (plugin.getConfigManager().isDebugLoggingEnabled()) {
-                    plugin.getLogger().info("[AkiAsync-Cache] Periodic cleanup completed");
+        
+        try {
+            java.util.concurrent.ScheduledExecutorService scheduler = 
+                java.util.concurrent.Executors.newSingleThreadScheduledExecutor(r -> {
+                    Thread t = new Thread(r, "AkiAsync-CacheCleanup");
+                    t.setDaemon(true);
+                    return t;
+                });
+            
+            scheduler.scheduleAtFixedRate(() -> {
+                try {
+                    cleanupExpired();
+                    org.virgil.akiasync.cache.SakuraCacheStatistics.performPeriodicCleanup();
+                    
+                    if (plugin.getConfigManager().isDebugLoggingEnabled()) {
+                        plugin.getLogger().info("[AkiAsync-Cache] Periodic cleanup completed");
+                    }
+                } catch (Exception e) {
+                    plugin.getLogger().warning("[AkiAsync-Cache] Error during periodic cleanup: " + e.getMessage());
                 }
-            } catch (Exception e) {
-                plugin.getLogger().warning("[AkiAsync-Cache] Error during periodic cleanup: " + e.getMessage());
-            }
-        }, 6000L, 6000L);
+            }, 5, 300, java.util.concurrent.TimeUnit.SECONDS);
+            
+            plugin.getLogger().info("[AkiAsync-Cache] Periodic cleanup scheduled using thread pool");
+        } catch (Exception e) {
+            plugin.getLogger().severe("[AkiAsync-Cache] Failed to start periodic cleanup: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     public void invalidateAll() {
@@ -55,7 +66,6 @@ public class CacheManager {
                 plugin.getLogger().warning("Failed to reset brain executor statistics: " + e.getMessage());
             }
             
-
             try {
                 clearSakuraOptimizationCaches();
             } catch (Exception e) {
@@ -65,7 +75,6 @@ public class CacheManager {
 
         plugin.getLogger().info("[AkiAsync] Main caches cleared, controlled cleanup in progress");
     }
-    
     
     private void clearSakuraOptimizationCaches() {
 
@@ -98,7 +107,6 @@ public class CacheManager {
             return null;
         }
         
-
         if (entry.isExpired()) {
             globalCache.remove(key);
             return null;
@@ -128,7 +136,6 @@ public class CacheManager {
         return entry != null;
     }
     
-    
     private void evictOldEntries() {
         int toRemove = MAX_CACHE_SIZE / 10;
         
@@ -146,7 +153,6 @@ public class CacheManager {
             ));
         }
     }
-    
     
     public void cleanupExpired() {
         int removed = 0;
@@ -167,22 +173,18 @@ public class CacheManager {
         }
     }
     
-    
     public String getAllCacheStatistics() {
         StringBuilder sb = new StringBuilder();
         
-
         sb.append("§6=== AkiAsync Cache Statistics ===§r\n");
         sb.append(String.format("§e[Global Cache]§r\n  §7Size: §f%d/%d§r\n", 
             globalCache.size(), MAX_CACHE_SIZE));
         
-
         sb.append("\n");
         sb.append(org.virgil.akiasync.cache.SakuraCacheStatistics.formatStatistics());
         
         return sb.toString();
     }
-    
     
     private static class CacheEntry {
         final Object value;

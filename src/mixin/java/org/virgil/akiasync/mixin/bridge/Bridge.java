@@ -40,6 +40,14 @@ public interface Bridge {
 
     long getAsyncAITimeoutMicros();
 
+    boolean isAiSpatialIndexEnabled();
+    int getAiSpatialIndexGridSize();
+    boolean isAiSpatialIndexAutoUpdate();
+    boolean isAiSpatialIndexPlayerIndexEnabled();
+    boolean isAiSpatialIndexPoiIndexEnabled();
+    boolean isAiSpatialIndexStatisticsEnabled();
+    int getAiSpatialIndexLogIntervalSeconds();
+
     boolean isVillagerOptimizationEnabled();
 
     boolean isVillagerUsePOISnapshot();
@@ -47,6 +55,11 @@ public interface Bridge {
     boolean isVillagerPoiCacheEnabled();
 
     int getVillagerPoiCacheExpireTime();
+    
+    boolean isWanderingTraderOptimizationEnabled();
+    boolean isWardenOptimizationEnabled();
+    boolean isHoglinOptimizationEnabled();
+    boolean isAllayOptimizationEnabled();
 
     boolean isPiglinOptimizationEnabled();
 
@@ -70,11 +83,25 @@ public interface Bridge {
     int getDabStartDistance();
     int getDabActivationDistMod();
     int getDabMaxTickInterval();
+    
+    boolean isBrainMemoryOptimizationEnabled();
+    boolean isPoiSnapshotEnabled();
     boolean isAsyncPathfindingEnabled();
     int getAsyncPathfindingMaxThreads();
     int getAsyncPathfindingKeepAliveSeconds();
     int getAsyncPathfindingMaxQueueSize();
     int getAsyncPathfindingTimeoutMs();
+    boolean isAsyncPathfindingSyncFallbackEnabled();
+    
+    boolean isEnhancedPathfindingEnabled();
+    int getEnhancedPathfindingMaxConcurrentRequests();
+    int getEnhancedPathfindingMaxRequestsPerTick();
+    int getEnhancedPathfindingHighPriorityDistance();
+    int getEnhancedPathfindingMediumPriorityDistance();
+    boolean isPathPrewarmEnabled();
+    int getPathPrewarmRadius();
+    int getPathPrewarmMaxMobsPerBatch();
+    int getPathPrewarmMaxPoisPerMob();
     boolean shouldThrottleEntity(Object entity);
     boolean isZeroDelayFactoryOptimizationEnabled();
     java.util.Set<String> getZeroDelayFactoryEntities();
@@ -101,6 +128,8 @@ public interface Bridge {
     boolean isDensityControlEnabled();
 
     int getMaxEntitiesPerChunk();
+    
+    int getMobSpawnInterval();
 
     boolean isSpawnerOptimizationEnabled();
 
@@ -116,13 +145,9 @@ public interface Bridge {
 
     int getListPreallocCapacity();
 
-    boolean isPushOptimizationEnabled();
-
     boolean isEntityLookupCacheEnabled();
 
     int getEntityLookupCacheDurationMs();
-
-    boolean isCollisionOptimizationEnabled();
 
     ExecutorService getGeneralExecutor();
 
@@ -133,6 +158,8 @@ public interface Bridge {
     ExecutorService getVillagerBreedExecutor();
 
     ExecutorService getBrainExecutor();
+    
+    ExecutorService getCollisionExecutor();
 
     boolean isAsyncLightingEnabled();
 
@@ -198,6 +225,8 @@ public interface Bridge {
 
     boolean isBeeFixEnabled();
 
+    boolean isEndIslandDensityFixEnabled();
+    
     boolean isTNTUseFullRaycast();
 
     boolean isTNTUseVanillaBlockDestruction();
@@ -309,6 +338,38 @@ public interface Bridge {
     boolean isDataPackDebugEnabled();
 
     boolean isDebugLoggingEnabled();
+    
+    boolean isFluidOptimizationEnabled();
+    boolean isFluidDebugEnabled();
+    boolean isFluidTickThrottleEnabled();
+    int getStaticFluidInterval();
+    int getFlowingFluidInterval();
+    
+    boolean isFluidTickCompensationEnabled();
+    boolean isFluidCompensationEnabledForWater();
+    boolean isFluidCompensationEnabledForLava();
+    double getFluidCompensationTPSThreshold();
+    
+    boolean isSmartLagCompensationEnabled();
+    double getSmartLagTPSThreshold();
+    
+    boolean isSmartLagFluidCompensationEnabled();
+    boolean isSmartLagFluidWaterEnabled();
+    boolean isSmartLagFluidLavaEnabled();
+    
+    boolean isSmartLagItemPickupDelayEnabled();
+    
+    boolean isSmartLagPotionEffectsEnabled();
+    
+    boolean isSmartLagTimeAccelerationEnabled();
+    
+    boolean isSmartLagDebugEnabled();
+    boolean isSmartLagLogMissedTicks();
+    boolean isSmartLagLogCompensation();
+
+    boolean isExperienceOrbInactiveTickEnabled();
+    double getExperienceOrbInactiveRange();
+    int getExperienceOrbInactiveMergeInterval();
 
     void debugLog(String message);
     void debugLog(String format, Object... args);
@@ -317,23 +378,19 @@ public interface Bridge {
 
     boolean isVirtualEntity(net.minecraft.world.entity.Entity entity);
 
-
     boolean isSeedProtectionEnabled();
     boolean shouldReturnFakeSeed();
     long getFakeSeedValue();
     
-
     boolean isQuantumSeedEnabled();
     byte[] getQuantumServerKey();
     long getEncryptedSeed(long originalSeed, int chunkX, int chunkZ, String dimension, String generationType, long gameTime);
     
-
     boolean isSecureSeedEnabled();
     long[] getSecureSeedWorldSeed();
     void initializeSecureSeed(long originalSeed);
     int getSecureSeedBits();
     
-
     boolean isSeedEncryptionProtectStructures();
     boolean isSeedEncryptionProtectOres();
     boolean isSeedEncryptionProtectSlimes();
@@ -341,6 +398,7 @@ public interface Bridge {
 
     boolean isTNTLandProtectionEnabled();
     boolean canTNTExplodeAt(net.minecraft.server.level.ServerLevel level, net.minecraft.core.BlockPos pos);
+    Boolean checkChunkProtection(net.minecraft.server.level.ServerLevel level, int chunkX, int chunkZ);
     
     boolean isBlockLockerProtectionEnabled();
     boolean isBlockLockerProtected(net.minecraft.server.level.ServerLevel level, net.minecraft.core.BlockPos pos, net.minecraft.world.level.block.state.BlockState state);
@@ -362,101 +420,18 @@ public interface Bridge {
     int getMinFallingBlocksForParallel();
     int getFallingBlockBatchSize();
 
-    boolean isItemEntityParallelEnabled();
-    int getMinItemEntitiesForParallel();
-    int getItemEntityBatchSize();
     boolean isItemEntityMergeOptimizationEnabled();
+    boolean isItemEntityCancelVanillaMerge();
     int getItemEntityMergeInterval();
     int getItemEntityMinNearbyItems();
     double getItemEntityMergeRange();
     boolean isItemEntityAgeOptimizationEnabled();
     int getItemEntityAgeInterval();
     double getItemEntityPlayerDetectionRange();
+    boolean isItemEntityInactiveTickEnabled();
+    double getItemEntityInactiveRange();
+    int getItemEntityInactiveMergeInterval();
 
-    boolean isNetworkOptimizationEnabled();
-    boolean isPacketPriorityEnabled();
-    boolean isChunkRateControlEnabled();
-    boolean isChunkSendOptimizationEnabled();
-    boolean isCongestionDetectionEnabled();
-    int getHighPingThreshold();
-    int getCriticalPingThreshold();
-    long getHighBandwidthThreshold();
-    int getBaseChunkSendRate();
-    int getMaxChunkSendRate();
-    int getMinChunkSendRate();
-
-    int getPacketSendRateBase();
-    int getPacketSendRateMedium();
-    int getPacketSendRateHeavy();
-    int getPacketSendRateExtreme();
-
-    int getQueueLimitMaxTotal();
-    int getQueueLimitMaxCritical();
-    int getQueueLimitMaxHigh();
-    int getQueueLimitMaxNormal();
-
-    int getAccelerationThresholdMedium();
-    int getAccelerationThresholdHeavy();
-    int getAccelerationThresholdExtreme();
-
-    boolean isCleanupEnabled();
-    int getCleanupStaleThreshold();
-    int getCleanupCriticalCleanup();
-    int getCleanupNormalCleanup();
-
-    int getPlayerCongestionLevel(java.util.UUID playerId);
-
-    boolean shouldPacketUseQueue(net.minecraft.network.protocol.Packet<?> packet);
-    int classifyPacketPriority(net.minecraft.network.protocol.Packet<?> packet);
-    boolean enqueuePacket(net.minecraft.server.level.ServerPlayer player, net.minecraft.network.protocol.Packet<?> packet, int priority);
-    int getPlayerPacketQueueSize(java.util.UUID playerId);
-    void recordPacketSent(java.util.UUID playerId, int bytes);
-
-    void updatePlayerChunkLocation(net.minecraft.server.level.ServerPlayer player);
-    int calculatePlayerChunkSendRate(java.util.UUID playerId);
-    double calculateChunkPriority(java.util.UUID playerId, int chunkX, int chunkZ);
-    boolean isChunkInPlayerViewDirection(java.util.UUID playerId, int chunkX, int chunkZ);
-    void recordPlayerChunkSent(java.util.UUID playerId, boolean inViewDirection);
-    int detectPlayerCongestion(java.util.UUID playerId);
-
-    boolean isFastMovementChunkLoadEnabled();
-    double getFastMovementSpeedThreshold();
-    int getFastMovementPreloadDistance();
-    int getFastMovementMaxConcurrentLoads();
-    int getFastMovementPredictionTicks();
-
-    boolean isCenterOffsetEnabled();
-    double getMinOffsetSpeed();
-    double getMaxOffsetSpeed();
-    double getMaxOffsetRatio();
-    int getAsyncLoadingBatchSize();
-    long getAsyncLoadingBatchDelayMs();
-    
-    void submitChunkLoad(net.minecraft.server.level.ServerPlayer player, net.minecraft.world.level.ChunkPos chunkPos, int priority, double speed);
-    
-    boolean isPlayerUsingViaVersion(java.util.UUID playerId);
-    boolean isViaConnectionInPlayState(java.util.UUID playerId);
-    int getPlayerProtocolVersion(java.util.UUID playerId);
-
-    boolean isTeleportOptimizationEnabled();
-    boolean isTeleportPacketBypassEnabled();
-    int getTeleportBoostDurationSeconds();
-    int getTeleportMaxChunkRate();
-    boolean isTeleportFilterNonEssentialPackets();
-    boolean isTeleportDebugEnabled();
-    
-    boolean isTeleportPacket(net.minecraft.network.protocol.Packet<?> packet);
-    void markPlayerTeleportStart(java.util.UUID playerId);
-    boolean isPlayerTeleporting(java.util.UUID playerId);
-    boolean shouldSendPacketDuringTeleport(net.minecraft.network.protocol.Packet<?> packet, java.util.UUID playerId);
-    void recordTeleportBypassedPacket();
-    String getTeleportStatistics();
-    
-    boolean shouldVirtualEntityPacketBypassQueue(net.minecraft.network.protocol.Packet<?> packet, net.minecraft.server.level.ServerPlayer player);
-    
-    boolean isViewFrustumFilterEnabled();
-    boolean shouldFilterPacketByViewFrustum(net.minecraft.network.protocol.Packet<?> packet, net.minecraft.server.level.ServerPlayer player);
-    
     boolean isSuffocationOptimizationEnabled();
     boolean isFastRayTraceEnabled();
     boolean isMapRenderingOptimizationEnabled();
@@ -464,37 +439,145 @@ public interface Bridge {
     
     void runOnMainThread(Runnable task);
     
-
     double getCurrentTPS();
     double getCurrentMSPT();
     
-
     Object getBlockTickSmoothingScheduler();
     Object getEntityTickSmoothingScheduler();
     Object getBlockEntitySmoothingScheduler();
     
     boolean submitSmoothTask(Object scheduler, Runnable task, int priority, String category);
     
-
     int submitSmoothTaskBatch(Object scheduler, java.util.List<Runnable> tasks, int priority, String category);
     
-
     boolean isTNTUseSakuraDensityCache();
     boolean isTNTMergeEnabled();
     double getTNTMergeRadius();
     int getTNTMaxFuseDifference();
     float getTNTMergedPowerMultiplier();
     
-
     boolean isUsePandaWireAlgorithm();
+    
+    boolean isPortalSuffocationCheckDisabled();
+    boolean isShulkerBulletSelfHitFixEnabled();
+    
+    boolean isExecuteCommandInactiveSkipEnabled();
+    int getExecuteCommandSkipLevel();
+    double getExecuteCommandSimulationDistanceMultiplier();
+    long getExecuteCommandCacheDurationMs();
+    java.util.Set<String> getExecuteCommandWhitelistTypes();
+    boolean isExecuteCommandDebugEnabled();
+    
+    boolean isCommandDeduplicationEnabled();
+    boolean isCommandDeduplicationDebugEnabled();
+    
     boolean isRedstoneNetworkCacheEnabled();
     int getRedstoneNetworkCacheExpireTicks();
     
-
     void clearSakuraOptimizationCaches();
     java.util.Map<String, Object> getSakuraCacheStatistics();
+    
+    void clearEntityThrottleCache(int entityId);
     void performSakuraCacheCleanup();
     
     void notifySmoothSchedulerTick(Object scheduler);
     void updateSmoothSchedulerMetrics(Object scheduler, double tps, double mspt);
+    
+    boolean isCollisionOptimizationEnabled();
+    boolean isCollisionAggressiveMode();
+    java.util.Set<String> getCollisionExcludedEntities();
+    boolean isCollisionCacheEnabled();
+    int getCollisionCacheLifetimeMs();
+    double getCollisionCacheMovementThreshold();
+    boolean isCollisionSpatialPartitionEnabled();
+    int getCollisionSpatialGridSize();
+    int getCollisionSpatialDensityThreshold();
+    int getCollisionSpatialUpdateIntervalMs();
+    double getCollisionSkipMinMovement();
+    int getCollisionSkipCheckIntervalMs();
+    
+    boolean isPushOptimizationEnabled();
+    double getPushMaxPushPerTick();
+    double getPushDampingFactor();
+    int getPushHighDensityThreshold();
+    double getPushHighDensityMultiplier();
+    
+    boolean isAdvancedCollisionOptimizationEnabled();
+    int getCollisionThreshold();
+    float getSuffocationDamage();
+    int getMaxPushIterations();
+    
+    boolean isLightingPrioritySchedulingEnabled();
+    int getLightingHighPriorityRadius();
+    int getLightingMediumPriorityRadius();
+    int getLightingLowPriorityRadius();
+    long getLightingMaxLowPriorityDelay();
+    
+    boolean isLightingDebouncingEnabled();
+    long getLightingDebounceDelay();
+    int getLightingMaxUpdatesPerSecond();
+    long getLightingResetOnStableMs();
+    
+    boolean isLightingMergingEnabled();
+    int getLightingMergeRadius();
+    long getLightingMergeDelay();
+    int getLightingMaxMergedUpdates();
+    
+    boolean isLightingChunkBorderEnabled();
+    boolean isLightingBatchBorderUpdates();
+    long getLightingBorderUpdateDelay();
+    int getLightingCrossChunkBatchSize();
+    
+    boolean isLightingAdaptiveEnabled();
+    int getLightingMonitorInterval();
+    boolean isLightingAutoAdjustThreads();
+    boolean isLightingAutoAdjustBatchSize();
+    int getLightingTargetQueueSize();
+    int getLightingTargetLatency();
+    
+    boolean isLightingChunkUnloadEnabled();
+    boolean isLightingAsyncCleanup();
+    int getLightingCleanupBatchSize();
+    long getLightingCleanupDelay();
+    
+    String getLightingThreadPoolMode();
+    String getLightingThreadPoolCalculation();
+    int getLightingMinThreads();
+    int getLightingMaxThreads();
+    int getLightingBatchThresholdMax();
+    boolean isLightingAggressiveBatching();
+
+    boolean isNoiseOptimizationEnabled();
+    boolean isJigsawOptimizationEnabled();
+    
+    void initializeJigsawOctree(net.minecraft.world.phys.AABB bounds);
+    boolean hasJigsawOctree();
+    void insertIntoJigsawOctree(net.minecraft.world.phys.AABB box);
+    boolean jigsawOctreeIntersects(net.minecraft.world.phys.AABB box);
+    void clearJigsawOctree();
+    String getJigsawOctreeStats();
+    
+    boolean isEntityPacketThrottleEnabled();
+    boolean shouldSendEntityUpdate(net.minecraft.server.level.ServerPlayer player, net.minecraft.world.entity.Entity entity);
+    void tickEntityPacketThrottler();
+    
+    boolean isEntityDataThrottleEnabled();
+    boolean shouldSendMetadata(net.minecraft.server.level.ServerPlayer player, net.minecraft.world.entity.Entity entity, int metadataHash);
+    boolean shouldSendNBT(net.minecraft.server.level.ServerPlayer player, net.minecraft.world.entity.Entity entity, boolean forceUpdate);
+    void tickEntityDataThrottler();
+    
+    boolean isChunkVisibilityFilterEnabled();
+    boolean isChunkVisible(net.minecraft.server.level.ServerPlayer player, net.minecraft.world.level.ChunkPos chunkPos, net.minecraft.server.level.ServerLevel level);
+    void tickChunkVisibilityFilter();
+    
+    boolean isFastMovementChunkLoadEnabled();
+    double getFastMovementSpeedThreshold();
+    int getFastMovementPreloadDistance();
+    int getFastMovementMaxConcurrentLoads();
+    int getFastMovementPredictionTicks();
+    boolean isCenterOffsetEnabled();
+    double getMinOffsetSpeed();
+    double getMaxOffsetSpeed();
+    double getMaxOffsetRatio();
+    void submitChunkLoad(net.minecraft.server.level.ServerPlayer player, net.minecraft.world.level.ChunkPos chunkPos, int priority, double speed);
 }

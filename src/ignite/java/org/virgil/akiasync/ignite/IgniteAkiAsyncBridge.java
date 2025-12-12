@@ -3,7 +3,6 @@ package org.virgil.akiasync.ignite;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Logger;
 
@@ -12,7 +11,6 @@ import net.minecraft.commands.arguments.ResourceOrTagKeyArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
-import net.minecraft.network.protocol.Packet;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
@@ -31,8 +29,6 @@ import net.minecraft.world.level.storage.loot.LootContext;
 import org.virgil.akiasync.ignite.config.IgniteConfigManager;
 import org.virgil.akiasync.executor.TaskSmoothingScheduler;
 import org.virgil.akiasync.mixin.bridge.Bridge;
-import org.virgil.akiasync.network.PlayerTeleportTracker;
-import org.virgil.akiasync.network.TeleportPacketDetector;
 
 /**
  * Ignite 模式专用的 Bridge 实现
@@ -55,15 +51,6 @@ public class IgniteAkiAsyncBridge implements Bridge {
     private TaskSmoothingScheduler blockTickScheduler;
     private TaskSmoothingScheduler entityTickScheduler;
     private TaskSmoothingScheduler blockEntityScheduler;
-    
-    // 传送追踪器（由 IgnitePluginAdapter 设置）
-    private PlayerTeleportTracker teleportTracker;
-    
-    // 网络优化组件
-    private org.virgil.akiasync.network.NetworkCongestionDetector congestionDetector;
-    private org.virgil.akiasync.network.ChunkSendRateController chunkRateController;
-    private org.virgil.akiasync.network.PriorityPacketScheduler packetScheduler;
-    private org.virgil.akiasync.network.PacketSendWorker packetSendWorker;
     
     // 区块加载调度器（由 IgnitePluginAdapter 设置）
     private org.virgil.akiasync.chunk.ChunkLoadPriorityScheduler chunkLoadScheduler;
@@ -100,46 +87,6 @@ public class IgniteAkiAsyncBridge implements Bridge {
         
         // 初始化平滑调度器
         initializeSmoothingSchedulers();
-        
-        // 初始化网络优化组件
-        initializeNetworkComponents();
-    }
-    
-    /**
-     * 初始化网络优化组件
-     */
-    private void initializeNetworkComponents() {
-        try {
-            if (config == null || !config.isNetworkOptimizationEnabled()) {
-                logger.info("[AkiAsync/Ignite] Network optimization disabled");
-                return;
-            }
-            
-            // 创建拥塞检测器
-            congestionDetector = new org.virgil.akiasync.network.NetworkCongestionDetector();
-            
-            // 创建区块发送速率控制器
-            chunkRateController = new org.virgil.akiasync.network.ChunkSendRateController(congestionDetector);
-            
-            // 创建数据包优先级调度器
-            packetScheduler = new org.virgil.akiasync.network.PriorityPacketScheduler(config);
-            
-            // 创建数据包发送工作线程
-            if (config.isPacketPriorityEnabled()) {
-                packetSendWorker = new org.virgil.akiasync.network.PacketSendWorker(packetScheduler, config);
-                packetSendWorker.start();
-                logger.info("[AkiAsync/Ignite] PacketSendWorker started");
-            }
-            
-            logger.info("[AkiAsync/Ignite] Network optimization components initialized:");
-            logger.info("  - NetworkCongestionDetector: Enabled");
-            logger.info("  - ChunkSendRateController: Enabled");
-            logger.info("  - PriorityPacketScheduler: Enabled");
-            logger.info("  - PacketSendWorker: " + (packetSendWorker != null ? "Enabled" : "Disabled"));
-            
-        } catch (Exception e) {
-            logger.warning("[AkiAsync/Ignite] Failed to initialize network components: " + e.getMessage());
-        }
     }
     
     private void initializeSmoothingSchedulers() {
@@ -166,10 +113,6 @@ public class IgniteAkiAsyncBridge implements Bridge {
         } catch (Exception e) {
             logger.warning("[AkiAsync/Ignite] Failed to initialize TaskSmoothingSchedulers: " + e.getMessage());
         }
-    }
-    
-    public void setTeleportTracker(PlayerTeleportTracker tracker) {
-        this.teleportTracker = tracker;
     }
     
     public void setChunkLoadScheduler(org.virgil.akiasync.chunk.ChunkLoadPriorityScheduler scheduler) {
@@ -331,10 +274,8 @@ public class IgniteAkiAsyncBridge implements Bridge {
     @Override public boolean isBlockPosPoolEnabled() { return true; }
     @Override public boolean isListPreallocEnabled() { return true; }
     @Override public int getListPreallocCapacity() { return 16; }
-    @Override public boolean isPushOptimizationEnabled() { return true; }
     @Override public boolean isEntityLookupCacheEnabled() { return true; }
     @Override public int getEntityLookupCacheDurationMs() { return 50; }
-    @Override public boolean isCollisionOptimizationEnabled() { return true; }
 
     // ==========================================
     // 线程池
@@ -510,14 +451,201 @@ public class IgniteAkiAsyncBridge implements Bridge {
     @Override public boolean isVillagerTradeMapsSkipKnownStructures() { return config != null && config.isVillagerTradeMapsSkipKnownStructures(); }
     @Override public boolean isDolphinTreasureSkipKnownStructures() { return false; }
 
-    // 结构定位回调（简单实现）
-    @Override public void handleLocateCommandResult(CommandSourceStack sourceStack, BlockPos structurePos, Throwable throwable) { }
-    @Override public void handleLocateCommandAsyncStart(CommandSourceStack sourceStack, ResourceOrTagKeyArgument.Result<Structure> structureResult, HolderSet<Structure> holderSet) { }
-    @Override public void handleDolphinTreasureResult(Dolphin dolphin, BlockPos treasurePos, Throwable throwable) { }
-    @Override public void handleChestExplorationMapAsyncStart(ItemStack stack, LootContext context, TagKey<Structure> destination, Holder<MapDecorationType> mapDecoration, byte zoom, int searchRadius, boolean skipKnownStructures, Object cir) { }
-    @Override public void handleChestExplorationMapResult(ItemStack stack, LootContext context, BlockPos structurePos, Holder<MapDecorationType> mapDecoration, byte zoom, Throwable throwable, Object cir) { }
-    @Override public void handleVillagerTradeMapAsyncStart(MerchantOffer offer, Entity trader, TagKey<Structure> destination, Holder<MapDecorationType> destinationType, String displayName, int maxUses, int villagerXp, Object cir) { }
-    @Override public void handleVillagerTradeMapResult(MerchantOffer offer, Entity trader, BlockPos structurePos, Holder<MapDecorationType> destinationType, String displayName, int maxUses, int villagerXp, Throwable throwable, Object cir) { }
+    // 结构定位回调（完整实现）
+    @Override
+    public void handleLocateCommandAsyncStart(CommandSourceStack sourceStack, ResourceOrTagKeyArgument.Result<Structure> structureResult, HolderSet<Structure> holderSet) {
+        java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+            try {
+                ServerLevel level = sourceStack.getLevel();
+                BlockPos startPos = BlockPos.containing(sourceStack.getPosition());
+                
+                if (isStructureLocationDebugEnabled()) {
+                    logger.info("[AkiAsync/Ignite] Starting async locate command from " + startPos);
+                }
+                
+                com.mojang.datafixers.util.Pair<BlockPos, net.minecraft.core.Holder<Structure>> result;
+                if (isStructureAlgorithmOptimizationEnabled()) {
+                    result = org.virgil.akiasync.async.structure.OptimizedStructureLocator.findNearestStructureOptimized(
+                        level, holderSet, startPos,
+                        getLocateCommandSearchRadius(),
+                        isLocateCommandSkipKnownStructures()
+                    );
+                } else {
+                    result = level.getChunkSource().getGenerator().findNearestMapStructure(
+                        level, holderSet, startPos,
+                        getLocateCommandSearchRadius(),
+                        isLocateCommandSkipKnownStructures()
+                    );
+                }
+                return result != null ? result.getFirst() : null;
+            } catch (Exception e) {
+                logger.warning("[AkiAsync/Ignite] Error in async locate command: " + e.getMessage());
+                return null;
+            }
+        }, generalExecutor).whenComplete((foundStructure, asyncThrowable) -> {
+            handleLocateCommandResult(sourceStack, foundStructure, asyncThrowable);
+        });
+    }
+    
+    @Override
+    public void handleLocateCommandResult(CommandSourceStack sourceStack, BlockPos structurePos, Throwable throwable) {
+        org.bukkit.Bukkit.getScheduler().runTask(
+            org.bukkit.Bukkit.getPluginManager().getPlugins()[0], () -> {
+            try {
+                if (throwable != null) {
+                    logger.warning("[AkiAsync/Ignite] Locate command failed: " + throwable.getMessage());
+                    sourceStack.sendFailure(net.minecraft.network.chat.Component.literal("Structure location failed: " + throwable.getMessage()));
+                    return;
+                }
+                if (structurePos != null) {
+                    sourceStack.sendSuccess(() -> net.minecraft.network.chat.Component.literal(
+                        "The nearest structure is at " + structurePos.getX() + ", " + structurePos.getY() + ", " + structurePos.getZ()), false);
+                    if (isStructureLocationDebugEnabled()) {
+                        logger.info("[AkiAsync/Ignite] Locate command completed: structure found at " + structurePos);
+                    }
+                } else {
+                    sourceStack.sendFailure(net.minecraft.network.chat.Component.literal("Could not find that structure nearby"));
+                }
+            } catch (Exception e) {
+                logger.warning("[AkiAsync/Ignite] Error processing locate command result: " + e.getMessage());
+            }
+        });
+    }
+    
+    @Override
+    public void handleDolphinTreasureResult(Dolphin dolphin, BlockPos treasurePos, Throwable throwable) {
+        if (treasurePos == null && throwable == null) {
+            // Start async search
+            java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+                try {
+                    ServerLevel level = (ServerLevel) dolphin.level();
+                    BlockPos startPos = dolphin.blockPosition();
+                    return level.findNearestMapStructure(
+                        net.minecraft.tags.StructureTags.DOLPHIN_LOCATED,
+                        startPos,
+                        getDolphinTreasureSearchRadius(),
+                        isDolphinTreasureSkipKnownStructures()
+                    );
+                } catch (Exception e) {
+                    logger.warning("[AkiAsync/Ignite] Error in async dolphin treasure hunt: " + e.getMessage());
+                    return null;
+                }
+            }, generalExecutor).whenComplete((foundTreasure, asyncThrowable) -> {
+                handleDolphinTreasureResult(dolphin, foundTreasure, asyncThrowable);
+            });
+            return;
+        }
+        // Process result on main thread
+        org.bukkit.Bukkit.getScheduler().runTask(
+            org.bukkit.Bukkit.getPluginManager().getPlugins()[0], () -> {
+            try {
+                if (throwable != null || treasurePos == null) return;
+                try {
+                    java.lang.reflect.Field treasurePosField = dolphin.getClass().getDeclaredField("treasurePos");
+                    treasurePosField.setAccessible(true);
+                    treasurePosField.set(dolphin, treasurePos);
+                    dolphin.level().addParticle(net.minecraft.core.particles.ParticleTypes.DOLPHIN,
+                        dolphin.getX(), dolphin.getY(), dolphin.getZ(), 0.0D, 0.0D, 0.0D);
+                } catch (Exception e) {
+                    logger.warning("[AkiAsync/Ignite] Error setting dolphin treasure position: " + e.getMessage());
+                }
+            } catch (Exception e) {
+                // Ignore
+            }
+        });
+    }
+    
+    @Override
+    public void handleChestExplorationMapAsyncStart(ItemStack stack, LootContext context, TagKey<Structure> destination, Holder<MapDecorationType> mapDecoration, byte zoom, int searchRadius, boolean skipKnownStructures, Object cir) {
+        java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+            try {
+                ServerLevel level = context.getLevel();
+                net.minecraft.world.phys.Vec3 origin = context.getParamOrNull(
+                    net.minecraft.world.level.storage.loot.parameters.LootContextParams.ORIGIN);
+                BlockPos startPos = origin != null ? BlockPos.containing(origin) : new BlockPos(0, 64, 0);
+                return level.findNearestMapStructure(destination, startPos, searchRadius, skipKnownStructures);
+            } catch (Exception e) {
+                logger.warning("[AkiAsync/Ignite] Error in async chest exploration map: " + e.getMessage());
+                return null;
+            }
+        }, generalExecutor).whenComplete((foundStructure, asyncThrowable) -> {
+            handleChestExplorationMapResult(stack, context, foundStructure, mapDecoration, zoom, asyncThrowable, cir);
+        });
+    }
+    
+    @Override
+    public void handleChestExplorationMapResult(ItemStack stack, LootContext context, BlockPos structurePos, Holder<MapDecorationType> mapDecoration, byte zoom, Throwable throwable, Object cir) {
+        org.bukkit.Bukkit.getScheduler().runTask(
+            org.bukkit.Bukkit.getPluginManager().getPlugins()[0], () -> {
+            try {
+                if (throwable != null) {
+                    setReturnValue(cir, stack);
+                    return;
+                }
+                if (structurePos != null) {
+                    ServerLevel level = context.getLevel();
+                    ItemStack mapStack = net.minecraft.world.item.MapItem.create(level, structurePos.getX(), structurePos.getZ(), zoom, true, true);
+                    net.minecraft.world.item.MapItem.renderBiomePreviewMap(level, mapStack);
+                    net.minecraft.world.level.saveddata.maps.MapItemSavedData.addTargetDecoration(mapStack, structurePos, "+", mapDecoration);
+                    setReturnValue(cir, mapStack);
+                } else {
+                    setReturnValue(cir, stack);
+                }
+            } catch (Exception e) {
+                setReturnValue(cir, stack);
+            }
+        });
+    }
+    
+    @Override
+    public void handleVillagerTradeMapAsyncStart(MerchantOffer offer, Entity trader, TagKey<Structure> destination, Holder<MapDecorationType> destinationType, String displayName, int maxUses, int villagerXp, Object cir) {
+        java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+            try {
+                ServerLevel level = (ServerLevel) trader.level();
+                BlockPos startPos = trader.blockPosition();
+                return level.findNearestMapStructure(destination, startPos, getVillagerTradeMapsSearchRadius(), isVillagerTradeMapsSkipKnownStructures());
+            } catch (Exception e) {
+                logger.warning("[AkiAsync/Ignite] Error in async villager trade map: " + e.getMessage());
+                return null;
+            }
+        }, generalExecutor).whenComplete((foundStructure, asyncThrowable) -> {
+            handleVillagerTradeMapResult(offer, trader, foundStructure, destinationType, displayName, maxUses, villagerXp, asyncThrowable, cir);
+        });
+    }
+    
+    @Override
+    public void handleVillagerTradeMapResult(MerchantOffer offer, Entity trader, BlockPos structurePos, Holder<MapDecorationType> destinationType, String displayName, int maxUses, int villagerXp, Throwable throwable, Object cir) {
+        org.bukkit.Bukkit.getScheduler().runTask(
+            org.bukkit.Bukkit.getPluginManager().getPlugins()[0], () -> {
+            try {
+                if (throwable != null || structurePos == null) {
+                    setReturnValue(cir, null);
+                    return;
+                }
+                ServerLevel level = (ServerLevel) trader.level();
+                ItemStack mapStack = net.minecraft.world.item.MapItem.create(level, structurePos.getX(), structurePos.getZ(), (byte)2, true, true);
+                net.minecraft.world.item.MapItem.renderBiomePreviewMap(level, mapStack);
+                net.minecraft.world.level.saveddata.maps.MapItemSavedData.addTargetDecoration(mapStack, structurePos, "+", destinationType);
+                mapStack.set(net.minecraft.core.component.DataComponents.ITEM_NAME, net.minecraft.network.chat.Component.translatable(displayName));
+                
+                MerchantOffer newOffer = new MerchantOffer(
+                    new net.minecraft.world.item.trading.ItemCost(net.minecraft.world.item.Items.EMERALD, offer.getCostA().getCount()),
+                    java.util.Optional.of(new net.minecraft.world.item.trading.ItemCost(net.minecraft.world.item.Items.COMPASS, 1)),
+                    mapStack, 0, maxUses, villagerXp, 0.2F);
+                setReturnValue(cir, newOffer);
+            } catch (Exception e) {
+                setReturnValue(cir, null);
+            }
+        });
+    }
+    
+    private void setReturnValue(Object cir, Object value) {
+        try {
+            cir.getClass().getMethod("setReturnValue", Object.class).invoke(cir, value);
+        } catch (Exception e) {
+            logger.warning("[AkiAsync/Ignite] Failed to set return value: " + e.getMessage());
+        }
+    }
 
     // ==========================================
     // DataPack 优化
@@ -632,9 +760,6 @@ public class IgniteAkiAsyncBridge implements Bridge {
     // ==========================================
     // 物品实体优化
     // ==========================================
-    @Override public boolean isItemEntityParallelEnabled() { return config != null && config.isItemEntityParallelEnabled(); }
-    @Override public int getMinItemEntitiesForParallel() { return config != null ? config.getMinItemEntitiesForParallel() : 20; }
-    @Override public int getItemEntityBatchSize() { return config != null ? config.getItemEntityBatchSize() : 100; }
     @Override public boolean isItemEntityMergeOptimizationEnabled() { return config != null && config.isItemEntityMergeOptimizationEnabled(); }
     @Override public int getItemEntityMergeInterval() { return config != null ? config.getItemEntityMergeInterval() : 40; }
     @Override public int getItemEntityMinNearbyItems() { return config != null ? config.getItemEntityMinNearbyItems() : 3; }
@@ -642,128 +767,6 @@ public class IgniteAkiAsyncBridge implements Bridge {
     @Override public boolean isItemEntityAgeOptimizationEnabled() { return config != null && config.isItemEntityAgeOptimizationEnabled(); }
     @Override public int getItemEntityAgeInterval() { return config != null ? config.getItemEntityAgeInterval() : 100; }
     @Override public double getItemEntityPlayerDetectionRange() { return config != null ? config.getItemEntityPlayerDetectionRange() : 32.0; }
-
-    // ==========================================
-    // 网络优化
-    // ==========================================
-    @Override public boolean isNetworkOptimizationEnabled() { return config != null && config.isNetworkOptimizationEnabled(); }
-    @Override public boolean isPacketPriorityEnabled() { return config != null && config.isPacketPriorityEnabled(); }
-    @Override public boolean isChunkRateControlEnabled() { return config != null && config.isChunkRateControlEnabled(); }
-    @Override public boolean isChunkSendOptimizationEnabled() { return config != null && config.isChunkRateControlEnabled(); }
-    @Override public boolean isCongestionDetectionEnabled() { return config != null && config.isCongestionDetectionEnabled(); }
-    @Override public int getHighPingThreshold() { return config != null ? config.getHighPingThreshold() : 150; }
-    @Override public int getCriticalPingThreshold() { return config != null ? config.getCriticalPingThreshold() : 300; }
-    @Override public long getHighBandwidthThreshold() { return config != null ? config.getHighBandwidthThreshold() : 1000000; }
-    @Override public int getBaseChunkSendRate() { return config != null ? config.getBaseChunkSendRate() : 10; }
-    @Override public int getMaxChunkSendRate() { return config != null ? config.getMaxChunkSendRate() : 20; }
-    @Override public int getMinChunkSendRate() { return config != null ? config.getMinChunkSendRate() : 5; }
-    @Override public int getPacketSendRateBase() { return config != null ? config.getPacketSendRateBase() : 100; }
-    @Override public int getPacketSendRateMedium() { return config != null ? config.getPacketSendRateMedium() : 75; }
-    @Override public int getPacketSendRateHeavy() { return config != null ? config.getPacketSendRateHeavy() : 50; }
-    @Override public int getPacketSendRateExtreme() { return config != null ? config.getPacketSendRateExtreme() : 25; }
-    @Override public int getQueueLimitMaxTotal() { return config != null ? config.getQueueLimitMaxTotal() : 1000; }
-    @Override public int getQueueLimitMaxCritical() { return config != null ? config.getQueueLimitMaxCritical() : 100; }
-    @Override public int getQueueLimitMaxHigh() { return config != null ? config.getQueueLimitMaxHigh() : 300; }
-    @Override public int getQueueLimitMaxNormal() { return config != null ? config.getQueueLimitMaxNormal() : 600; }
-    @Override public int getAccelerationThresholdMedium() { return config != null ? config.getAccelerationThresholdMedium() : 50; }
-    @Override public int getAccelerationThresholdHeavy() { return config != null ? config.getAccelerationThresholdHeavy() : 75; }
-    @Override public int getAccelerationThresholdExtreme() { return config != null ? config.getAccelerationThresholdExtreme() : 90; }
-    @Override public boolean isCleanupEnabled() { return config != null && config.isCleanupEnabled(); }
-    @Override public int getCleanupStaleThreshold() { return config != null ? config.getCleanupStaleThreshold() : 30; }
-    @Override public int getCleanupCriticalCleanup() { return config != null ? config.getCleanupCriticalCleanup() : 50; }
-    @Override public int getCleanupNormalCleanup() { return config != null ? config.getCleanupNormalCleanup() : 10; }
-
-    // 网络功能（使用网络优化组件）
-    @Override 
-    public int getPlayerCongestionLevel(UUID playerId) {
-        if (congestionDetector == null || playerId == null) return 0;
-        org.virgil.akiasync.network.NetworkCongestionDetector.CongestionLevel level = 
-            congestionDetector.getCongestionLevel(playerId);
-        return level != null ? level.getLevel() : 0;
-    }
-    
-    @Override 
-    public boolean shouldPacketUseQueue(Packet<?> packet) {
-        if (packetScheduler == null || packet == null) return false;
-        return packetScheduler.shouldUseQueue(packet);
-    }
-    
-    @Override 
-    public int classifyPacketPriority(Packet<?> packet) {
-        if (packet == null) return 1;
-        org.virgil.akiasync.network.PacketPriority priority = 
-            org.virgil.akiasync.network.PacketClassifier.classify(packet);
-        return priority != null ? priority.ordinal() : 1;
-    }
-    
-    @Override 
-    public boolean enqueuePacket(ServerPlayer player, Packet<?> packet, int priority) {
-        if (packetScheduler == null || player == null || packet == null) return false;
-        org.virgil.akiasync.network.PacketPriority packetPriority = switch (priority) {
-            case 0 -> org.virgil.akiasync.network.PacketPriority.HIGH;
-            case 2 -> org.virgil.akiasync.network.PacketPriority.LOW;
-            default -> org.virgil.akiasync.network.PacketPriority.NORMAL;
-        };
-        return packetScheduler.enqueuePacket(player, packet, packetPriority);
-    }
-    
-    @Override 
-    public int getPlayerPacketQueueSize(UUID playerId) {
-        if (packetScheduler == null || playerId == null) return 0;
-        return packetScheduler.getQueueSize(playerId);
-    }
-    
-    @Override 
-    public void recordPacketSent(UUID playerId, int bytes) {
-        if (congestionDetector == null || playerId == null) return;
-        congestionDetector.recordPacketSent(playerId, bytes);
-    }
-    
-    @Override 
-    public void updatePlayerChunkLocation(ServerPlayer player) {
-        if (chunkRateController == null || player == null) return;
-        org.bukkit.entity.Player bukkitPlayer = player.getBukkitEntity();
-        if (bukkitPlayer != null) {
-            chunkRateController.updatePlayerLocation(bukkitPlayer);
-        }
-    }
-    
-    @Override 
-    public int calculatePlayerChunkSendRate(UUID playerId) {
-        if (chunkRateController == null || playerId == null) return 10;
-        org.bukkit.entity.Player player = org.bukkit.Bukkit.getPlayer(playerId);
-        if (player == null) return 10;
-        return chunkRateController.calculateChunkSendRate(player);
-    }
-    
-    @Override 
-    public double calculateChunkPriority(UUID playerId, int chunkX, int chunkZ) {
-        if (chunkRateController == null || playerId == null) return 0.0;
-        org.bukkit.entity.Player player = org.bukkit.Bukkit.getPlayer(playerId);
-        if (player == null) return 0.0;
-        org.bukkit.Chunk chunk = player.getWorld().getChunkAt(chunkX, chunkZ);
-        return chunkRateController.calculateChunkPriority(player, chunk);
-    }
-    
-    @Override 
-    public boolean isChunkInPlayerViewDirection(UUID playerId, int chunkX, int chunkZ) {
-        if (chunkRateController == null || playerId == null) return true;
-        org.bukkit.entity.Player player = org.bukkit.Bukkit.getPlayer(playerId);
-        if (player == null) return true;
-        org.bukkit.Chunk chunk = player.getWorld().getChunkAt(chunkX, chunkZ);
-        return chunkRateController.isChunkInViewDirection(player, chunk);
-    }
-    
-    @Override 
-    public void recordPlayerChunkSent(UUID playerId, boolean inViewDirection) {
-        if (chunkRateController == null || playerId == null) return;
-        chunkRateController.recordChunkSent(playerId, inViewDirection);
-    }
-    
-    @Override 
-    public int detectPlayerCongestion(UUID playerId) {
-        return getPlayerCongestionLevel(playerId);
-    }
 
     // ==========================================
     // 快速移动区块加载
@@ -777,78 +780,11 @@ public class IgniteAkiAsyncBridge implements Bridge {
     @Override public double getMinOffsetSpeed() { return config != null ? config.getMinOffsetSpeed() : 3.0; }
     @Override public double getMaxOffsetSpeed() { return config != null ? config.getMaxOffsetSpeed() : 9.0; }
     @Override public double getMaxOffsetRatio() { return config != null ? config.getMaxOffsetRatio() : 0.75; }
-    @Override public int getAsyncLoadingBatchSize() { return config != null ? config.getAsyncLoadingBatchSize() : 2; }
-    @Override public long getAsyncLoadingBatchDelayMs() { return config != null ? config.getAsyncLoadingBatchDelayMs() : 20; }
     @Override 
     public void submitChunkLoad(ServerPlayer player, ChunkPos chunkPos, int priority, double speed) {
         if (chunkLoadScheduler == null || player == null || chunkPos == null) return;
         chunkLoadScheduler.submitChunkLoad(player, chunkPos, priority, speed);
     }
-
-    // ==========================================
-    // ViaVersion 兼容
-    // ==========================================
-    @Override public boolean isPlayerUsingViaVersion(UUID playerId) {
-        return org.virgil.akiasync.compat.ViaVersionCompat.isPlayerUsingVia(playerId);
-    }
-    @Override public boolean isViaConnectionInPlayState(UUID playerId) {
-        return org.virgil.akiasync.compat.ViaVersionCompat.isConnectionInPlayState(playerId);
-    }
-    @Override public int getPlayerProtocolVersion(UUID playerId) {
-        org.bukkit.entity.Player player = org.bukkit.Bukkit.getPlayer(playerId);
-        return player != null ? org.virgil.akiasync.compat.ViaVersionCompat.getPlayerProtocolVersion(player) : -1;
-    }
-
-    // ==========================================
-    // 传送优化
-    // ==========================================
-    @Override public boolean isTeleportOptimizationEnabled() { return config != null && config.isTeleportOptimizationEnabled(); }
-    @Override public boolean isTeleportPacketBypassEnabled() { return config != null && config.isTeleportPacketBypassEnabled(); }
-    @Override public int getTeleportBoostDurationSeconds() { return config != null ? config.getTeleportBoostDurationSeconds() : 5; }
-    @Override public int getTeleportMaxChunkRate() { return config != null ? config.getTeleportMaxChunkRate() : 25; }
-    @Override public boolean isTeleportFilterNonEssentialPackets() { return config != null && config.isTeleportFilterNonEssentialPackets(); }
-    @Override public boolean isTeleportDebugEnabled() { return config != null && config.isDebugLoggingEnabled(); }
-    
-    @Override
-    public boolean isTeleportPacket(Packet<?> packet) {
-        return TeleportPacketDetector.isTeleportPacket(packet);
-    }
-    
-    @Override
-    public void markPlayerTeleportStart(UUID playerId) {
-        if (teleportTracker != null) {
-            teleportTracker.markTeleportStart(playerId);
-        }
-    }
-    
-    @Override
-    public boolean isPlayerTeleporting(UUID playerId) {
-        return teleportTracker != null && teleportTracker.isTeleporting(playerId);
-    }
-    
-    @Override
-    public boolean shouldSendPacketDuringTeleport(Packet<?> packet, UUID playerId) {
-        // 检查是否为关键包（传送期间必须发送的）
-        return TeleportPacketDetector.isEssentialDuringTeleport(packet);
-    }
-    
-    @Override
-    public void recordTeleportBypassedPacket() {
-        // 统计在 teleportTracker 内部处理
-    }
-    
-    @Override
-    public String getTeleportStatistics() {
-        return teleportTracker != null ? teleportTracker.getDetailedStatistics() : "Teleport tracker not initialized";
-    }
-    
-    @Override
-    public boolean shouldVirtualEntityPacketBypassQueue(Packet<?> packet, ServerPlayer player) {
-        return true; // 虚拟实体包直接发送
-    }
-    
-    @Override public boolean isViewFrustumFilterEnabled() { return config != null && config.isViewFrustumFilterEnabled(); }
-    @Override public boolean shouldFilterPacketByViewFrustum(Packet<?> packet, ServerPlayer player) { return false; }
 
     // ==========================================
     // 其他优化
@@ -928,9 +864,507 @@ public class IgniteAkiAsyncBridge implements Bridge {
     // ==========================================
     // Sakura 缓存
     // ==========================================
-    @Override public void clearSakuraOptimizationCaches() { }
-    @Override public Map<String, Object> getSakuraCacheStatistics() { return Collections.emptyMap(); }
-    @Override public void performSakuraCacheCleanup() { }
+    @Override
+    public void clearSakuraOptimizationCaches() {
+        try {
+            org.virgil.akiasync.mixin.async.explosion.density.SakuraBlockDensityCache.clearAllCaches();
+            org.virgil.akiasync.mixin.async.redstone.RedstoneWireHelper.clearAllCaches();
+            org.virgil.akiasync.mixin.async.explosion.density.AsyncDensityCacheManager.shutdown();
+            org.virgil.akiasync.mixin.async.redstone.RedstoneNetworkCache.clearAllCaches();
+            org.virgil.akiasync.mixin.async.redstone.AsyncRedstoneNetworkManager.shutdown();
+            logger.info("[AkiAsync/Ignite] Sakura caches cleared");
+        } catch (Exception e) {
+            logger.warning("[AkiAsync/Ignite] Error clearing Sakura caches: " + e.getMessage());
+        }
+    }
+    
+    @Override
+    public Map<String, Object> getSakuraCacheStatistics() {
+        Map<String, Object> stats = new java.util.HashMap<>();
+        try {
+            // Density cache stats
+            java.util.Map<String, String> densityStats = new java.util.HashMap<>();
+            for (org.bukkit.World world : org.bukkit.Bukkit.getWorlds()) {
+                try {
+                    net.minecraft.server.level.ServerLevel serverLevel = 
+                        ((org.bukkit.craftbukkit.CraftWorld) world).getHandle();
+                    org.virgil.akiasync.mixin.async.explosion.density.SakuraBlockDensityCache cache = 
+                        org.virgil.akiasync.mixin.async.explosion.density.SakuraBlockDensityCache.getOrCreate(serverLevel);
+                    densityStats.put(world.getName(), cache.getStats());
+                } catch (Exception e) {
+                    densityStats.put(world.getName(), "Error: " + e.getMessage());
+                }
+            }
+            stats.put("density_cache", densityStats);
+            
+            // Async density cache stats
+            java.util.Map<String, String> asyncStats = new java.util.HashMap<>();
+            for (org.bukkit.World world : org.bukkit.Bukkit.getWorlds()) {
+                try {
+                    net.minecraft.server.level.ServerLevel serverLevel = 
+                        ((org.bukkit.craftbukkit.CraftWorld) world).getHandle();
+                    org.virgil.akiasync.mixin.async.explosion.density.AsyncDensityCacheManager manager = 
+                        org.virgil.akiasync.mixin.async.explosion.density.AsyncDensityCacheManager.getInstance(serverLevel);
+                    asyncStats.put(world.getName(), manager.getStats());
+                } catch (Exception e) {
+                    asyncStats.put(world.getName(), "Error: " + e.getMessage());
+                }
+            }
+            stats.put("async_density_cache", asyncStats);
+            
+            // PandaWire evaluators
+            stats.put("pandawire_evaluators", 
+                org.virgil.akiasync.mixin.async.redstone.RedstoneWireHelper.getEvaluatorCount());
+            
+            // Network cache stats
+            java.util.Map<String, String> networkStats = new java.util.HashMap<>();
+            for (org.bukkit.World world : org.bukkit.Bukkit.getWorlds()) {
+                try {
+                    net.minecraft.server.level.ServerLevel serverLevel = 
+                        ((org.bukkit.craftbukkit.CraftWorld) world).getHandle();
+                    org.virgil.akiasync.mixin.async.redstone.AsyncRedstoneNetworkManager manager = 
+                        org.virgil.akiasync.mixin.async.redstone.AsyncRedstoneNetworkManager.getInstance(serverLevel);
+                    networkStats.put(world.getName(), manager.getStats());
+                } catch (Exception e) {
+                    networkStats.put(world.getName(), "Error: " + e.getMessage());
+                }
+            }
+            stats.put("network_cache", networkStats);
+        } catch (Exception e) {
+            logger.warning("[AkiAsync/Ignite] Error getting Sakura cache stats: " + e.getMessage());
+        }
+        return stats;
+    }
+    
+    @Override
+    public void performSakuraCacheCleanup() {
+        try {
+            for (org.bukkit.World world : org.bukkit.Bukkit.getWorlds()) {
+                try {
+                    net.minecraft.server.level.ServerLevel serverLevel = 
+                        ((org.bukkit.craftbukkit.CraftWorld) world).getHandle();
+                    
+                    org.virgil.akiasync.mixin.async.explosion.density.SakuraBlockDensityCache cache = 
+                        org.virgil.akiasync.mixin.async.explosion.density.SakuraBlockDensityCache.getOrCreate(serverLevel);
+                    cache.expire(serverLevel.getGameTime());
+                    
+                    org.virgil.akiasync.mixin.async.explosion.density.AsyncDensityCacheManager manager = 
+                        org.virgil.akiasync.mixin.async.explosion.density.AsyncDensityCacheManager.getInstance(serverLevel);
+                    manager.expire(serverLevel.getGameTime());
+                    
+                    org.virgil.akiasync.mixin.async.redstone.AsyncRedstoneNetworkManager networkManager = 
+                        org.virgil.akiasync.mixin.async.redstone.AsyncRedstoneNetworkManager.getInstance(serverLevel);
+                    networkManager.expire(serverLevel.getGameTime());
+                } catch (Exception e) {
+                    // Ignore individual world errors
+                }
+            }
+        } catch (Exception e) {
+            logger.warning("[AkiAsync/Ignite] Error performing Sakura cache cleanup: " + e.getMessage());
+        }
+    }
+    
+    @Override
+    public void clearEntityThrottleCache(int entityId) {
+        try {
+            org.virgil.akiasync.network.EntityDataThrottler.clearEntity(entityId);
+            org.virgil.akiasync.network.EntityPacketThrottler.clearEntity(entityId);
+        } catch (Exception e) {
+            // Ignore
+        }
+    }
+
+    // ==========================================
+    // AI 空间索引
+    // ==========================================
+    @Override public boolean isAiSpatialIndexEnabled() { return config != null && config.isAiSpatialIndexEnabled(); }
+    @Override public int getAiSpatialIndexGridSize() { return config != null ? config.getAiSpatialIndexGridSize() : 16; }
+    @Override public boolean isAiSpatialIndexAutoUpdate() { return config != null && config.isAiSpatialIndexAutoUpdate(); }
+    @Override public boolean isAiSpatialIndexPlayerIndexEnabled() { return config != null && config.isAiSpatialIndexPlayerIndexEnabled(); }
+    @Override public boolean isAiSpatialIndexPoiIndexEnabled() { return config != null && config.isAiSpatialIndexPoiIndexEnabled(); }
+    @Override public boolean isAiSpatialIndexStatisticsEnabled() { return config != null && config.isAiSpatialIndexStatisticsEnabled(); }
+    @Override public int getAiSpatialIndexLogIntervalSeconds() { return config != null ? config.getAiSpatialIndexLogIntervalSeconds() : 60; }
+
+    // ==========================================
+    // 额外生物优化
+    // ==========================================
+    @Override public boolean isWanderingTraderOptimizationEnabled() { return config != null && config.isWanderingTraderOptimizationEnabled(); }
+    @Override public boolean isWardenOptimizationEnabled() { return config != null && config.isWardenOptimizationEnabled(); }
+    @Override public boolean isHoglinOptimizationEnabled() { return config != null && config.isHoglinOptimizationEnabled(); }
+    @Override public boolean isAllayOptimizationEnabled() { return config != null && config.isAllayOptimizationEnabled(); }
+
+    // ==========================================
+    // Brain 优化
+    // ==========================================
+    @Override public boolean isBrainMemoryOptimizationEnabled() { return config != null && config.isBrainMemoryOptimizationEnabled(); }
+    @Override public boolean isPoiSnapshotEnabled() { return config != null && config.isPoiSnapshotEnabled(); }
+
+    // ==========================================
+    // 增强路径查找
+    // ==========================================
+    @Override public boolean isAsyncPathfindingSyncFallbackEnabled() { return config != null && config.isAsyncPathfindingSyncFallbackEnabled(); }
+    @Override public boolean isEnhancedPathfindingEnabled() { return config != null && config.isEnhancedPathfindingEnabled(); }
+    @Override public int getEnhancedPathfindingMaxConcurrentRequests() { return config != null ? config.getEnhancedPathfindingMaxConcurrentRequests() : 100; }
+    @Override public int getEnhancedPathfindingMaxRequestsPerTick() { return config != null ? config.getEnhancedPathfindingMaxRequestsPerTick() : 20; }
+    @Override public int getEnhancedPathfindingHighPriorityDistance() { return config != null ? config.getEnhancedPathfindingHighPriorityDistance() : 16; }
+    @Override public int getEnhancedPathfindingMediumPriorityDistance() { return config != null ? config.getEnhancedPathfindingMediumPriorityDistance() : 32; }
+    @Override public boolean isPathPrewarmEnabled() { return config != null && config.isPathPrewarmEnabled(); }
+    @Override public int getPathPrewarmRadius() { return config != null ? config.getPathPrewarmRadius() : 48; }
+    @Override public int getPathPrewarmMaxMobsPerBatch() { return config != null ? config.getPathPrewarmMaxMobsPerBatch() : 10; }
+    @Override public int getPathPrewarmMaxPoisPerMob() { return config != null ? config.getPathPrewarmMaxPoisPerMob() : 3; }
+
+    // ==========================================
+    // 碰撞 Executor
+    // ==========================================
+    @Override public ExecutorService getCollisionExecutor() { return generalExecutor; }
+
+    // ==========================================
+    // 修复
+    // ==========================================
+    @Override public boolean isEndIslandDensityFixEnabled() { return config != null && config.isEndIslandDensityFixEnabled(); }
+    @Override public boolean isPortalSuffocationCheckDisabled() { return config != null && config.isPortalSuffocationCheckDisabled(); }
+    @Override public boolean isShulkerBulletSelfHitFixEnabled() { return config != null && config.isShulkerBulletSelfHitFixEnabled(); }
+
+    // ==========================================
+    // 流体优化
+    // ==========================================
+    @Override public boolean isFluidOptimizationEnabled() { return config != null && config.isFluidOptimizationEnabled(); }
+    @Override public boolean isFluidDebugEnabled() { return config != null && config.isFluidDebugEnabled(); }
+    @Override public boolean isFluidTickThrottleEnabled() { return config != null && config.isFluidTickThrottleEnabled(); }
+    @Override public int getStaticFluidInterval() { return config != null ? config.getStaticFluidInterval() : 5; }
+    @Override public int getFlowingFluidInterval() { return config != null ? config.getFlowingFluidInterval() : 2; }
+    @Override public boolean isFluidTickCompensationEnabled() { return config != null && config.isFluidTickCompensationEnabled(); }
+    @Override public boolean isFluidCompensationEnabledForWater() { return config != null && config.isFluidCompensationEnabledForWater(); }
+    @Override public boolean isFluidCompensationEnabledForLava() { return config != null && config.isFluidCompensationEnabledForLava(); }
+    @Override public double getFluidCompensationTPSThreshold() { return config != null ? config.getFluidCompensationTPSThreshold() : 18.0; }
+
+    // ==========================================
+    // 智能延迟补偿
+    // ==========================================
+    @Override public boolean isSmartLagCompensationEnabled() { return config != null && config.isSmartLagCompensationEnabled(); }
+    @Override public double getSmartLagTPSThreshold() { return config != null ? config.getSmartLagTPSThreshold() : 18.0; }
+    @Override public boolean isSmartLagFluidCompensationEnabled() { return config != null && config.isSmartLagFluidCompensationEnabled(); }
+    @Override public boolean isSmartLagFluidWaterEnabled() { return config != null && config.isSmartLagFluidWaterEnabled(); }
+    @Override public boolean isSmartLagFluidLavaEnabled() { return config != null && config.isSmartLagFluidLavaEnabled(); }
+    @Override public boolean isSmartLagItemPickupDelayEnabled() { return config != null && config.isSmartLagItemPickupDelayEnabled(); }
+    @Override public boolean isSmartLagPotionEffectsEnabled() { return config != null && config.isSmartLagPotionEffectsEnabled(); }
+    @Override public boolean isSmartLagTimeAccelerationEnabled() { return config != null && config.isSmartLagTimeAccelerationEnabled(); }
+    @Override public boolean isSmartLagDebugEnabled() { return config != null && config.isSmartLagDebugEnabled(); }
+    @Override public boolean isSmartLagLogMissedTicks() { return config != null && config.isSmartLagLogMissedTicks(); }
+    @Override public boolean isSmartLagLogCompensation() { return config != null && config.isSmartLagLogCompensation(); }
+
+    // ==========================================
+    // 经验球优化
+    // ==========================================
+    @Override public boolean isExperienceOrbInactiveTickEnabled() { return config != null && config.isExperienceOrbInactiveTickEnabled(); }
+    @Override public double getExperienceOrbInactiveRange() { return config != null ? config.getExperienceOrbInactiveRange() : 32.0; }
+    @Override public int getExperienceOrbInactiveMergeInterval() { return config != null ? config.getExperienceOrbInactiveMergeInterval() : 100; }
+
+    // ==========================================
+    // 区块保护检查
+    // ==========================================
+    @Override
+    public Boolean checkChunkProtection(ServerLevel level, int chunkX, int chunkZ) {
+        // 简化实现：直接检查 canTNTExplodeAt
+        if (!isTNTLandProtectionEnabled()) {
+            return null;
+        }
+        try {
+            BlockPos pos = new BlockPos(chunkX << 4, 64, chunkZ << 4);
+            return !canTNTExplodeAt(level, pos);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    // ==========================================
+    // 生物生成间隔
+    // ==========================================
+    @Override public int getMobSpawnInterval() { return config != null ? config.getMobSpawnInterval() : 1; }
+
+    // ==========================================
+    // 物品实体额外配置
+    // ==========================================
+    @Override public boolean isItemEntityCancelVanillaMerge() { return config != null && config.isItemEntityCancelVanillaMerge(); }
+    @Override public boolean isItemEntityInactiveTickEnabled() { return config != null && config.isItemEntityInactiveTickEnabled(); }
+    @Override public double getItemEntityInactiveRange() { return config != null ? config.getItemEntityInactiveRange() : 32.0; }
+    @Override public int getItemEntityInactiveMergeInterval() { return config != null ? config.getItemEntityInactiveMergeInterval() : 100; }
+
+    // ==========================================
+    // Execute 命令优化
+    // ==========================================
+    @Override public boolean isExecuteCommandInactiveSkipEnabled() { return config != null && config.isExecuteCommandInactiveSkipEnabled(); }
+    @Override public int getExecuteCommandSkipLevel() { return config != null ? config.getExecuteCommandSkipLevel() : 2; }
+    @Override public double getExecuteCommandSimulationDistanceMultiplier() { return config != null ? config.getExecuteCommandSimulationDistanceMultiplier() : 1.0; }
+    @Override public long getExecuteCommandCacheDurationMs() { return config != null ? config.getExecuteCommandCacheDurationMs() : 100; }
+    @Override public Set<String> getExecuteCommandWhitelistTypes() { return config != null ? config.getExecuteCommandWhitelistTypes() : Collections.emptySet(); }
+    @Override public boolean isExecuteCommandDebugEnabled() { return config != null && config.isExecuteCommandDebugEnabled(); }
+    @Override public boolean isCommandDeduplicationEnabled() { return config != null && config.isCommandDeduplicationEnabled(); }
+    @Override public boolean isCommandDeduplicationDebugEnabled() { return config != null && config.isCommandDeduplicationDebugEnabled(); }
+
+    // ==========================================
+    // 碰撞优化
+    // ==========================================
+    @Override public boolean isCollisionOptimizationEnabled() { return config != null && config.isCollisionOptimizationEnabled(); }
+    @Override public boolean isCollisionAggressiveMode() { return config != null && config.isCollisionAggressiveMode(); }
+    @Override public Set<String> getCollisionExcludedEntities() { return config != null ? config.getCollisionExcludedEntities() : Collections.emptySet(); }
+    @Override public boolean isCollisionCacheEnabled() { return config != null && config.isCollisionCacheEnabled(); }
+    @Override public int getCollisionCacheLifetimeMs() { return config != null ? config.getCollisionCacheLifetimeMs() : 50; }
+    @Override public double getCollisionCacheMovementThreshold() { return config != null ? config.getCollisionCacheMovementThreshold() : 0.01; }
+    @Override public boolean isCollisionSpatialPartitionEnabled() { return config != null && config.isCollisionSpatialPartitionEnabled(); }
+    @Override public int getCollisionSpatialGridSize() { return config != null ? config.getCollisionSpatialGridSize() : 4; }
+    @Override public int getCollisionSpatialDensityThreshold() { return config != null ? config.getCollisionSpatialDensityThreshold() : 50; }
+    @Override public int getCollisionSpatialUpdateIntervalMs() { return config != null ? config.getCollisionSpatialUpdateIntervalMs() : 100; }
+    @Override public double getCollisionSkipMinMovement() { return config != null ? config.getCollisionSkipMinMovement() : 0.001; }
+    @Override public int getCollisionSkipCheckIntervalMs() { return config != null ? config.getCollisionSkipCheckIntervalMs() : 50; }
+
+    // ==========================================
+    // 推挤优化
+    // ==========================================
+    @Override public boolean isPushOptimizationEnabled() { return config != null && config.isPushOptimizationEnabled(); }
+    @Override public double getPushMaxPushPerTick() { return config != null ? config.getPushMaxPushPerTick() : 0.5; }
+    @Override public double getPushDampingFactor() { return config != null ? config.getPushDampingFactor() : 0.8; }
+    @Override public int getPushHighDensityThreshold() { return config != null ? config.getPushHighDensityThreshold() : 10; }
+    @Override public double getPushHighDensityMultiplier() { return config != null ? config.getPushHighDensityMultiplier() : 0.5; }
+
+    // ==========================================
+    // 高级碰撞优化
+    // ==========================================
+    @Override public boolean isAdvancedCollisionOptimizationEnabled() { return config != null && config.isAdvancedCollisionOptimizationEnabled(); }
+    @Override public int getCollisionThreshold() { return config != null ? config.getCollisionThreshold() : 10; }
+    @Override public float getSuffocationDamage() { return config != null ? config.getSuffocationDamage() : 1.0f; }
+    @Override public int getMaxPushIterations() { return config != null ? config.getMaxPushIterations() : 3; }
+
+    // ==========================================
+    // 光照优先级调度
+    // ==========================================
+    @Override public boolean isLightingPrioritySchedulingEnabled() { return config != null && config.isLightingPrioritySchedulingEnabled(); }
+    @Override public int getLightingHighPriorityRadius() { return config != null ? config.getLightingHighPriorityRadius() : 2; }
+    @Override public int getLightingMediumPriorityRadius() { return config != null ? config.getLightingMediumPriorityRadius() : 4; }
+    @Override public int getLightingLowPriorityRadius() { return config != null ? config.getLightingLowPriorityRadius() : 8; }
+    @Override public long getLightingMaxLowPriorityDelay() { return config != null ? config.getLightingMaxLowPriorityDelay() : 1000; }
+
+    // ==========================================
+    // 光照去抖动
+    // ==========================================
+    @Override public boolean isLightingDebouncingEnabled() { return config != null && config.isLightingDebouncingEnabled(); }
+    @Override public long getLightingDebounceDelay() { return config != null ? config.getLightingDebounceDelay() : 50; }
+    @Override public int getLightingMaxUpdatesPerSecond() { return config != null ? config.getLightingMaxUpdatesPerSecond() : 1000; }
+    @Override public long getLightingResetOnStableMs() { return config != null ? config.getLightingResetOnStableMs() : 500; }
+
+    // ==========================================
+    // 光照合并
+    // ==========================================
+    @Override public boolean isLightingMergingEnabled() { return config != null && config.isLightingMergingEnabled(); }
+    @Override public int getLightingMergeRadius() { return config != null ? config.getLightingMergeRadius() : 2; }
+    @Override public long getLightingMergeDelay() { return config != null ? config.getLightingMergeDelay() : 20; }
+    @Override public int getLightingMaxMergedUpdates() { return config != null ? config.getLightingMaxMergedUpdates() : 100; }
+
+    // ==========================================
+    // 光照区块边界
+    // ==========================================
+    @Override public boolean isLightingChunkBorderEnabled() { return config != null && config.isLightingChunkBorderEnabled(); }
+    @Override public boolean isLightingBatchBorderUpdates() { return config != null && config.isLightingBatchBorderUpdates(); }
+    @Override public long getLightingBorderUpdateDelay() { return config != null ? config.getLightingBorderUpdateDelay() : 100; }
+    @Override public int getLightingCrossChunkBatchSize() { return config != null ? config.getLightingCrossChunkBatchSize() : 16; }
+
+    // ==========================================
+    // 自适应光照
+    // ==========================================
+    @Override public boolean isLightingAdaptiveEnabled() { return config != null && config.isLightingAdaptiveEnabled(); }
+    @Override public int getLightingMonitorInterval() { return config != null ? config.getLightingMonitorInterval() : 100; }
+    @Override public boolean isLightingAutoAdjustThreads() { return config != null && config.isLightingAutoAdjustThreads(); }
+    @Override public boolean isLightingAutoAdjustBatchSize() { return config != null && config.isLightingAutoAdjustBatchSize(); }
+    @Override public int getLightingTargetQueueSize() { return config != null ? config.getLightingTargetQueueSize() : 100; }
+    @Override public int getLightingTargetLatency() { return config != null ? config.getLightingTargetLatency() : 50; }
+
+    // ==========================================
+    // 光照区块卸载
+    // ==========================================
+    @Override public boolean isLightingChunkUnloadEnabled() { return config != null && config.isLightingChunkUnloadEnabled(); }
+    @Override public boolean isLightingAsyncCleanup() { return config != null && config.isLightingAsyncCleanup(); }
+    @Override public int getLightingCleanupBatchSize() { return config != null ? config.getLightingCleanupBatchSize() : 16; }
+    @Override public long getLightingCleanupDelay() { return config != null ? config.getLightingCleanupDelay() : 1000; }
+
+    // ==========================================
+    // 光照线程池配置
+    // ==========================================
+    @Override public String getLightingThreadPoolMode() { return config != null ? config.getLightingThreadPoolMode() : "fixed"; }
+    @Override public String getLightingThreadPoolCalculation() { return config != null ? config.getLightingThreadPoolCalculation() : "cores"; }
+    @Override public int getLightingMinThreads() { return config != null ? config.getLightingMinThreads() : 1; }
+    @Override public int getLightingMaxThreads() { return config != null ? config.getLightingMaxThreads() : 4; }
+    @Override public int getLightingBatchThresholdMax() { return config != null ? config.getLightingBatchThresholdMax() : 256; }
+    @Override public boolean isLightingAggressiveBatching() { return config != null && config.isLightingAggressiveBatching(); }
+
+    // ==========================================
+    // 噪声和拼图优化
+    // ==========================================
+    @Override public boolean isNoiseOptimizationEnabled() { return config != null && config.isNoiseOptimizationEnabled(); }
+    @Override public boolean isJigsawOptimizationEnabled() { return config != null && config.isJigsawOptimizationEnabled(); }
+    
+    @Override
+    public void initializeJigsawOctree(net.minecraft.world.phys.AABB bounds) {
+        if (config != null && isJigsawOptimizationEnabled()) {
+            try {
+                org.virgil.akiasync.util.worldgen.OctreeHolder.set(
+                    new org.virgil.akiasync.util.worldgen.BoxOctree(bounds)
+                );
+            } catch (Exception e) {
+                logger.warning("[AkiAsync/Ignite] Failed to initialize Jigsaw Octree: " + e.getMessage());
+            }
+        }
+    }
+    
+    @Override
+    public boolean hasJigsawOctree() {
+        try {
+            return org.virgil.akiasync.util.worldgen.OctreeHolder.isSet();
+        } catch (Exception e) {
+            return false;
+        }
+    }
+    
+    @Override
+    public void insertIntoJigsawOctree(net.minecraft.world.phys.AABB box) {
+        try {
+            org.virgil.akiasync.util.worldgen.BoxOctree octree = 
+                org.virgil.akiasync.util.worldgen.OctreeHolder.get();
+            if (octree != null) {
+                octree.insert(box);
+            }
+        } catch (Exception e) {
+            // Ignore
+        }
+    }
+    
+    @Override
+    public boolean jigsawOctreeIntersects(net.minecraft.world.phys.AABB box) {
+        try {
+            org.virgil.akiasync.util.worldgen.BoxOctree octree = 
+                org.virgil.akiasync.util.worldgen.OctreeHolder.get();
+            return octree != null && octree.intersects(box);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+    
+    @Override
+    public void clearJigsawOctree() {
+        try {
+            org.virgil.akiasync.util.worldgen.OctreeHolder.clear();
+        } catch (Exception e) {
+            // Ignore
+        }
+    }
+    
+    @Override
+    public String getJigsawOctreeStats() {
+        try {
+            org.virgil.akiasync.util.worldgen.BoxOctree octree = 
+                org.virgil.akiasync.util.worldgen.OctreeHolder.get();
+            if (octree != null) {
+                return octree.getStats().toString();
+            }
+        } catch (Exception e) {
+            // Ignore
+        }
+        return "Octree not initialized";
+    }
+
+    // ==========================================
+    // 实体数据包节流
+    // ==========================================
+    @Override public boolean isEntityPacketThrottleEnabled() { return config != null && config.isEntityPacketThrottleEnabled(); }
+    
+    @Override
+    public boolean shouldSendEntityUpdate(ServerPlayer player, Entity entity) {
+        if (!isEntityPacketThrottleEnabled() || player == null || entity == null) {
+            return true;
+        }
+        try {
+            if (!org.virgil.akiasync.network.EntityPacketThrottler.isInitialized()) {
+                return true;
+            }
+            return org.virgil.akiasync.network.EntityPacketThrottler.shouldSendUpdateSimple(player, entity);
+        } catch (Exception e) {
+            return true;
+        }
+    }
+    
+    @Override
+    public void tickEntityPacketThrottler() {
+        if (!isEntityPacketThrottleEnabled()) return;
+        try {
+            if (org.virgil.akiasync.network.EntityPacketThrottler.isInitialized()) {
+                org.virgil.akiasync.network.EntityPacketThrottler.tick();
+            }
+        } catch (Exception e) {
+            // Ignore
+        }
+    }
+    
+    @Override public boolean isEntityDataThrottleEnabled() { return config != null && config.isEntityDataThrottleEnabled(); }
+    
+    @Override
+    public boolean shouldSendMetadata(ServerPlayer player, Entity entity, int metadataHash) {
+        if (!isEntityDataThrottleEnabled() || player == null || entity == null) {
+            return true;
+        }
+        try {
+            return org.virgil.akiasync.network.EntityDataThrottler.shouldSendMetadata(player, entity, metadataHash);
+        } catch (Exception e) {
+            return true;
+        }
+    }
+    
+    @Override
+    public boolean shouldSendNBT(ServerPlayer player, Entity entity, boolean forceUpdate) {
+        if (!isEntityDataThrottleEnabled() || player == null || entity == null) {
+            return true;
+        }
+        try {
+            return org.virgil.akiasync.network.EntityDataThrottler.shouldSendNBT(player, entity, forceUpdate);
+        } catch (Exception e) {
+            return true;
+        }
+    }
+    
+    @Override
+    public void tickEntityDataThrottler() {
+        if (!isEntityDataThrottleEnabled()) return;
+        try {
+            org.virgil.akiasync.network.EntityDataThrottler.tick();
+        } catch (Exception e) {
+            // Ignore
+        }
+    }
+
+    // ==========================================
+    // 区块可见性过滤
+    // ==========================================
+    @Override public boolean isChunkVisibilityFilterEnabled() { return config != null && config.isChunkVisibilityFilterEnabled(); }
+    
+    @Override
+    public boolean isChunkVisible(ServerPlayer player, ChunkPos chunkPos, ServerLevel level) {
+        if (!isChunkVisibilityFilterEnabled() || player == null || chunkPos == null || level == null) {
+            return true;
+        }
+        try {
+            return org.virgil.akiasync.network.ChunkVisibilityFilter.isChunkVisible(player, chunkPos, level);
+        } catch (Exception e) {
+            return true;
+        }
+    }
+    
+    @Override
+    public void tickChunkVisibilityFilter() {
+        if (!isChunkVisibilityFilterEnabled()) return;
+        try {
+            org.virgil.akiasync.network.ChunkVisibilityFilter.tick();
+        } catch (Exception e) {
+            // Ignore
+        }
+    }
 
     // ==========================================
     // 配置更新（支持热重载）
@@ -1015,20 +1449,6 @@ public class IgniteAkiAsyncBridge implements Bridge {
         logger.info("[AkiAsync/Ignite] Shutting down IgniteAkiAsyncBridge...");
         
         // 关闭网络优化组件
-        if (packetSendWorker != null) {
-            try {
-                packetSendWorker.stop();
-                logger.info("[AkiAsync/Ignite] PacketSendWorker stopped");
-            } catch (Exception e) {
-                // 忽略
-            }
-            packetSendWorker = null;
-        }
-        
-        packetScheduler = null;
-        chunkRateController = null;
-        congestionDetector = null;
-        
         // 清理平滑调度器（TaskSmoothingScheduler 使用 daemon 线程，只需清空队列）
         if (blockTickScheduler != null) {
             try {

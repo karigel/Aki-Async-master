@@ -10,6 +10,7 @@ import org.virgil.akiasync.mixin.brain.core.AsyncBrainExecutor;
 import org.virgil.akiasync.mixin.brain.pillager.PillagerCpuCalculator;
 import org.virgil.akiasync.mixin.brain.pillager.PillagerDiff;
 import org.virgil.akiasync.mixin.brain.pillager.PillagerSnapshot;
+import org.virgil.akiasync.mixin.util.BridgeConfigCache;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.monster.AbstractIllager;
@@ -47,7 +48,9 @@ public abstract class PillagerFamilyTickMixin {
             if (diff != null && diff.hasChanges()) {
                 diff.applyTo(illager, level);
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            BridgeConfigCache.errorLog("[PillagerFamily] Error in async brain tick: %s", e.getMessage());
+        }
     }
     @Unique
     private static synchronized void aki$init() {
@@ -63,7 +66,7 @@ public abstract class PillagerFamilyTickMixin {
         }
         initialized = true;
         if (bridge != null) {
-            bridge.debugLog("[AkiAsync] PillagerFamilyTickMixin initialized: enabled=" + cached_enabled);
+            BridgeConfigCache.debugLog("[AkiAsync] PillagerFamilyTickMixin initialized: enabled=" + cached_enabled);
         }
     }
 }

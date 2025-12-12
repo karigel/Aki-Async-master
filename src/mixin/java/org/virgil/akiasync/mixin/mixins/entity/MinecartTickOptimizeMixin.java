@@ -9,7 +9,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.minecraft.world.entity.vehicle.AbstractMinecart;
 import net.minecraft.world.phys.Vec3;
 
-
 @Mixin(AbstractMinecart.class)
 public class MinecartTickOptimizeMixin {
     
@@ -31,6 +30,8 @@ public class MinecartTickOptimizeMixin {
     @Unique
     private int aki$tickCounter = 0;
     
+    @Unique
+    private long aki$lastBlockCheckTime = 0;
     
     @Inject(method = "tick", at = @At("HEAD"), cancellable = true, require = 0)
     private void optimizeMinecartTick(CallbackInfo ci) {
@@ -46,7 +47,19 @@ public class MinecartTickOptimizeMixin {
         Vec3 currentPos = minecart.position();
         Vec3 deltaMovement = minecart.getDeltaMovement();
         
-
+        net.minecraft.core.BlockPos blockPos = minecart.blockPosition();
+        net.minecraft.world.level.block.state.BlockState blockState = minecart.level().getBlockState(blockPos);
+        boolean onRail = blockState.getBlock() instanceof net.minecraft.world.level.block.BaseRailBlock;
+        
+        long currentTime = minecart.level().getGameTime();
+        if (currentTime - aki$lastBlockCheckTime > 20) {
+            aki$lastBlockCheckTime = currentTime;
+            
+            if (aki$staticTicks > 20) {
+                aki$staticTicks = Math.max(0, aki$staticTicks - 10);
+            }
+        }
+        
         boolean isStatic = false;
         if (aki$lastPosition != null) {
             double movement = currentPos.distanceTo(aki$lastPosition);
@@ -62,20 +75,26 @@ public class MinecartTickOptimizeMixin {
         
         aki$lastPosition = currentPos;
         
-
-        if (isStatic && aki$staticTicks > 20) {
+        if (onRail && isStatic && aki$staticTicks > 40) {
             aki$tickCounter++;
             
-
+            if (aki$tickCounter % 3 != 0) {
+                ci.cancel();
+                return;
+            }
+        }
+        
+        else if (!onRail && isStatic && aki$staticTicks > 20) {
+            aki$tickCounter++;
+            
             if (aki$tickCounter % 5 != 0) {
                 ci.cancel();
                 return;
             }
         }
         
-
         if (minecart.getPassengers().isEmpty() && isStatic && aki$staticTicks > 100) {
-
+            
             if (aki$tickCounter % 10 != 0) {
                 ci.cancel();
             }

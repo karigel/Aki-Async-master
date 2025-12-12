@@ -19,6 +19,11 @@ public abstract class BrainThrottleMixin<E extends LivingEntity> {
     private void akiasync$tickThrottle(net.minecraft.server.level.ServerLevel level, E entity, CallbackInfo ci) {
         if (!initialized) { akiasync$initBrainThrottle(); }
         if (!cached_enabled) return;
+        
+        
+        if (entity instanceof net.minecraft.world.entity.monster.warden.Warden) {
+            return;
+        }
         long gameTime = level.getGameTime();
         if (gameTime < this.akiasync$skipUntil) {
             ci.cancel();
@@ -30,7 +35,6 @@ public abstract class BrainThrottleMixin<E extends LivingEntity> {
             akiasync$stillTicks = 0;
             return;
         }
-
 
         boolean inFluid = entity.isInWater() || entity.isInLava();
         if (!inFluid) {
@@ -44,7 +48,6 @@ public abstract class BrainThrottleMixin<E extends LivingEntity> {
         double dz = cur.z - akiasync$lastPos.z;
         double dist2 = dx * dx + dy * dy + dz * dz;
         
-
         if (!inFluid && entity.onGround() && dist2 < 1.0E-4) {
             akiasync$stillTicks++;
             if (akiasync$stillTicks >= cached_interval) {

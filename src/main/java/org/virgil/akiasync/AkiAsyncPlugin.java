@@ -21,11 +21,10 @@ public final class AkiAsyncPlugin extends JavaPlugin {
     private AkiAsyncBridge bridge;
     private CacheManager cacheManager;
     private org.virgil.akiasync.throttling.EntityThrottlingManager throttlingManager;
-    private org.virgil.akiasync.network.NetworkOptimizationManager networkOptimizationManager;
     private ChunkLoadPriorityScheduler chunkLoadScheduler;
     private java.util.concurrent.ScheduledExecutorService metricsScheduler;
     private org.virgil.akiasync.compat.VirtualEntityCompatManager virtualEntityCompatManager;
-    // QuantumSeedManager removed - not available in this build
+    private org.virgil.akiasync.crypto.QuantumSeedManager quantumSeedManager;
 
     @Override
     public void onEnable() {
@@ -46,7 +45,12 @@ public final class AkiAsyncPlugin extends JavaPlugin {
             executorManager.getTNTExecutor(),
             executorManager.getChunkTickExecutor(),
             executorManager.getVillagerBreedExecutor(),
-            executorManager.getBrainExecutor()
+            executorManager.getBrainExecutor(),
+            executorManager.getCollisionExecutor()
+        );
+        
+        org.virgil.akiasync.mixin.util.AsyncCollisionProcessor.setExecutor(
+            executorManager.getCollisionExecutor()
         );
         BridgeManager.setBridge(bridge);
 
@@ -60,10 +64,6 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         if (virtualEntityCompatManager.isEnabled()) {
             org.virgil.akiasync.util.VirtualEntityDetector.setDetectorRegistry(
                 virtualEntityCompatManager.getDetectorRegistry()
-            );
-            
-            org.virgil.akiasync.network.PacketClassifier.setVirtualEntityHandler(
-                virtualEntityCompatManager.getPacketHandler()
             );
             
             java.util.Map<String, Boolean> availability = virtualEntityCompatManager.getPluginAvailability();
@@ -97,13 +97,25 @@ public final class AkiAsyncPlugin extends JavaPlugin {
             getLogger().info("[AkiAsync] Villager breed async check enabled with " + configManager.getVillagerBreedThreads() + " threads");
         }
 
+        if (configManager.isSeedEncryptionEnabled()) {
+            if (configManager.isQuantumSeedEnabled()) {
 
-        // Seed encryption - only SecureSeed available (QuantumSeed not in this build)
-        if (configManager.isSeedEncryptionEnabled() && configManager.isSecureSeedEnabled()) {
-            long worldSeed = getServer().getWorlds().get(0).getSeed();
-            bridge.initializeSecureSeed(worldSeed);
-            getLogger().info("[AkiAsync] SecureSeed encryption enabled (" + configManager.getSecureSeedBits() + " bits)");
-            getLogger().info("[AkiAsync] SecureSeed features: BLAKE2b哈希 + 1024位种子空间");
+                quantumSeedManager = new org.virgil.akiasync.crypto.QuantumSeedManager(
+                    this,
+                    configManager.getQuantumSeedCacheSize(),
+                    configManager.isQuantumSeedEnableTimeDecay(),
+                    configManager.isQuantumSeedDebugLogging()
+                );
+                quantumSeedManager.initialize();
+                getLogger().info("[AkiAsync] QuantumSeed encryption enabled (Level " + configManager.getQuantumSeedEncryptionLevel() + ")");
+                getLogger().info("[AkiAsync] QuantumSeed features: IbRNG full integration + Regional chunk obfuscation + 6-layer encryption");
+            } else if (configManager.isSecureSeedEnabled()) {
+
+                long worldSeed = getServer().getWorlds().get(0).getSeed();
+                bridge.initializeSecureSeed(worldSeed);
+                getLogger().info("[AkiAsync] SecureSeed encryption enabled (" + configManager.getSecureSeedBits() + " bits)");
+                getLogger().info("[AkiAsync] SecureSeed features: BLAKE2b哈希 + 1024位种子空间");
+            }
         }
         
         if (configManager.isStructureLocationAsyncEnabled()) {
@@ -123,10 +135,14 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         }
 
         BridgeManager.validateAndDisplayConfigurations();
+        
+        // Log land protection plugin compatibility status
+        org.virgil.akiasync.util.LandProtectionIntegration.logCompatibilityStatus(getLogger());
 
         getServer().getPluginManager().registerEvents(new ConfigReloadListener(this), this);
+        getServer().getPluginManager().registerEvents(new org.virgil.akiasync.listener.WorldUnloadListener(this), this);
+        getServer().getPluginManager().registerEvents(new org.virgil.akiasync.listener.PlayerPathPrewarmListener(this), this);
         
-
         if (configManager.isSeedCommandRestrictionEnabled()) {
             getServer().getPluginManager().registerEvents(new org.virgil.akiasync.listener.SeedCommandListener(this), this);
             getLogger().info("[AkiAsync] /seed command restriction enabled (OP only)");
@@ -135,11 +151,10 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         registerCommand("aki-reload", new ReloadCommand(this));
         registerCommand("aki-debug", new DebugCommand(this));
         registerCommand("aki-version", new VersionCommand(this));
-        registerCommand("aki-teleport-stats", new org.virgil.akiasync.command.TeleportStatsCommand(this));
-
-        if (configManager.isNetworkOptimizationEnabled()) {
-            networkOptimizationManager = new org.virgil.akiasync.network.NetworkOptimizationManager(this);
-            getLogger().info("[AkiAsync] Network optimization enabled");
+        
+        if (configManager.isEntityPacketThrottleEnabled()) {
+            org.virgil.akiasync.network.EntityPacketThrottler.initialize(this);
+            getLogger().info("[AkiAsync] Entity packet throttle enabled");
         }
 
         if (configManager.isFastMovementChunkLoadEnabled()) {
@@ -156,7 +171,7 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         getLogger().info("  AkiAsync - Async Optimization Plugin");
         getLogger().info("========================================");
         getLogger().info("Version: " + getDescription().getVersion());
-        getLogger().info("Commands: /aki-reload | /aki-debug | /aki-version | /aki-teleport-stats");
+        getLogger().info("Commands: /aki-reload | /aki-debug | /aki-version");
         getLogger().info("");
         getLogger().info("[+] Core Features:");
         getLogger().info("  [+] Async Entity Tracker: " + (configManager.isEntityTrackerEnabled() ? "Enabled" : "Disabled"));
@@ -187,6 +202,13 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         }
 
         org.virgil.akiasync.mixin.pathfinding.AsyncPathProcessor.shutdown();
+        
+        try {
+            org.virgil.akiasync.mixin.pathfinding.EnhancedPathfindingInitializer.shutdown();
+            getLogger().info("[AkiAsync] EnhancedPathfindingSystem shutdown completed");
+        } catch (Exception e) {
+            getLogger().warning("[AkiAsync] Failed to shutdown EnhancedPathfindingSystem: " + e.getMessage());
+        }
 
         if (throttlingManager != null) {
             throttlingManager.shutdown();
@@ -196,12 +218,15 @@ public final class AkiAsyncPlugin extends JavaPlugin {
             virtualEntityCompatManager.shutdown();
         }
         
+        try {
+            org.virgil.akiasync.mixin.crypto.quantum.AsyncSeedEncryptor.shutdown();
+            getLogger().info("[AkiAsync] AsyncSeedEncryptor shutdown completed");
+        } catch (Exception e) {
+            getLogger().warning("[AkiAsync] Failed to shutdown AsyncSeedEncryptor: " + e.getMessage());
+        }
 
-        // AsyncSeedEncryptor shutdown removed - not available in this build
-        
         org.virgil.akiasync.mixin.async.TNTThreadPool.shutdown();
         
-
         try {
             org.virgil.akiasync.async.structure.OptimizedStructureLocator.shutdown();
             getLogger().info("[AkiAsync] OptimizedStructureLocator shutdown completed");
@@ -215,9 +240,7 @@ public final class AkiAsyncPlugin extends JavaPlugin {
             optimizer.shutdown();
         }
 
-        if (networkOptimizationManager != null) {
-            networkOptimizationManager.shutdown();
-        }
+        org.virgil.akiasync.network.EntityPacketThrottler.shutdown();
 
         if (chunkLoadScheduler != null) {
             chunkLoadScheduler.shutdown();
@@ -304,10 +327,6 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         return throttlingManager;
     }
 
-    public org.virgil.akiasync.network.NetworkOptimizationManager getNetworkOptimizationManager() {
-        return networkOptimizationManager;
-    }
-
     public ChunkLoadPriorityScheduler getChunkLoadScheduler() {
         return chunkLoadScheduler;
     }
@@ -316,7 +335,9 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         return virtualEntityCompatManager;
     }
     
-    // getQuantumSeedManager() removed - not available in this build
+    public org.virgil.akiasync.crypto.QuantumSeedManager getQuantumSeedManager() {
+        return quantumSeedManager;
+    }
 
     public void restartMetricsScheduler() {
         stopMetricsScheduler();
@@ -331,24 +352,40 @@ public final class AkiAsyncPlugin extends JavaPlugin {
         }
     }
 
-    private void registerCommand(String name, io.papermc.paper.command.brigadier.BasicCommand basicCommand) {
+    private void registerCommand(String name, org.bukkit.command.CommandExecutor executor) {
         org.bukkit.command.PluginCommand command = getCommand(name);
         if (command != null) {
-            // Wrap BasicCommand as CommandExecutor
+            command.setExecutor(executor);
+        }
+    }
+    
+    private void registerCommand(String name, io.papermc.paper.command.brigadier.BasicCommand basicCommand) {
+        // For Paper's BasicCommand, wrap it in a CommandExecutor adapter
+        org.bukkit.command.PluginCommand command = getCommand(name);
+        if (command != null) {
             command.setExecutor((sender, cmd, label, args) -> {
                 try {
-                    // Create a minimal CommandSourceStack wrapper
-                    basicCommand.execute(
-                        new io.papermc.paper.command.brigadier.CommandSourceStack() {
-                            @Override public org.bukkit.Location getLocation() { return sender instanceof org.bukkit.entity.Player p ? p.getLocation() : null; }
-                            @Override public org.bukkit.command.CommandSender getSender() { return sender; }
-                            @Override public org.bukkit.entity.Entity getExecutor() { return sender instanceof org.bukkit.entity.Entity e ? e : null; }
-                        }, 
-                        args
-                    );
+                    // Create a simple CommandSourceStack wrapper
+                    basicCommand.execute(new io.papermc.paper.command.brigadier.CommandSourceStack() {
+                        @Override
+                        public org.bukkit.Location getLocation() {
+                            return sender instanceof org.bukkit.entity.Entity ? 
+                                ((org.bukkit.entity.Entity) sender).getLocation() : null;
+                        }
+                        
+                        @Override
+                        public org.bukkit.command.CommandSender getSender() {
+                            return sender;
+                        }
+                        
+                        @Override
+                        public org.bukkit.entity.Entity getExecutor() {
+                            return sender instanceof org.bukkit.entity.Entity ? 
+                                (org.bukkit.entity.Entity) sender : null;
+                        }
+                    }, args);
                     return true;
                 } catch (Exception e) {
-                    sender.sendMessage("Error executing command: " + e.getMessage());
                     return false;
                 }
             });

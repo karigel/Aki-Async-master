@@ -9,6 +9,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings("unused")
@@ -20,6 +21,8 @@ public abstract class ItemEntityMergeMixin {
 
     @Unique
     private static volatile boolean enabled;
+    @Unique
+    private static volatile boolean cancelVanillaMerge;
     @Unique
     private static volatile int mergeInterval;
     @Unique
@@ -35,6 +38,16 @@ public abstract class ItemEntityMergeMixin {
     private List<ItemEntity> aki$cachedNearbyItems = null;
     @Unique
     private int aki$lastCacheTick = 0;
+
+    @Inject(method = "mergeWithNeighbours", at = @At("HEAD"), cancellable = true)
+    private void cancelVanillaMerge(CallbackInfo ci) {
+        if (!initialized) {
+            akiasync$initMergeOptimization();
+        }
+        if (enabled && cancelVanillaMerge) {
+            ci.cancel(); 
+        }
+    }
 
     @Inject(method = "tick", at = @At("HEAD"))
     private void optimizeMerge(CallbackInfo ci) {
@@ -72,20 +85,20 @@ public abstract class ItemEntityMergeMixin {
             aki$lastCacheTick = currentTick;
         }
 
-        if (aki$cachedNearbyItems.size() < minNearbyItems) {
-            org.virgil.akiasync.mixin.bridge.Bridge bridge =
-                org.virgil.akiasync.mixin.bridge.BridgeManager.getBridge();
-            if (bridge != null && bridge.isDebugLoggingEnabled()) {
-                bridge.debugLog("[AkiAsync-ItemMerge] Skipping merge: nearby items (%d) < threshold (%d)",
-                    aki$cachedNearbyItems.size(), minNearbyItems);
-            }
+        boolean highDensity = aki$cachedNearbyItems.size() >= 10;
+        
+        if (!highDensity && aki$cachedNearbyItems.size() < minNearbyItems) {
             return;
         }
 
+        int mergedCount = 0;
         for (ItemEntity other : aki$cachedNearbyItems) {
             if (other != self && !other.isRemoved()) {
                 try {
                     this.tryToMerge(other);
+                    mergedCount++;
+                    
+                    if (!highDensity && mergedCount >= 5) break;
                 } catch (Throwable t) {
                 }
             }
@@ -97,6 +110,31 @@ public abstract class ItemEntityMergeMixin {
         AABB boundingBox = self.getBoundingBox();
         if (boundingBox == null) {
             return java.util.Collections.emptyList();
+        }
+        
+        try {
+            org.virgil.akiasync.mixin.util.EntitySliceGrid grid = 
+                org.virgil.akiasync.mixin.util.EntitySliceGridManager.getSliceGrid(self.level());
+            
+            if (grid != null) {
+                
+                AABB searchBox = boundingBox.inflate(mergeRange);
+                if (searchBox != null) {
+                    List<net.minecraft.world.entity.Entity> entities = grid.queryRange(searchBox);
+                    
+                    List<ItemEntity> result = new ArrayList<>();
+                    for (net.minecraft.world.entity.Entity entity : entities) {
+                        if (entity instanceof ItemEntity item && 
+                            item != self && 
+                            !item.isRemoved()) {
+                            result.add(item);
+                        }
+                    }
+                    return result;
+                }
+            }
+        } catch (Throwable t) {
+            
         }
         
         AABB searchBox = boundingBox.inflate(mergeRange);
@@ -117,6 +155,10 @@ public abstract class ItemEntityMergeMixin {
             return true;
         }
 
+        if (akiasync$isInPortal(item)) {
+            return true;
+        }
+
         net.minecraft.core.BlockPos pos = item.blockPosition();
         if (pos == null) {
             return false;
@@ -132,7 +174,28 @@ public abstract class ItemEntityMergeMixin {
             return true;
         }
 
+        if (state.getBlock() instanceof net.minecraft.world.level.block.NetherPortalBlock ||
+            state.getBlock() instanceof net.minecraft.world.level.block.EndPortalBlock) {
+            return true;
+        }
+
         return false;
+    }
+
+    @Unique
+    private boolean akiasync$isInPortal(ItemEntity item) {
+        try {
+            net.minecraft.core.BlockPos pos = item.blockPosition();
+            if (pos == null) return false;
+
+            net.minecraft.world.level.block.state.BlockState state = item.level().getBlockState(pos);
+            if (state == null) return false;
+
+            return state.getBlock() instanceof net.minecraft.world.level.block.NetherPortalBlock ||
+                   state.getBlock() instanceof net.minecraft.world.level.block.EndPortalBlock;
+        } catch (Throwable t) {
+            return false;
+        }
     }
 
     @Unique
@@ -161,20 +224,23 @@ public abstract class ItemEntityMergeMixin {
 
         if (bridge != null) {
             enabled = bridge.isItemEntityMergeOptimizationEnabled();
+            cancelVanillaMerge = bridge.isItemEntityCancelVanillaMerge();
             mergeInterval = bridge.getItemEntityMergeInterval();
             minNearbyItems = bridge.getItemEntityMinNearbyItems();
             mergeRange = bridge.getItemEntityMergeRange();
         } else {
             enabled = true;
-            mergeInterval = 5;
-            minNearbyItems = 3;
-            mergeRange = 1.5;
+            cancelVanillaMerge = true;
+            mergeInterval = 3; 
+            minNearbyItems = 2; 
+            mergeRange = 2.0; 
         }
 
         initialized = true;
 
         if (bridge != null) {
             bridge.debugLog("[AkiAsync] ItemEntityMergeMixin initialized: enabled=" + enabled +
+                ", cancelVanillaMerge=" + cancelVanillaMerge +
                 ", mergeInterval=" + mergeInterval + ", minNearbyItems=" + minNearbyItems +
                 ", mergeRange=" + mergeRange);
         }

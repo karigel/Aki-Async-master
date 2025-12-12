@@ -5,19 +5,20 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.RedStoneWireBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import javax.annotation.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.virgil.akiasync.mixin.async.redstone.PandaWireEvaluator;
-
+import org.virgil.akiasync.mixin.util.BridgeConfigCache;
 
 @Mixin(RedStoneWireBlock.class)
 public class RedstoneWireOptimizationMixin {
     
-    // Paper compatible: updatePowerStrength signature without Orientation
     @Inject(method = "updatePowerStrength", at = @At("HEAD"), cancellable = true)
     private void aki$usePandaWire(Level level, BlockPos pos, BlockState state, 
+                                  @Nullable Object orientation, boolean updateShape, 
                                   CallbackInfo ci) {
         if (!(level instanceof ServerLevel serverLevel)) {
             return;
@@ -30,18 +31,14 @@ public class RedstoneWireOptimizationMixin {
             return;
         }
 
-
         PandaWireEvaluator evaluator = org.virgil.akiasync.mixin.async.redstone.RedstoneWireHelper.getOrCreateEvaluator(
             serverLevel, 
             (RedStoneWireBlock)(Object)this
         );
         
-
         evaluator.evaluateWire(pos, state);
 
-        if (bridge.isDebugLoggingEnabled()) {
-            bridge.debugLog("[AkiAsync-Redstone] Enhanced PandaWire evaluation at %s", pos);
-        }
+        BridgeConfigCache.debugLog("[AkiAsync-Redstone] Enhanced PandaWire evaluation at %s", pos);
 
         ci.cancel();
     }
